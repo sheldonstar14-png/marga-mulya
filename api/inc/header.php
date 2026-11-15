@@ -1,0 +1,45 @@
+<?php
+// Bagian atas setiap halaman. Sebelum memanggil file ini, halaman mengisi:
+//   $judul = judul tab browser, $menu = menu yang sedang aktif
+$judul = $judul ?? setting('nama_desa');
+$menu  = $menu ?? '';
+$daftarMenu = [
+    ''          => 'Beranda',
+    'profil'    => 'Profil',
+    'data-desa' => 'Data Desa',
+    'wisata'    => 'Wisata',
+    'reservasi' => 'Reservasi',
+    'umkm'      => 'UMKM',
+    'agenda'    => 'Agenda & Berita',
+    'galeri'    => 'Galeri',
+    'kontak'    => 'Kontak',
+];
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?= e($judul) ?></title>
+  <meta name="description" content="<?= e(setting('hero_teks')) ?>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="/">
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="10" fill="#2B5A28"/><path d="M6 28c6-3 20-3 26 0M6 22c6-3 20-3 26 0M8 16c5-2.6 17-2.6 22 0" stroke="#C9DC6B" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="27" cy="10" r="3.4" fill="#E2A529"/></svg>
+      <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?></small></span>
+    </a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="nav" id="menuBtn">Menu</button>
+    <nav class="nav" id="nav" aria-label="Menu utama">
+      <?php foreach ($daftarMenu as $alamat => $label): ?>
+        <a href="/<?= $alamat ?>" class="<?= $menu === $alamat ? 'on' : '' ?>"><?= e($label) ?></a>
+      <?php endforeach; ?>
+    </nav>
+  </div>
+</header>
+<main>
