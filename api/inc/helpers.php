@@ -97,3 +97,49 @@ function per_baris(string $teks): array
 {
     return array_values(array_filter(array_map('trim', preg_split('/\r\n|\n|\\\\n/', $teks))));
 }
+
+// ---------- Tambahan Fase 3 ----------
+
+// Pindah ke halaman lain (dipakai setelah form berhasil dikirim)
+function redirect(string $alamat): never
+{
+    header('Location: ' . $alamat, true, 303);
+    exit;
+}
+
+// Ubah daftar titik peta menjadi teks JSON yang aman ditaruh di atribut HTML
+function titik_peta(array $titik): string
+{
+    return e(json_encode($titik, JSON_UNESCAPED_UNICODE));
+}
+
+// Jumlah pengunjung yang sudah memesan untuk satu destinasi di satu tanggal
+function terpakai(int $wisataId, string $tanggal): int
+{
+    $baris = q1(
+        "SELECT COALESCE(SUM(jumlah), 0) AS total FROM reservasi
+         WHERE wisata_id = ? AND tanggal = ? AND status <> 'Dibatalkan'",
+        [$wisataId, $tanggal]
+    );
+    return (int) $baris['total'];
+}
+
+// Kode reservasi acak yang belum pernah dipakai, contoh: MM-K7Q2PX
+function kode_reservasi_baru(): string
+{
+    $huruf = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // tanpa O, 0, I, 1 supaya tidak tertukar
+    do {
+        $kode = 'MM-';
+        for ($i = 0; $i < 6; $i++) {
+            $kode .= $huruf[random_int(0, strlen($huruf) - 1)];
+        }
+    } while (q1('SELECT id FROM reservasi WHERE kode = ?', [$kode]));
+    return $kode;
+}
+
+// Nomor HP Indonesia ke format WhatsApp: 0812... -> 62812...
+function nomor_wa(string $nomor): string
+{
+    $angka = preg_replace('/\D/', '', $nomor);
+    return str_starts_with($angka, '0') ? '62' . substr($angka, 1) : $angka;
+}

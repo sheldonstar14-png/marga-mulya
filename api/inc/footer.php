@@ -23,5 +23,13 @@
     tombol.setAttribute('aria-expanded', nav.classList.contains('open'));
   });
 </script>
+<?php if (!empty($pakaiPeta)): ?>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/assets/js/peta.js"></script>
+<?php endif; ?>
+<?php if (!empty($pakaiCuaca)): ?>
+<script src="/assets/js/cuaca.js"></script>
+<?php endif; ?>
+<?= $scriptHalaman ?? '' ?>
 </body>
 </html>

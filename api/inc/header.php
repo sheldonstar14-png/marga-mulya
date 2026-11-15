@@ -1,6 +1,7 @@
 <?php
 // Bagian atas setiap halaman. Sebelum memanggil file ini, halaman mengisi:
 //   $judul = judul tab browser, $menu = menu yang sedang aktif
+//   $pakaiPeta = true kalau halaman butuh peta, $pakaiCuaca = true kalau butuh cuaca
 $judul = $judul ?? setting('nama_desa');
 $menu  = $menu ?? '';
 $daftarMenu = [
@@ -25,6 +26,9 @@ $daftarMenu = [
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <?php if (!empty($pakaiPeta)): ?>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <?php endif; ?>
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>

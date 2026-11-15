@@ -3,6 +3,7 @@
 // ROUTER: semua alamat website masuk ke file ini (lihat vercel.json),
 // lalu file ini memilih halaman mana yang ditampilkan.
 // =========================================================
+date_default_timezone_set('Asia/Jakarta'); // tanggal & jam mengikuti WIB, bukan jam server
 require __DIR__ . '/config.php';
 require __DIR__ . '/inc/helpers.php';
 
@@ -22,6 +23,7 @@ $rute = [
     'agenda'    => 'agenda',
     'galeri'    => 'galeri',
     'kontak'    => 'kontak',
+    'kuota'     => 'kuota',   // bukan halaman: data sisa kuota (JSON) untuk form reservasi
 ];
 
 if ($depan === 'wisata' && isset($parts[1])) {
@@ -35,8 +37,7 @@ if ($depan === 'wisata' && isset($parts[1])) {
 
 $file = __DIR__ . '/pages/' . $halaman . '.php';
 if (!is_file($file)) {
-    // Halaman yang ada di menu tapi belum dibuat
-    $file = isset($rute[$depan]) || $halaman === 'wisata-detail' ? __DIR__ . '/pages/segera.php' : __DIR__ . '/pages/404.php';
+    $file = __DIR__ . '/pages/404.php';
 }
 if (basename($file) === '404.php') {
     http_response_code(404);

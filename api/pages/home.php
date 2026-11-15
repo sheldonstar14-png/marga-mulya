@@ -9,6 +9,7 @@ $berita = q('SELECT judul, tanggal, isi, foto FROM berita ORDER BY tanggal DESC,
 
 $judul = setting('nama_desa');
 $menu  = '';
+$pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 ?>
 <div class="hero">
@@ -29,9 +30,9 @@ require __DIR__ . '/../inc/header.php';
         <a class="btn btn-ghost" href="/wisata">Lihat destinasi</a>
       </div>
     </div>
-    <aside class="wx">
+    <aside class="wx" aria-live="polite" data-cuaca data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" data-sub="Pusat desa">
       <h3>Cuaca 7 hari ke depan</h3>
-      <p class="wx-note">Panel prakiraan cuaca ditambahkan di Fase 3.</p>
+      <p class="wx-note">Memuat prakiraan cuaca...</p>
     </aside>
   </div>
 </div>
