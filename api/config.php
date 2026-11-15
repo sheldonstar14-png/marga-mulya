@@ -22,9 +22,8 @@ function db(): PDO
 
     // Database online wajib koneksi aman (SSL)
     if (getenv('DB_SSL') === '1') {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = __DIR__ . '/isrgrootx1.pem';
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
-    }
+    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+}
 
     $dsn = "mysql:host=$host;port=$port;dbname=$name;charset=utf8mb4";
     $pdo = new PDO($dsn, $user, $pass, $options);
