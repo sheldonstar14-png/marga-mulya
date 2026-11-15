@@ -40,8 +40,8 @@ $daftarMenu = [
     </a>
     <button class="menu-btn" aria-expanded="false" aria-controls="nav" id="menuBtn">Menu</button>
     <nav class="nav" id="nav" aria-label="Menu utama">
-      <?php foreach ($daftarMenu as $alamat => $label): ?>
-        <a href="/<?= $alamat ?>" class="<?= $menu === $alamat ? 'on' : '' ?>"><?= e($label) ?></a>
+      <?php foreach ($daftarMenu as $alamatMenu => $labelMenu): ?>
+        <a href="/<?= $alamatMenu ?>" class="<?= $menu === $alamatMenu ? 'on' : '' ?>"><?= e($labelMenu) ?></a>
       <?php endforeach; ?>
     </nav>
   </div>

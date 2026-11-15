@@ -255,3 +255,10 @@ dialog.lb img{width:100%;border-radius:var(--r-m);background:#E3EAD3}
 dialog.lb .lb-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;color:var(--paper)}
 .wx-now{flex:none}
 .wx-now > div{min-width:max-content}
+
+/* ---------- Tambahan Fase 4 (CMS) ---------- */
+.side-link{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#DCE4D6;text-decoration:none;padding:9px 10px;border-radius:var(--r-s);font-size:.95rem;min-height:40px}
+.side-link.on,.side-link:hover{background:rgba(201,220,107,.16);color:#fff}
+.actions form{margin:0}
+.btn:disabled{opacity:.55;cursor:wait}
+@media (max-width:820px){.side-link{white-space:nowrap;flex:none}}

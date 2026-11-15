@@ -26,7 +26,9 @@ $rute = [
     'kuota'     => 'kuota',   // bukan halaman: data sisa kuota (JSON) untuk form reservasi
 ];
 
-if ($depan === 'wisata' && isset($parts[1])) {
+if ($depan === 'admin') {
+    $halaman = 'admin/index';   // semua alamat /admin/... diatur oleh pages/admin/index.php
+} elseif ($depan === 'wisata' && isset($parts[1])) {
     $halaman = 'wisata-detail';
     $slug = $parts[1];
 } elseif (isset($rute[$depan]) && count($parts) <= 1) {
@@ -47,8 +49,8 @@ ob_start(); // tampung dulu hasil halaman, supaya bisa dibatalkan kalau ada erro
 try {
     require $file;
     ob_end_flush();
-} catch (PDOException $e) {
-    // Database bermasalah: buang halaman setengah jadi, tampilkan pesan yang jelas
+} catch (Throwable $e) {
+    // Database atau pengaturan bermasalah: buang halaman setengah jadi, tampilkan pesan yang jelas
     ob_end_clean();
     http_response_code(500);
     $pesanError = $e->getMessage();
