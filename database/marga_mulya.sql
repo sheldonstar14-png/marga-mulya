@@ -171,7 +171,8 @@ INSERT INTO pengaturan (kunci, nilai) VALUES
 ('batas_utara', 'Desa Sukamanah'),
 ('batas_timur', 'Desa Cikadu'),
 ('batas_selatan', 'Hutan lindung Gunung Pasir'),
-('batas_barat', 'Desa Mekarjaya');
+('batas_barat', 'Desa Mekarjaya'),
+('kredit_foto', '');
 
 INSERT INTO aparat (jabatan, nama, urutan) VALUES
 ('Kepala Desa', 'Hj. Siti Rahmawati, S.Sos.', 1),

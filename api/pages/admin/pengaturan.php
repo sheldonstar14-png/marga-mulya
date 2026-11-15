@@ -33,6 +33,7 @@ $grup = [
             'wa'          => ['Nomor WhatsApp desa', 'text'],
             'lat'         => ['Lintang kantor desa (latitude)', 'text'],
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
+            'kredit_foto' => ['Kredit foto (opsional, tampil di bagian paling bawah website)', 'area'],
         ],
     ],
 ];
@@ -47,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '') $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && $kunci !== 'kredit_foto') $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';

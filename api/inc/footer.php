@@ -14,6 +14,9 @@
       <p><?= e(setting('jam_layanan')) ?><br><?= e(setting('email')) ?><br>WhatsApp +<?= e(setting('wa')) ?></p>
     </div>
   </div>
+  <?php if (setting('kredit_foto') !== ''): ?>
+    <div class="wrap"><p class="small" style="margin:24px 0 0;opacity:.8"><?= nl2br(e(setting('kredit_foto'))) ?></p></div>
+  <?php endif; ?>
 </footer>
 <script>
   // Tombol menu untuk layar HP

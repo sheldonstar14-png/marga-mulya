@@ -23,6 +23,11 @@ $daftarMenu = [
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($judul) ?></title>
   <meta name="description" content="<?= e(setting('hero_teks')) ?>">
+  <meta name="theme-color" content="#2B5A28">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="<?= e($judul) ?>">
+  <meta property="og:description" content="<?= e(setting('hero_teks')) ?>">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -32,6 +37,7 @@ $daftarMenu = [
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
+<a class="skip" href="#isi">Langsung ke isi halaman</a>
 <header class="top">
   <div class="top-in">
     <a class="brand" href="/">
@@ -46,4 +52,4 @@ $daftarMenu = [
     </nav>
   </div>
 </header>
-<main>
+<main id="isi">
