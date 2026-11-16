@@ -52,17 +52,25 @@ function kirim_email(string $ke, string $subjek, string $html): true|string
         $perintah("MAIL FROM:<$user>", '250');
         $perintah("RCPT TO:<$ke>", '250');
         $perintah('DATA', '354');
+        // Versi teks biasa untuk email yang sama: email yang hanya berisi HTML lebih sering dianggap spam
+        $teks = html_entity_decode(strip_tags(preg_replace(['#<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>#is', '#<(br|/p|/div|/h[1-6]|/tr|/li)[^>]*>#i'], ["$2 ($1)", "\n"], $html)), ENT_QUOTES, 'UTF-8');
+        $teks = trim(preg_replace("/\n\s*\n+/", "\n\n", preg_replace('/[ \t]+/', ' ', $teks)));
+        $batas = 'mm-' . bin2hex(random_bytes(8));
+        $domain = substr(strrchr($user, '@'), 1) ?: 'gmail.com';
         $kepala = [
             'Date: ' . date('r'),
             'From: =?UTF-8?B?' . base64_encode(setting('nama_desa')) . "?= <$user>",
+            "Reply-To: <$user>",
             "To: <$ke>",
             'Subject: =?UTF-8?B?' . base64_encode($subjek) . '?=',
-            'Message-ID: <' . bin2hex(random_bytes(12)) . '@marga-mulya>',
+            'Message-ID: <' . bin2hex(random_bytes(12)) . "@$domain>",
             'MIME-Version: 1.0',
-            'Content-Type: text/html; charset=UTF-8',
-            'Content-Transfer-Encoding: base64',
+            "Content-Type: multipart/alternative; boundary=\"$batas\"",
         ];
-        fwrite($s, implode("\r\n", $kepala) . "\r\n\r\n" . chunk_split(base64_encode($html)) . "\r\n.\r\n");
+        $isi = "--$batas\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" . chunk_split(base64_encode($teks))
+             . "--$batas\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" . chunk_split(base64_encode($html))
+             . "--$batas--\r\n";
+        fwrite($s, implode("\r\n", $kepala) . "\r\n\r\n" . $isi . "\r\n.\r\n");
         $perintah('', '250');
         $perintah('QUIT', '221');
     } catch (Throwable $e) {
