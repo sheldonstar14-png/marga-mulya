@@ -50,6 +50,7 @@ $rute = [
     'kontak'    => 'kontak',
     'kuota'     => 'kuota',   // bukan halaman: data sisa kuota (JSON) untuk form reservasi
     'asisten'   => 'asisten', // bukan halaman: jawaban Asisten Desa (JSON)
+    'laporan-otomatis' => 'laporan-otomatis', // bukan halaman: dipanggil Vercel Cron tiap tanggal 1
 ];
 
 if ($depan === 'admin') {

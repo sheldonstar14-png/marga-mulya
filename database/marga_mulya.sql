@@ -425,9 +425,9 @@ INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 -- Akun demo. Kata sandi semuanya: desa123 (ganti sebelum website dipakai sungguhan)
 INSERT INTO admin (nama, username, password_hash, peran, akses) VALUES
 ('Hj. Siti Rahmawati', 'admin', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Super admin', NULL),
-('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,ulasan,aspirasi,privasi,layanan,faq,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat,apbdes,pembangunan,bantuan,darurat,fasilitas,sampah'),
+('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,ulasan,aspirasi,privasi,layanan,faq,laporan,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat,apbdes,pembangunan,bantuan,darurat,fasilitas,sampah'),
 ('Jurnalis Desa', 'sayajurnalis', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'berita,galeri'),
-('Pengelola Data Desa', 'datapublik', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas'),
+('Pengelola Data Desa', 'datapublik', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas,laporan'),
 ('Pengelola Wisata', 'pengelolawisata', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'reservasi,pesan,ulasan,wisata,budaya,umkm');
 
 -- Kode etik khusus destinasi
@@ -620,3 +620,9 @@ UPDATE reservasi SET kupon = 'HIJAU-0322', kupon_dipakai_pada = CURRENT_TIMESTAM
 UPDATE reservasi SET kupon = 'HIJAU-0350', kupon_dipakai_pada = CURRENT_TIMESTAMP, kupon_umkm = 'Anyaman Rukun' WHERE kode = 'MM-0350' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0377' WHERE kode = 'MM-0377' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0429' WHERE kode = 'MM-0429' AND kupon IS NULL;
+
+-- ---------- Fase 11: laporan bulanan ----------
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('email_laporan', ''),
+('laporan_terakhir', '');
+

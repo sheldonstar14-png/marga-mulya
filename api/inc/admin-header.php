@@ -11,6 +11,7 @@ $grupMenu = [
     'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'layanan' => 'Layanan surat', 'faq' => 'Asisten desa (FAQ)', 'ulasan' => 'Ulasan'],
     'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'darurat' => 'Nomor darurat'],
+    'Laporan' => ['laporan' => 'Laporan bulanan'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'sampah' => 'Bank sampah'],
 ];
 $grupMenu['Sistem'] = ['akun' => 'Akun admin', 'pengaturan' => 'Pengaturan'];

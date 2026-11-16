@@ -465,3 +465,12 @@ a.dampak-besar:hover{background:#244C21}
 .asisten-catatan{font-size:.72rem;color:var(--muted);margin:0;padding:0 12px 10px}
 @media (max-width:520px){.asisten-btn span{display:none}.asisten-btn{padding:12px}.asisten-panel{right:8px;bottom:8px;width:calc(100vw - 16px);height:calc(100vh - 80px)}}
 @media print{.asisten-btn,.asisten-panel{display:none!important}}
+
+/* ---------- Tambahan Fase 11: laporan bulanan ---------- */
+.laporan-kertas{max-width:820px;background:#fff}
+@media print{
+  .side,.laporan-alat,.admin-top,.alert,.asisten-btn,.asisten-panel{display:none!important}
+  .laporan-kertas{border:0!important;box-shadow:none!important;padding:0!important;max-width:none}
+  body{background:#fff}
+}
+@media print{.admin{display:block!important}.admin-main{padding:0!important;margin:0!important}}

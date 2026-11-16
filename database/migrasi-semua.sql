@@ -1,5 +1,5 @@
 -- =========================================================
--- MIGRASI SEMUA (Fase 7A, 7B, 8, 9, dan 10 sekaligus)
+-- MIGRASI SEMUA (Fase 7A, 7B, 8, 9, 10, dan 11 sekaligus)
 -- AMAN dijalankan berkali-kali: yang sudah ada dilewati, data tidak dihapus,
 -- isian admin di CMS tidak ditimpa.
 -- Pakai file ini kalau web menampilkan "Kode gangguan DB-STRUKTUR",
@@ -338,3 +338,11 @@ UPDATE reservasi SET kupon = 'HIJAU-0322', kupon_dipakai_pada = CURRENT_TIMESTAM
 UPDATE reservasi SET kupon = 'HIJAU-0350', kupon_dipakai_pada = CURRENT_TIMESTAMP, kupon_umkm = 'Anyaman Rukun' WHERE kode = 'MM-0350' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0377' WHERE kode = 'MM-0377' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0429' WHERE kode = 'MM-0429' AND kupon IS NULL;
+
+-- ######### FASE 11: laporan bulanan #########
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('email_laporan', ''),
+('laporan_terakhir', '');
+
+-- Akun pengelola data ikut bisa membuka laporan bulanan
+UPDATE admin SET akses = CONCAT(akses, ',laporan') WHERE akses LIKE '%statistik%' AND akses NOT LIKE '%laporan%';

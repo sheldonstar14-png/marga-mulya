@@ -37,6 +37,7 @@ $grup = [
             'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
             'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
             'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
+            'email_laporan' => ['Email penerima laporan bulanan, misalnya kepala desa (boleh lebih dari satu, pisahkan koma)', 'text'],
             'tiket_hijau_aktif' => ['Tiket Hijau aktif? Isi 1 untuk aktif, 0 untuk mati', 'text'],
             'tiket_hijau_skor' => ['Skor hijau yang mendapat kupon (pisahkan koma, contoh A,B)', 'text'],
             'tiket_hijau_nilai' => ['Nilai kupon dalam rupiah (angka saja, untuk laporan dampak)', 'text'],
@@ -58,9 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
+    if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
     if (isset($baru['simpan_data_hari']) && (!ctype_digit($baru['simpan_data_hari']) || (int) $baru['simpan_data_hari'] < 30)) $errors[] = 'Lama penyimpanan data pribadi berupa angka hari, minimal 30.';
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
 
