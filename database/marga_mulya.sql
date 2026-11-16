@@ -57,6 +57,7 @@ CREATE TABLE wisata (
   deskripsi TEXT NOT NULL,
   fasilitas VARCHAR(255) NOT NULL DEFAULT '',
   tips VARCHAR(255) NOT NULL DEFAULT '',
+  kode_etik TEXT NULL,
   lat DECIMAL(9,6) NOT NULL,
   lng DECIMAL(9,6) NOT NULL,
   foto VARCHAR(255) NULL,
@@ -145,7 +146,8 @@ CREATE TABLE admin (
   nama VARCHAR(150) NOT NULL,
   username VARCHAR(50) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  peran VARCHAR(20) NOT NULL DEFAULT 'Operator'
+  peran VARCHAR(20) NOT NULL DEFAULT 'Petugas',
+  akses TEXT NULL
 );
 
 -- =========================================================
@@ -172,7 +174,8 @@ INSERT INTO pengaturan (kunci, nilai) VALUES
 ('batas_timur', 'Desa Cikadu'),
 ('batas_selatan', 'Hutan lindung Gunung Pasir'),
 ('batas_barat', 'Desa Mekarjaya'),
-('kredit_foto', '');
+('kredit_foto', ''),
+('kode_etik_umum', 'Bawa botol minum dan wadah makan sendiri untuk mengurangi sampah plastik.\nBawa pulang kembali semua sampahmu.\nJangan memetik, merusak, atau membawa pulang tanaman dan batu.\nHormati warga, adat, dan kegiatan setempat.');
 
 INSERT INTO aparat (jabatan, nama, urutan) VALUES
 ('Kepala Desa', 'Hj. Siti Rahmawati, S.Sos.', 1),
@@ -306,7 +309,16 @@ INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 ('Andi', 'andi@contoh.id', 'Wisata', 'Apakah curug bisa dikunjungi rombongan 40 orang?', 0),
 ('Bu Sri', '081200000007', 'Layanan administrasi', 'Syarat membuat surat keterangan usaha apa saja?', 1);
 
--- Akun demo. Kata sandi keduanya: desa123 (ganti sebelum website dipakai sungguhan)
-INSERT INTO admin (nama, username, password_hash, peran) VALUES
-('Hj. Siti Rahmawati', 'admin', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Super admin'),
-('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Operator');
+-- Akun demo. Kata sandi semuanya: desa123 (ganti sebelum website dipakai sungguhan)
+INSERT INTO admin (nama, username, password_hash, peran, akses) VALUES
+('Hj. Siti Rahmawati', 'admin', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Super admin', NULL),
+('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat'),
+('Jurnalis Desa', 'sayajurnalis', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'berita,galeri'),
+('Pengelola Data Desa', 'datapublik', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'statistik,profil,aparat'),
+('Pengelola Wisata', 'pengelolawisata', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'reservasi,pesan,wisata,budaya,umkm');
+
+-- Kode etik khusus destinasi
+UPDATE wisata SET kode_etik = 'Berjalan hanya di pematang dan jalur yang disediakan, jangan menginjak tanaman padi.\nJangan menerbangkan drone di atas sawah tanpa izin pengelola.' WHERE slug = 'terasering';
+UPDATE wisata SET kode_etik = 'Dilarang memakai sabun, sampo, atau deterjen di kolam curug.\nIkuti petunjuk petugas saat jalur ditutup karena hujan.' WHERE slug = 'curug';
+UPDATE wisata SET kode_etik = 'Minta izin sebelum memotret pengrajin dan rumahnya.' WHERE slug = 'anyaman';
+UPDATE wisata SET kode_etik = 'Petik hanya buah yang ditunjuk petugas, jangan mematahkan ranting.' WHERE slug = 'jeruk';

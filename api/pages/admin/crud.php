@@ -14,12 +14,24 @@ $tabel = $c['tabel'];
 $alamat = '/admin/' . $kunciCrud;
 $errors = [];
 
+// Pilihan dropdown: dari pengaturan + pilihan baru yang pernah ditambahkan admin
+function pilihan_dropdown(array $c, string $nama, array $opsi): array
+{
+    $pilihan = $opsi['pilihan'];
+    if (!empty($opsi['bisaTambah'])) {
+        foreach (q("SELECT DISTINCT $nama AS v FROM {$c['tabel']} ORDER BY $nama") as $b) {
+            if ($b['v'] !== null && $b['v'] !== '' && !in_array($b['v'], $pilihan, true)) $pilihan[] = $b['v'];
+        }
+    }
+    return $pilihan;
+}
+
 // ---------- Ambil isian form dan periksa ----------
 function ambil_isian(array $c, ?int $id, array &$errors): array
 {
     $data = [];
     foreach ($c['field'] as [$nama, $label, $jenis, $opsi]) {
-        $nilai = trim((string) ($_POST[$nama] ?? ''));
+        $nilai = is_array($_POST[$nama] ?? null) ? '' : trim((string) ($_POST[$nama] ?? ''));
         $wajib = !empty($opsi['wajib']);
 
         switch ($jenis) {
@@ -38,8 +50,18 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 $data[$nama] = $nilai;
                 break;
             case 'select':
-                if (!in_array($nilai, $opsi['pilihan'], true)) { $errors[] = "Pilih \"$label\" dari daftar."; break; }
+                if (!empty($opsi['bisaTambah']) && $nilai === '__baru__') {
+                    $baru = trim(preg_replace('/\s+/', ' ', (string) ($_POST[$nama . '__baru'] ?? '')));
+                    if (mb_strlen($baru) < 2 || mb_strlen($baru) > 40) { $errors[] = "Pilihan baru untuk \"$label\" harus 2 sampai 40 karakter."; break; }
+                    $data[$nama] = $baru;
+                    break;
+                }
+                if (!in_array($nilai, pilihan_dropdown($c, $nama, $opsi), true)) { $errors[] = "Pilih \"$label\" dari daftar."; break; }
                 $data[$nama] = $nilai;
+                break;
+            case 'akses':
+                $dipilih = array_intersect(array_keys(MENU_PETUGAS), (array) ($_POST['akses'] ?? []));
+                $data[$nama] = implode(',', $dipilih);
                 break;
             case 'peta':
                 $lat = trim((string) ($_POST['lat'] ?? ''));
@@ -147,9 +169,30 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
           <textarea id="f-<?= $nama ?>" name="<?= $nama ?>" rows="5"<?= $wajib ?>><?= e($v) ?></textarea>
         <?php elseif ($jenis === 'select'): ?>
           <label for="f-<?= $nama ?>"><?= e($label) ?></label>
-          <select id="f-<?= $nama ?>" name="<?= $nama ?>">
-            <?php foreach ($opsi['pilihan'] as $p): ?><option <?= (string) $v === $p ? 'selected' : '' ?>><?= e($p) ?></option><?php endforeach; ?>
+          <select id="f-<?= $nama ?>" name="<?= $nama ?>" <?= !empty($opsi['bisaTambah']) ? 'class="bisa-tambah"' : '' ?>>
+            <?php foreach (pilihan_dropdown($c, $nama, $opsi) as $p): ?><option <?= (string) $v === $p ? 'selected' : '' ?>><?= e($p) ?></option><?php endforeach; ?>
+            <?php if (!empty($opsi['bisaTambah'])): ?><option value="__baru__" <?= $v === '__baru__' ? 'selected' : '' ?>>+ Tambah pilihan baru...</option><?php endif; ?>
           </select>
+          <?php if (!empty($opsi['bisaTambah'])): ?>
+            <input id="f-<?= $nama ?>-baru" name="<?= $nama ?>__baru" class="pilihan-baru" value="<?= e($nilai[$nama . '__baru'] ?? '') ?>" placeholder="Ketik pilihan baru, contoh: Edukasi" maxlength="40" style="margin-top:8px" aria-label="Pilihan baru untuk <?= e($label) ?>">
+          <?php endif; ?>
+        <?php elseif ($jenis === 'akses'):
+          $terpilih = $v === null ? array_keys(MENU_PETUGAS) : (is_array($v) ? $v : explode(',', (string) $v)); ?>
+          <fieldset class="akses-box" style="border:0;padding:0;margin:0">
+            <legend style="font-weight:700;margin-bottom:8px"><?= e($label) ?></legend>
+            <div class="chips" style="margin-bottom:10px">
+              <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
+              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat">Paket pengelola data</button>
+              <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,wisata,budaya,umkm">Paket pengelola wisata</button>
+              <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
+            </div>
+            <div class="cek-grid">
+              <?php foreach (MENU_PETUGAS as $kunciMenu => $labelMenu): ?>
+                <label class="cek"><input type="checkbox" name="akses[]" value="<?= $kunciMenu ?>" <?= in_array($kunciMenu, $terpilih, true) ? 'checked' : '' ?>> <?= e($labelMenu) ?></label>
+              <?php endforeach; ?>
+            </div>
+            <div class="hint">Super admin otomatis bisa membuka semua menu, termasuk Akun admin dan Pengaturan.</div>
+          </fieldset>
         <?php elseif ($jenis === 'check'): ?>
           <label style="display:flex;gap:10px;align-items:center;font-weight:400">
             <input type="checkbox" name="<?= $nama ?>" value="1" style="width:22px;height:22px" <?= !empty($v) ? 'checked' : '' ?>> <?= e($label) ?>
@@ -217,6 +260,7 @@ else:
                 <?php elseif ($f === 'rupiah'): ?><?= rupiah($v) ?>
                 <?php elseif ($f === 'angka'): ?><?= angka($v) ?>
                 <?php elseif ($f === 'tanggal'): ?><?= tgl($v) ?>
+                <?php elseif ($f === 'akses'): ?><?= $baris['peran'] === 'Super admin' ? 'Semua menu' : (e(implode(', ', array_map(fn($k) => MENU_PETUGAS[$k], akses_admin($baris)))) ?: '<span class="muted">Belum ada</span>') ?>
                 <?php elseif ($f === 'yatidak'): ?><?= $v ? 'Ya' : '<span class="status st-Dibatalkan">Disembunyikan</span>' ?>
                 <?php else: ?><?= e($v) ?><?php endif; ?>
               </td>

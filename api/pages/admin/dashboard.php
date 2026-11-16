@@ -3,14 +3,16 @@
 // DASHBOARD CMS
 // =========================================================
 $hariIni = date('Y-m-d');
+$lihatReservasi = boleh($admin, 'reservasi');
+$lihatPesan = boleh($admin, 'pesan');
 $sepekan = date('Y-m-d', strtotime('+7 days'));
 
-$menunggu = q("SELECT r.kode, r.nama, r.tanggal, r.jumlah, w.nama AS wisata FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.status = 'Menunggu' ORDER BY r.tanggal LIMIT 5");
+$menunggu = !$lihatReservasi ? [] : q("SELECT r.kode, r.nama, r.tanggal, r.jumlah, w.nama AS wisata FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.status = 'Menunggu' ORDER BY r.tanggal LIMIT 5");
 $pengunjungSepekan = (int) q1("SELECT COALESCE(SUM(jumlah), 0) AS n FROM reservasi WHERE status IN ('Menunggu', 'Dikonfirmasi') AND tanggal BETWEEN ? AND ?", [$hariIni, $sepekan])['n'];
 $jumlahMenunggu = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'];
 $pesanBaru = (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibaca = 0')['n'];
 $jumlahUmkm = (int) q1('SELECT COUNT(*) AS n FROM umkm')['n'];
-$pesanTerbaru = q('SELECT nama, topik, isi FROM pesan ORDER BY id DESC LIMIT 3');
+$pesanTerbaru = $lihatPesan ? q('SELECT nama, topik, isi FROM pesan ORDER BY id DESC LIMIT 3') : [];
 
 // Pengunjung per bulan (6 bulan terakhir), dari reservasi yang dikonfirmasi atau selesai
 $bulanNama = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -38,6 +40,19 @@ $menuAdmin = 'dashboard';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Halo, <?= e(explode(',', $admin['nama'])[0]) ?></h2>
+<?php if (!$lihatReservasi): // akun petugas tanpa akses reservasi: tampilkan menu kerjanya saja ?>
+  <p class="muted">Ini menu yang bisa kamu kelola:</p>
+  <div class="stat-row">
+    <?php foreach (akses_admin($admin) as $kunciMenu): if (!isset(MENU_PETUGAS[$kunciMenu])) continue; ?>
+      <a class="stat" style="text-decoration:none;color:inherit" href="/admin/<?= $kunciMenu ?>"><span>Buka menu</span><b style="font-size:1.4rem"><?= e(MENU_PETUGAS[$kunciMenu]) ?></b></a>
+    <?php endforeach; ?>
+  </div>
+  <?php if ($lihatPesan): ?>
+    <div class="panel"><h3>Pesan terbaru</h3>
+      <?php foreach ($pesanTerbaru as $p): ?><p style="margin:0 0 10px"><b><?= e($p['nama']) ?></b> <span class="tag"><?= e($p['topik']) ?></span><br><span class="small muted"><?= e(mb_strimwidth($p['isi'], 0, 120, '...')) ?></span></p><?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+<?php else: ?>
 <div class="stat-row">
   <div class="stat"><span>Reservasi menunggu</span><b><?= $jumlahMenunggu ?></b></div>
   <div class="stat"><span>Pengunjung 7 hari ke depan</span><b><?= $pengunjungSepekan ?></b></div>
@@ -85,6 +100,7 @@ require __DIR__ . '/../../inc/admin-header.php';
   <p class="hint">Hijau: masih longgar. Kuning: terisi setengah. Merah: hampir penuh.</p>
 </div>
 
+<?php if ($lihatPesan): ?>
 <div class="panel" style="margin-top:20px">
   <h3>Pesan terbaru</h3>
   <?php foreach ($pesanTerbaru as $p): ?>
@@ -92,4 +108,6 @@ require __DIR__ . '/../../inc/admin-header.php';
   <?php endforeach; ?>
   <a class="btn btn-ghost btn-sm" href="/admin/pesan">Buka pesan masuk</a>
 </div>
+<?php endif; ?>
+<?php endif; ?>
 <?php require __DIR__ . '/../../inc/admin-footer.php'; ?>

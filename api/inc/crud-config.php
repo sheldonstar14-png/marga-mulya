@@ -18,7 +18,7 @@ $CRUD = [
         'format' => ['foto' => 'foto', 'harga' => 'rupiah', 'aktif' => 'yatidak'],
         'field' => [
             ['nama', 'Nama destinasi', 'text', ['wajib' => true, 'maks' => 150]],
-            ['jenis', 'Jenis', 'select', ['pilihan' => ['Alam', 'Budaya', 'Agrowisata', 'Edukasi']]],
+            ['jenis', 'Jenis', 'select', ['pilihan' => ['Alam', 'Budaya', 'Agrowisata', 'Edukasi'], 'bisaTambah' => true]],
             ['harga', 'Harga tiket per orang (Rp)', 'number', ['min' => 0]],
             ['kuota', 'Kuota pengunjung per hari', 'number', ['min' => 1]],
             ['jam_buka', 'Jam buka', 'text', ['wajib' => true, 'maks' => 60, 'contoh' => '08.00 sampai 16.00']],
@@ -26,6 +26,7 @@ $CRUD = [
             ['deskripsi', 'Deskripsi lengkap', 'textarea', ['wajib' => true]],
             ['fasilitas', 'Fasilitas (pisahkan dengan koma)', 'text', ['maks' => 255, 'contoh' => 'Parkir, Toilet, Warung']],
             ['tips', 'Tips untuk pengunjung', 'text', ['maks' => 255]],
+            ['kode_etik', 'Kode etik khusus destinasi ini (satu baris satu aturan, opsional)', 'textarea', ['contoh' => 'Dilarang memakai sabun di kolam']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
             ['foto', 'Foto utama', 'foto', []],
             ['aktif', 'Tampilkan di website', 'check', []],
@@ -63,7 +64,7 @@ $CRUD = [
         'format' => ['foto' => 'foto', 'harga' => 'rupiah'],
         'field' => [
             ['nama_usaha', 'Nama usaha', 'text', ['wajib' => true, 'maks' => 150]],
-            ['kategori', 'Kategori', 'select', ['pilihan' => ['Makanan', 'Kerajinan', 'Olahan tani', 'Jasa']]],
+            ['kategori', 'Kategori', 'select', ['pilihan' => ['Makanan', 'Kerajinan', 'Olahan tani', 'Jasa'], 'bisaTambah' => true]],
             ['produk', 'Nama produk', 'text', ['wajib' => true, 'maks' => 150]],
             ['harga', 'Harga (Rp)', 'number', ['min' => 0]],
             ['satuan', 'Satuan', 'text', ['wajib' => true, 'maks' => 40, 'contoh' => '250 g, buah, botol']],
@@ -110,7 +111,7 @@ $CRUD = [
         'field' => [
             ['foto', 'File foto', 'foto', ['wajib' => true]],
             ['judul', 'Keterangan foto', 'text', ['wajib' => true, 'maks' => 200]],
-            ['kategori', 'Kategori', 'select', ['pilihan' => ['Alam', 'Budaya', 'Kegiatan']]],
+            ['kategori', 'Kategori', 'select', ['pilihan' => ['Alam', 'Budaya', 'Kegiatan'], 'bisaTambah' => true]],
         ],
     ],
 
@@ -121,7 +122,7 @@ $CRUD = [
         'kolom' => ['kategori' => 'Kategori', 'label' => 'Label', 'nilai' => 'Nilai', 'satuan' => 'Satuan', 'urutan' => 'Urutan'],
         'format' => ['nilai' => 'angka'],
         'field' => [
-            ['kategori', 'Kategori', 'select', ['pilihan' => $KATEGORI_STATISTIK]],
+            ['kategori', 'Kategori', 'select', ['pilihan' => $KATEGORI_STATISTIK, 'bisaTambah' => true]],
             ['label', 'Label', 'text', ['wajib' => true, 'maks' => 120, 'contoh' => 'Petani']],
             ['nilai', 'Nilai', 'number', ['min' => 0, 'desimal' => true]],
             ['satuan', 'Satuan', 'text', ['wajib' => true, 'maks' => 30, 'contoh' => 'jiwa, unit, %']],
@@ -143,16 +144,17 @@ $CRUD = [
 
     'akun' => [
         'judul' => 'Akun admin', 'satu' => 'akun', 'tabel' => 'admin', 'urut' => 'id',
-        'superAdmin' => true,
-        'catatan' => 'Super admin bisa membuka semua menu. Operator tidak bisa membuka Akun admin dan Pengaturan. Kata sandi disimpan terenkripsi.',
-        'kolom' => ['nama' => 'Nama', 'username' => 'Nama pengguna', 'peran' => 'Peran'],
+        'catatan' => 'Super admin bisa membuka semua menu. Petugas hanya bisa membuka menu yang dicentang, jadi setiap orang cukup melihat data yang ia perlukan. Kata sandi disimpan terenkripsi.',
+        'kolom' => ['nama' => 'Nama', 'username' => 'Nama pengguna', 'peran' => 'Peran', 'akses' => 'Akses'],
+        'format' => ['akses' => 'akses'],
         'field' => [
             ['nama', 'Nama lengkap', 'text', ['wajib' => true, 'maks' => 150]],
             ['username', 'Nama pengguna', 'text', ['wajib' => true, 'maks' => 50]],
-            ['peran', 'Peran', 'select', ['pilihan' => ['Operator', 'Super admin']]],
+            ['peran', 'Peran', 'select', ['pilihan' => ['Petugas', 'Super admin']]],
+            ['akses', 'Menu yang boleh dibuka (untuk Petugas)', 'akses', []],
             ['password_hash', 'Kata sandi', 'password', []],
         ],
-        'baru' => ['peran' => 'Operator'],
+        'baru' => ['peran' => 'Petugas', 'akses' => ''],
         'sebelumSimpan' => function (array &$data, ?int $id): void {
             $data['username'] = strtolower($data['username']);
         },

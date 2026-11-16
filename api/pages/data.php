@@ -10,6 +10,12 @@ $grupData = [
     'Pertanian'  => ['Pertanian', 'Peternakan'],
     'Ekonomi'    => ['Ekonomi', 'Jalan desa'],
 ];
+// Kategori baru yang ditambahkan admin (di luar daftar di atas) masuk ke tombol "Lainnya"
+$sudahAda = [...array_merge(...array_values($grupData)), 'Lahan', 'Pemerintahan'];
+$lainnya = array_values(array_diff(array_column(q('SELECT DISTINCT kategori FROM statistik ORDER BY kategori'), 'kategori'), $sudahAda));
+if ($lainnya) {
+    $grupData['Lainnya'] = $lainnya;
+}
 $grup = $_GET['grup'] ?? 'Penduduk';
 if (!isset($grupData[$grup])) {
     $grup = 'Penduduk';

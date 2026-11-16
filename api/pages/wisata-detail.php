@@ -12,6 +12,15 @@ if (!$w) {
 }
 $fasilitas = array_filter(array_map('trim', explode(',', $w['fasilitas'])));
 $titik = [['lat' => (float) $w['lat'], 'lng' => (float) $w['lng'], 'nama' => $w['nama'], 'jenis' => 'pilih']];
+$aturan = kode_etik($w);
+
+// Kalender ketersediaan 14 hari mulai besok
+$hariKalender = array_map(fn($i) => date('Y-m-d', strtotime("+$i day")), range(1, 14));
+$terisi = [];
+foreach (q("SELECT tanggal, SUM(jumlah) AS n FROM reservasi WHERE wisata_id = ? AND status <> 'Dibatalkan' AND tanggal BETWEEN ? AND ? GROUP BY tanggal", [$w['id'], $hariKalender[0], end($hariKalender)]) as $r) {
+    $terisi[$r['tanggal']] = (int) $r['n'];
+}
+$namaHariPendek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
 $judul = $w['nama'] . ' - ' . setting('nama_desa');
 $menu  = 'wisata';
@@ -36,6 +45,32 @@ require __DIR__ . '/../inc/header.php';
         <div class="chips"><?php foreach ($fasilitas as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div>
       <?php endif; ?>
       <?php if ($w['tips']): ?><p class="cms-note">Tips pengelola: <?= e($w['tips']) ?></p><?php endif; ?>
+
+      <h2 style="margin-top:32px">Pilih tanggal kunjungan</h2>
+      <p class="muted">Sisa kuota 14 hari ke depan. Klik tanggal untuk langsung memesan. Ikon cuaca muncul untuk tanggal yang sudah ada prakiraannya.</p>
+      <div class="kalender" id="kalender" data-lat="<?= e($w['lat']) ?>" data-lng="<?= e($w['lng']) ?>">
+        <?php foreach ($hariKalender as $t):
+          $sisa = max(0, $w['kuota'] - ($terisi[$t] ?? 0));
+          $rasio = 1 - $sisa / max(1, $w['kuota']);
+          $kelas = $sisa === 0 ? 'q-full' : ($rasio >= .5 ? 'q-mid' : 'q-ok');
+          $isi = '<span>' . $namaHariPendek[(int) date('w', strtotime($t))] . '</span><b>' . tgl($t, 'tanggal') . '</b><span>' . tgl($t, 'bulan') . '</span>'
+               . '<span class="kal-cuaca" data-tgl="' . $t . '"></span><span>' . ($sisa === 0 ? 'Penuh' : 'Sisa ' . $sisa) . '</span>'; ?>
+          <?php if ($sisa === 0): ?>
+            <div class="kal <?= $kelas ?>" aria-label="<?= tgl($t, 'hari') ?>, kuota penuh"><?= $isi ?></div>
+          <?php else: ?>
+            <a class="kal <?= $kelas ?>" href="/reservasi?w=<?= e($w['slug']) ?>&amp;t=<?= $t ?>" aria-label="Pesan untuk <?= tgl($t, 'hari') ?>, sisa <?= $sisa ?> orang"><?= $isi ?></a>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </div>
+      <div class="legend-kal"><span style="--c:#DCEFD8">Masih longgar</span><span style="--c:#FCEFCF">Terisi lebih dari separuh</span><span style="--c:#F6DCD6">Penuh</span></div>
+
+      <?php if ($aturan): ?>
+        <div class="etik-box">
+          <h3>Kode etik pengunjung</h3>
+          <p class="small muted">Kuota harian <?= (int) $w['kuota'] ?> orang adalah batas daya tampung, supaya alam dan warga di sekitar <?= e($w['nama']) ?> tetap terjaga.</p>
+          <ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul>
+        </div>
+      <?php endif; ?>
     </div>
 
     <aside>
@@ -51,4 +86,24 @@ require __DIR__ . '/../inc/header.php';
     </aside>
   </div>
 </div>
-<?php require __DIR__ . '/../inc/footer.php'; ?>
+<?php
+// Tambahkan ikon cuaca ke kalender untuk tanggal yang sudah ada prakiraannya
+$scriptHalaman = <<<'JS'
+<script>
+(function () {
+  const kal = document.getElementById('kalender');
+  if (!kal || typeof ambilCuaca === 'undefined') return;
+  ambilCuaca(kal.dataset.lat, kal.dataset.lng).then(data => {
+    kal.querySelectorAll('[data-tgl]').forEach(el => {
+      const h = data.hari.find(x => x.tgl === el.dataset.tgl);
+      if (!h) return;
+      const [nama, jenis] = infoCuaca(h.kode);
+      el.innerHTML = ikonCuaca(jenis);
+      el.title = nama + ', peluang hujan ' + h.hujan + '%';
+    });
+  }).catch(() => {});
+})();
+</script>
+JS;
+require __DIR__ . '/../inc/footer.php';
+?>

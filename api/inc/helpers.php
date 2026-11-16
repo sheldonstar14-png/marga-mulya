@@ -143,3 +143,11 @@ function nomor_wa(string $nomor): string
     $angka = preg_replace('/\D/', '', $nomor);
     return str_starts_with($angka, '0') ? '62' . substr($angka, 1) : $angka;
 }
+
+// ---------- Tambahan Fase 7A ----------
+
+// Kode etik pengunjung: aturan khusus destinasi + aturan umum dari Pengaturan
+function kode_etik(array $wisata): array
+{
+    return array_values(array_unique([...per_baris((string) ($wisata['kode_etik'] ?? '')), ...per_baris(setting('kode_etik_umum'))]));
+}

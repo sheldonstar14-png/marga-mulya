@@ -27,6 +27,22 @@ $halamanAdmin = [
     'upload-sign' => 'upload-sign.php',
 ];
 
+// Cek hak akses menu ini (upload foto boleh bagi yang mengelola konten berfoto)
+$bolehBuka = $sub === 'upload-sign'
+    ? (boleh($admin, 'wisata') || boleh($admin, 'umkm') || boleh($admin, 'berita') || boleh($admin, 'galeri'))
+    : boleh($admin, $sub);
+if ((isset($halamanAdmin[$sub]) || isset($CRUD[$sub])) && !$bolehBuka) {
+    http_response_code(403);
+    if ($sub === 'upload-sign') {
+        exit(json_encode(['error' => 'Akun ini tidak punya akses upload foto.']));
+    }
+    $judulAdmin = 'Tidak ada akses';
+    require __DIR__ . '/../../inc/admin-header.php';
+    echo '<h2>Menu ini tidak tersedia untuk akunmu</h2><p class="muted">Minta Super admin menambahkan akses lewat menu Akun admin kalau kamu memang perlu membukanya.</p><p><a class="btn btn-dark btn-sm" href="/admin/dashboard">Kembali ke dashboard</a></p>';
+    require __DIR__ . '/../../inc/admin-footer.php';
+    return;
+}
+
 if (isset($halamanAdmin[$sub])) {
     require __DIR__ . '/' . $halamanAdmin[$sub];
 } elseif (isset($CRUD[$sub])) {

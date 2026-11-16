@@ -6,7 +6,7 @@
 //   GET  /reservasi?baru=MM-XXXXXX        -> tampilkan tiket setelah berhasil
 //   GET  /reservasi?cek=MM-XXXXXX         -> cek status
 // =========================================================
-$daftarWisata = q('SELECT id, slug, nama, jenis, harga, kuota, lat, lng FROM wisata WHERE aktif = 1 ORDER BY id');
+$daftarWisata = q('SELECT id, slug, nama, jenis, harga, kuota, lat, lng, kode_etik FROM wisata WHERE aktif = 1 ORDER BY id');
 $besok   = date('Y-m-d', strtotime('+1 day'));
 $batasAkhir = date('Y-m-d', strtotime('+60 days'));
 $errors  = [];
@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mb_strlen($isi['nama']) < 2 || mb_strlen($isi['nama']) > 150) $errors[] = 'Isi nama pemesan (2 sampai 150 huruf).';
     if (strlen($wa) < 10 || strlen($wa) > 15) $errors[] = 'Nomor WhatsApp 10 sampai 15 digit, contoh 081234567890.';
     if (mb_strlen($isi['catatan']) > 255) $errors[] = 'Catatan maksimal 255 huruf.';
+    if (empty($_POST['setuju'])) $errors[] = 'Centang persetujuan kode etik pengunjung sebelum mengirim.';
 
     if (!$errors) {
         $sisa = $w['kuota'] - terpakai($w['id'], $isi['tanggal']);
@@ -131,6 +132,19 @@ require __DIR__ . '/../inc/header.php';
     </div>
     <div class="hp" aria-hidden="true"><label for="website">Jangan diisi</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
 
+    <?php foreach ($daftarWisata as $w): $aturan = kode_etik($w); if (!$aturan) continue; ?>
+      <div class="etik-box kode-etik" data-wisata="<?= e($w['slug']) ?>" <?= $w['slug'] === $isi['wisata'] ? '' : 'hidden' ?>>
+        <h3 style="font-size:1.05rem">Kode etik pengunjung <?= e($w['nama']) ?></h3>
+        <ul class="etik small"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul>
+      </div>
+    <?php endforeach; ?>
+    <div class="field">
+      <label style="display:flex;gap:10px;align-items:flex-start;font-weight:400">
+        <input type="checkbox" name="setuju" value="1" required style="width:22px;height:22px;flex:none;margin-top:2px" <?= !empty($_POST['setuju']) ? 'checked' : '' ?>>
+        <span>Saya sudah membaca dan akan mematuhi kode etik pengunjung, termasuk menjaga kebersihan dan kelestarian alam desa.</span>
+      </label>
+    </div>
+
     <div class="card-foot" style="padding-top:0">
       <span>Total di lokasi: <b class="price" id="total">-</b></span>
       <button class="btn btn-main" type="submit">Kirim reservasi</button>
@@ -215,6 +229,11 @@ $scriptHalaman = <<<'JS'
       infoCuacaEl.innerHTML = '<div class="fdate">' + ikonCuaca(jenis) + '<div><b>' + nama + ', ' + h.min + '-' + h.maks + '°C, peluang hujan ' + h.hujan + '%</b><br><span class="small">' + saranCuaca(h.hujan, opsi.dataset.jenis, opsi.dataset.nama) + '</span></div></div>';
     }).catch(() => { infoCuacaEl.innerHTML = ''; });
   }
+
+  // Tampilkan kode etik destinasi yang dipilih
+  pilih.addEventListener('input', () => {
+    document.querySelectorAll('.kode-etik').forEach(k => { k.hidden = k.dataset.wisata !== pilih.value; });
+  });
 
   [pilih, tanggal, jumlah].forEach(el => el.addEventListener('input', perbarui));
   perbarui();

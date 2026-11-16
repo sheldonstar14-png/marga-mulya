@@ -86,6 +86,32 @@
   }
 })();
 
+// ---------- Dropdown: tambah pilihan baru ----------
+document.querySelectorAll('select.bisa-tambah').forEach(sel => {
+  const isian = document.getElementById(sel.id + '-baru');
+  const atur = () => {
+    const baru = sel.value === '__baru__';
+    isian.hidden = !baru;
+    isian.required = baru;
+    if (baru) isian.focus();
+  };
+  sel.addEventListener('change', atur);
+  isian.hidden = sel.value !== '__baru__';
+});
+
+// ---------- Akun: paket akses dan sembunyikan centang untuk Super admin ----------
+document.querySelectorAll('.preset-akses').forEach(b => b.addEventListener('click', () => {
+  const pilih = b.dataset.akses ? b.dataset.akses.split(',') : [];
+  document.querySelectorAll('input[name="akses[]"]').forEach(c => { c.checked = pilih.includes(c.value); });
+}));
+const peran = document.getElementById('f-peran');
+const kotakAkses = document.querySelector('.akses-box');
+if (peran && kotakAkses) {
+  const aturAkses = () => { kotakAkses.hidden = peran.value === 'Super admin'; };
+  peran.addEventListener('change', aturAkses);
+  aturAkses();
+}
+
 // Di layar HP, geser menu samping supaya menu yang aktif terlihat
 (function () {
   const aktif = document.querySelector('.side-link.on');

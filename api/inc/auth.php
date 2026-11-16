@@ -69,7 +69,7 @@ function admin_login(): ?array
     if (!is_array($data) || ($data['exp'] ?? 0) < time()) {
         return null; // sudah kedaluwarsa
     }
-    $admin = q1('SELECT id, nama, username, peran FROM admin WHERE id = ?', [(int) ($data['id'] ?? 0)]);
+    $admin = q1('SELECT id, nama, username, peran, akses FROM admin WHERE id = ?', [(int) ($data['id'] ?? 0)]);
     return $admin;
 }
 
@@ -88,6 +88,39 @@ function wajib_super_admin(array $admin): void
         http_response_code(403);
         exit('Menu ini hanya untuk Super admin. <a href="/admin/dashboard">Kembali ke dashboard</a>');
     }
+}
+
+// ---------- Hak akses per menu ----------
+// Menu yang bisa diberikan ke petugas. Akun admin dan Pengaturan khusus Super admin.
+const MENU_PETUGAS = [
+    'reservasi' => 'Reservasi',
+    'pesan'     => 'Pesan masuk',
+    'wisata'    => 'Wisata',
+    'budaya'    => 'Budaya',
+    'umkm'      => 'UMKM',
+    'agenda'    => 'Agenda',
+    'berita'    => 'Berita',
+    'galeri'    => 'Galeri',
+    'statistik' => 'Statistik desa',
+    'profil'    => 'Profil desa',
+    'aparat'    => 'Perangkat desa',
+];
+
+// Daftar menu yang boleh dibuka seorang admin
+function akses_admin(array $admin): array
+{
+    if ($admin['peran'] === 'Super admin') {
+        return [...array_keys(MENU_PETUGAS), 'akun', 'pengaturan'];
+    }
+    if ($admin['akses'] === null) {
+        return array_keys(MENU_PETUGAS); // akun lama sebelum Fase 7A: semua menu petugas
+    }
+    return array_values(array_intersect(array_keys(MENU_PETUGAS), explode(',', $admin['akses'])));
+}
+
+function boleh(array $admin, string $menu): bool
+{
+    return $menu === 'dashboard' || in_array($menu, akses_admin($admin), true);
 }
 
 // ---------- Perlindungan CSRF ----------

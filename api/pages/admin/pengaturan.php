@@ -34,6 +34,7 @@ $grup = [
             'lat'         => ['Lintang kantor desa (latitude)', 'text'],
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
             'kredit_foto' => ['Kredit foto (opsional, tampil di bagian paling bawah website)', 'area'],
+            'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
         ],
     ],
 ];
@@ -48,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && $kunci !== 'kredit_foto') $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
@@ -82,7 +83,7 @@ require __DIR__ . '/../../inc/admin-header.php';
     <div class="field">
       <label for="k-<?= $kunci ?>"><?= e($label) ?></label>
       <?php if ($jenis === 'area'): ?>
-        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= $kunci === 'misi' ? 5 : 3 ?>"><?= e($nilai) ?></textarea>
+        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
       <?php else: ?>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>">
       <?php endif; ?>

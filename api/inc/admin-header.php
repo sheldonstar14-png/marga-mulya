@@ -3,15 +3,18 @@
 // Nama variabel di file ini sengaja unik supaya tidak menimpa variabel milik halaman.
 header('Cache-Control: no-store'); // halaman admin tidak boleh disimpan di cache browser
 $superAdmin = $admin['peran'] === 'Super admin';
-$jumlahMenunggu = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'];
-$jumlahPesanBaru = (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibaca = 0')['n'];
+$jumlahMenunggu = boleh($admin, 'reservasi') ? (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'] : 0;
+$jumlahPesanBaru = boleh($admin, 'pesan') ? (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibaca = 0')['n'] : 0;
 $grupMenu = [
     'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk'],
     'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa'],
 ];
-if ($superAdmin) {
-    $grupMenu['Sistem'] = ['akun' => 'Akun admin', 'pengaturan' => 'Pengaturan'];
+$grupMenu['Sistem'] = ['akun' => 'Akun admin', 'pengaturan' => 'Pengaturan'];
+// Sembunyikan menu yang tidak boleh dibuka akun ini
+foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
+    $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
+    if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
 $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru];
 ?>
