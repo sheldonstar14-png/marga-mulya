@@ -157,3 +157,46 @@ function email_admin_reservasi_baru(string $kode): true|string
         . '<p><a href="' . e(url_dasar() . '/admin/reservasi?status=Menunggu') . '">Buka CMS untuk konfirmasi</a></p>';
     return kirim_email($tujuan, $subjek, bungkus_email('Reservasi baru masuk', $isi));
 }
+
+// ---------- Tambahan Fase 8 ----------
+
+// Email ke warga pengirim aspirasi setiap status berubah. Hasil: true atau teks penyebab gagal.
+function email_aspirasi(string $kode): true|string
+{
+    $a = q1('SELECT * FROM aspirasi WHERE kode = ?', [$kode]);
+    if (!$a || $a['email'] === '') {
+        return 'aspirasi ini tidak punya alamat email';
+    }
+    $link = url_dasar() . '/kontak?adu=' . urlencode($a['kode']) . '#aspirasi';
+    $tombol = '<p><a href="' . e($link) . '" style="display:inline-block;background:#E2A529;color:#1E2B22;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">Lihat perkembangan</a></p>';
+    $kalimat = [
+        'Diterima' => 'Aspirasimu sudah kami terima dan akan ditinjau petugas desa.',
+        'Diproses' => 'Aspirasimu sedang <b>ditindaklanjuti</b> oleh pemerintah desa.',
+        'Selesai'  => 'Aspirasimu sudah <b>selesai ditindaklanjuti</b>. Terima kasih sudah ikut membangun desa.',
+        'Ditolak'  => 'Mohon maaf, aspirasimu <b>belum dapat ditindaklanjuti</b> saat ini.',
+    ];
+    $subjek = "Aspirasi {$a['kode']}: {$a['status']}";
+    $isi = '<p>Halo ' . e($a['nama']) . ',</p><p>' . ($kalimat[$a['status']] ?? '') . '</p>'
+        . '<table style="width:100%;border-collapse:collapse;font-size:15px;margin:12px 0">'
+        . '<tr><td style="padding:6px 0;color:#56635A">Kode</td><td><b style="font-size:18px">' . e($a['kode']) . '</b></td></tr>'
+        . '<tr><td style="padding:6px 0;color:#56635A">Kategori</td><td>' . e($a['kategori']) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#56635A">Status</td><td>' . e($a['status']) . '</td></tr></table>'
+        . ($a['tanggapan'] ? '<p><b>Tanggapan petugas:</b><br>' . nl2br(e($a['tanggapan'])) . '</p>' : '')
+        . $tombol;
+    return kirim_email($a['email'], $subjek, bungkus_email($subjek, $isi));
+}
+
+// Pemberitahuan ke email desa setiap ada aspirasi baru
+function email_admin_aspirasi_baru(string $kode): true|string
+{
+    $a = q1('SELECT * FROM aspirasi WHERE kode = ?', [$kode]);
+    $tujuan = (string) getenv('GMAIL_USER');
+    if (!$a || $tujuan === '') {
+        return 'email desa belum diatur';
+    }
+    $subjek = "Aspirasi baru {$a['kode']}: {$a['kategori']}";
+    $isi = '<p><b>' . e($a['nama']) . '</b> mengirim aspirasi kategori <b>' . e($a['kategori']) . '</b>'
+        . ($a['lokasi'] ? ' di ' . e($a['lokasi']) : '') . ':</p><p>' . nl2br(e($a['isi'])) . '</p>'
+        . '<p><a href="' . e(url_dasar() . '/admin/aspirasi?status=Diterima') . '">Buka CMS untuk menanggapi</a></p>';
+    return kirim_email($tujuan, $subjek, bungkus_email('Aspirasi baru masuk', $isi));
+}

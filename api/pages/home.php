@@ -7,6 +7,16 @@ $agenda = q('SELECT judul, tanggal, jam, tempat, isi FROM agenda WHERE tanggal >
 $umkm   = q('SELECT nama_usaha, produk, harga, satuan, foto FROM umkm ORDER BY id LIMIT 3');
 $berita = q('SELECT judul, tanggal, isi, foto FROM berita ORDER BY tanggal DESC, id DESC LIMIT 3');
 
+// Ringkasan keterbukaan desa (Fase 8)
+$tahunApb = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
+$apb = $tahunApb ? q1("SELECT COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? AND jenis = 'Belanja'", [$tahunApb]) : null;
+$proyekBerjalan = (int) q1("SELECT COUNT(*) AS n FROM pembangunan WHERE status = 'Berjalan'")['n'];
+$proyekSelesai = (int) q1("SELECT COUNT(*) AS n FROM pembangunan WHERE status = 'Selesai'")['n'];
+$bulanSampah = q1('SELECT MAX(bulan) AS b FROM sampah')['b'] ?? null;
+$kgSampah = $bulanSampah ? (float) q1('SELECT COALESCE(SUM(berat_kg), 0) AS n FROM sampah WHERE bulan > ?', [date('Y-m-d', strtotime(substr($bulanSampah, 0, 7) . '-01 -6 month'))])['n'] : 0;
+$aspTotal = (int) q1('SELECT COUNT(*) AS n FROM aspirasi')['n'];
+$aspSelesai = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Selesai'")['n'];
+
 $judul = setting('nama_desa');
 $menu  = '';
 $pakaiCuaca = true;
@@ -36,6 +46,8 @@ require __DIR__ . '/../inc/header.php';
     </aside>
   </div>
 </div>
+
+<div class="wrap"><div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div></div>
 
 <div class="sec"><div class="wrap">
   <div class="head-row"><h2>Destinasi di <?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></h2><a href="/wisata">Semua destinasi</a></div>
@@ -85,6 +97,16 @@ require __DIR__ . '/../inc/header.php';
 </div></div>
 
 <div class="sec"><div class="wrap">
+  <div class="head-row"><h2>Desa yang terbuka</h2><a href="/data-desa?grup=Transparansi">Lihat informasi lengkap</a></div>
+  <div class="stat-row terbuka">
+    <?php if ($apb && $apb['a'] > 0): ?><a class="stat" href="/data-desa?grup=Transparansi"><span>Belanja desa <?= $tahunApb ?> terealisasi</span><b><?= persen((float) $apb['r'], (float) $apb['a']) ?>%</b><small>dari <?= rupiah_ringkas((float) $apb['a']) ?></small></a><?php endif; ?>
+    <a class="stat" href="/data-desa?grup=Pembangunan"><span>Proyek pembangunan</span><b><?= $proyekBerjalan ?> berjalan</b><small><?= $proyekSelesai ?> sudah selesai</small></a>
+    <?php if ($kgSampah > 0): ?><a class="stat" href="/data-desa?grup=Bank+sampah"><span>Sampah dikelola bank sampah</span><b><?= angka(round($kgSampah / 1000, 1)) ?> ton</b><small>dalam 6 bulan terakhir</small></a><?php endif; ?>
+    <a class="stat" href="/kontak#aspirasi"><span>Aspirasi warga ditindaklanjuti</span><b><?= $aspSelesai ?> dari <?= $aspTotal ?></b><small>kirim aspirasimu</small></a>
+  </div>
+</div></div>
+
+<div class="sec tint"><div class="wrap">
   <div class="head-row"><h2>Kabar desa</h2><a href="/agenda">Semua berita</a></div>
   <div class="grid g3">
     <?php foreach ($berita as $b): ?>

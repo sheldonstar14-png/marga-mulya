@@ -35,6 +35,8 @@ $grup = [
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
             'kredit_foto' => ['Kredit foto (opsional, tampil di bagian paling bawah website)', 'area'],
             'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
+            'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
+            'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
         ],
     ],
 ];
