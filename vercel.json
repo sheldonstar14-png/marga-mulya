@@ -13,6 +13,10 @@
       "dest": "/assets/$1"
     },
     {
+      "src": "/laporan-otomatis",
+      "dest": "/api/laporan-otomatis.php"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/index.php"
     }
