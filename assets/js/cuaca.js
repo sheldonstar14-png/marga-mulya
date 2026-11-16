@@ -11,7 +11,7 @@
     if (!cache[kunci]) {
       const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng +
         '&current=temperature_2m,weather_code' +
-        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum' +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max' +
         '&timezone=Asia%2FJakarta&forecast_days=16';
       cache[kunci] = fetch(url)
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -22,8 +22,7 @@
             kode: j.daily.weather_code[i],
             maks: Math.round(j.daily.temperature_2m_max[i]),
             min: Math.round(j.daily.temperature_2m_min[i]),
-            hujan: j.daily.precipitation_probability_max[i] ?? 0,
-            mm: (j.daily.precipitation_sum || [])[i] ?? 0
+            hujan: j.daily.precipitation_probability_max[i] ?? 0
           }))
         }))
         .catch(err => { delete cache[kunci]; throw err; });
@@ -103,34 +102,4 @@
   }
 
   document.querySelectorAll('[data-cuaca]').forEach(isiPanel);
-
-  // ---------- Siaga cuaca (Fase 8) ----------
-  // Peringatan untuk hari ini sampai 2 hari ke depan. Ambang mengikuti kategori BMKG:
-  // hujan lebat 50 sampai 100 mm per hari, sangat lebat di atas 100 mm per hari.
-  window.siagaCuaca = function (hari) {
-    return hari.slice(0, 3).map(d => {
-      let tingkat = null, teks = '';
-      if (d.mm >= 100) { tingkat = 'awas'; teks = 'hujan sangat lebat (sekitar ' + Math.round(d.mm) + ' mm)'; }
-      else if (d.mm >= 50) { tingkat = 'siaga'; teks = 'hujan lebat (sekitar ' + Math.round(d.mm) + ' mm)'; }
-      else if (d.kode >= 95) { tingkat = 'siaga'; teks = 'badai petir'; }
-      return tingkat ? { tgl: d.tgl, tingkat, teks } : null;
-    }).filter(Boolean);
-  };
-
-  document.querySelectorAll('[data-siaga]').forEach(el => {
-    ambilCuaca(el.dataset.lat, el.dataset.lng).then(data => {
-      const daftar = siagaCuaca(data.hari);
-      el.hidden = false;
-      if (!daftar.length) {
-        el.className = 'siaga aman';
-        el.innerHTML = '<b>Tidak ada peringatan cuaca</b> untuk 3 hari ke depan. Nomor darurat desa ada di <a href="/kontak#darurat">halaman Kontak</a>.';
-        return;
-      }
-      const awas = daftar.some(d => d.tingkat === 'awas');
-      el.className = 'siaga ' + (awas ? 'awas' : 'waspada');
-      el.setAttribute('role', 'alert');
-      el.innerHTML = '<b>Siaga cuaca:</b> ' + daftar.map(d => tglPanjang(d.tgl) + ' berpotensi ' + d.teks).join('; ') +
-        '. Hindari curug dan lereng saat hujan deras. <a href="/kontak#darurat">Lihat nomor darurat</a>.';
-    }).catch(() => { el.hidden = true; });
-  });
 })();

@@ -59,7 +59,6 @@ function tgl(string $tanggal, string $format = 'panjang'): string
         'hari'    => $hari[(int) date('w', $t)] . ', ' . $d . ' ' . $bulan[$m] . ' ' . $y,
         'tanggal' => (string) $d,
         'bulan'   => substr($bulan[$m], 0, 3),
-        'bulantahun' => $bulan[$m] . ' ' . $y,
         default   => $d . ' ' . $bulan[$m] . ' ' . $y,
     };
 }
@@ -167,76 +166,4 @@ function bintang(float $nilai): string
 {
     $penuh = (int) round($nilai);
     return str_repeat('★', $penuh) . str_repeat('☆', 5 - $penuh);
-}
-
-// ---------- Tambahan Fase 8 ----------
-
-// Kode acak dengan awalan tertentu, dicek supaya belum dipakai di tabel itu
-function kode_unik(string $awalan, string $tabel): string
-{
-    $huruf = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    do {
-        $kode = $awalan . '-';
-        for ($i = 0; $i < 6; $i++) {
-            $kode .= $huruf[random_int(0, strlen($huruf) - 1)];
-        }
-    } while (q1("SELECT id FROM $tabel WHERE kode = ?", [$kode]));
-    return $kode;
-}
-
-// Faktor emisi perjalanan (kg CO2e per km). Sumber: UK Government GHG Conversion Factors (DESNZ/DEFRA).
-// 'per' = kendaraan: emisi satu kendaraan dibagi jumlah penumpang (maks 'isi' orang).
-// 'per' = orang: emisi per penumpang (angkutan umum, sudah memperhitungkan rata-rata penumpang).
-const KENDARAAN = [
-    'Mobil pribadi'         => ['faktor' => 0.17,  'per' => 'kendaraan', 'isi' => 4],
-    'Sepeda motor'          => ['faktor' => 0.11,  'per' => 'kendaraan', 'isi' => 2],
-    'Bus atau elf rombongan'=> ['faktor' => 0.039, 'per' => 'orang'],
-    'Angkutan umum'         => ['faktor' => 0.10,  'per' => 'orang'],
-    'Kereta lalu ojek'      => ['faktor' => 0.031, 'per' => 'orang'],
-    'Sepeda atau jalan kaki'=> ['faktor' => 0,     'per' => 'orang'],
-];
-
-// Perkiraan emisi pulang pergi untuk seluruh rombongan (kg CO2e)
-function emisi_kunjungan(string $kendaraan, int $jarakKm, int $orang): float
-{
-    $k = KENDARAAN[$kendaraan] ?? null;
-    if (!$k || $jarakKm <= 0 || $orang <= 0) return 0.0;
-    $pp = $jarakKm * 2;
-    if ($k['per'] === 'kendaraan') {
-        $jumlahKendaraan = (int) ceil($orang / $k['isi']);
-        return round($k['faktor'] * $pp * $jumlahKendaraan, 2);
-    }
-    return round($k['faktor'] * $pp * $orang, 2);
-}
-
-// Skor hijau dari emisi per orang: A (paling hemat) sampai E
-function skor_hijau(float $kgPerOrang): array
-{
-    return match (true) {
-        $kgPerOrang <= 2  => ['A', 'Sangat hijau'],
-        $kgPerOrang <= 5  => ['B', 'Hijau'],
-        $kgPerOrang <= 10 => ['C', 'Sedang'],
-        $kgPerOrang <= 20 => ['D', 'Tinggi'],
-        default           => ['E', 'Sangat tinggi'],
-    };
-}
-
-// Persen dengan batas 0 sampai 100 (untuk lebar bar)
-function persen(float $bagian, float $total): float
-{
-    return $total > 0 ? max(0, min(100, round($bagian / $total * 100, 1))) : 0;
-}
-
-// Pecah teks "Nama|Nilai" per baris, contoh harga sampah
-function pasangan(string $teks): array
-{
-    return array_map(fn($b) => array_map('trim', explode('|', $b, 2)) + [1 => ''], per_baris($teks));
-}
-
-// Rupiah singkat untuk angka besar: 1680000000 -> Rp1,68 miliar
-function rupiah_ringkas(float $n): string
-{
-    if ($n >= 1e9) return 'Rp' . rtrim(rtrim(number_format($n / 1e9, 2, ',', '.'), '0'), ',') . ' miliar';
-    if ($n >= 1e6) return 'Rp' . rtrim(rtrim(number_format($n / 1e6, 1, ',', '.'), '0'), ',') . ' juta';
-    return rupiah($n);
 }

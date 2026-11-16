@@ -42,7 +42,6 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 if ($nilai === '' || !is_numeric($nilai)) { $errors[] = "\"$label\" harus berupa angka."; break; }
                 $angka = !empty($opsi['desimal']) ? (float) $nilai : (int) $nilai;
                 if (isset($opsi['min']) && $angka < $opsi['min']) $errors[] = "\"$label\" minimal {$opsi['min']}.";
-                if (isset($opsi['max']) && $angka > $opsi['max']) $errors[] = "\"$label\" maksimal {$opsi['max']}.";
                 $data[$nama] = $angka;
                 break;
             case 'date':
@@ -183,8 +182,7 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <legend style="font-weight:700;margin-bottom:8px"><?= e($label) ?></legend>
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
-              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat">Paket pengelola data</button>
               <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>
@@ -234,8 +232,8 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
 // ======================= DAFTAR =======================
 else:
     $saring = $c['saring'] ?? null;
-    $pilihanSaring = $saring ? array_map('strval', array_column(q("SELECT DISTINCT $saring FROM $tabel ORDER BY $saring" . (!empty($c['saringTurun']) ? ' DESC' : '')), $saring)) : [];
-    $nilaiSaring = $saring ? (string) ($_GET[$saring] ?? ($pilihanSaring[0] ?? '')) : null;
+    $pilihanSaring = $saring ? array_column(q("SELECT DISTINCT $saring FROM $tabel ORDER BY $saring"), $saring) : [];
+    $nilaiSaring = $saring ? ($_GET[$saring] ?? ($pilihanSaring[0] ?? '')) : null;
     $daftar = $saring
         ? q("SELECT * FROM $tabel WHERE $saring = ? ORDER BY {$c['urut']}", [$nilaiSaring])
         : q("SELECT * FROM $tabel ORDER BY {$c['urut']}");
@@ -267,8 +265,6 @@ else:
                 <?php elseif ($f === 'rupiah'): ?><?= rupiah($v) ?>
                 <?php elseif ($f === 'angka'): ?><?= angka($v) ?>
                 <?php elseif ($f === 'tanggal'): ?><?= tgl($v) ?>
-                <?php elseif ($f === 'bulan'): ?><?= tgl($v, 'bulantahun') ?>
-                <?php elseif ($f === 'persen'): ?><?= (int) $v ?>%
                 <?php elseif ($f === 'akses'): ?><?= $baris['peran'] === 'Super admin' ? 'Semua menu' : (e(implode(', ', array_map(fn($k) => MENU_PETUGAS[$k], akses_admin($baris)))) ?: '<span class="muted">Belum ada</span>') ?>
                 <?php elseif ($f === 'yatidak'): ?><?= $v ? 'Ya' : '<span class="status st-Dibatalkan">Disembunyikan</span>' ?>
                 <?php else: ?><?= e($v) ?><?php endif; ?>
@@ -277,7 +273,7 @@ else:
             <td data-l="Aksi">
               <div class="actions">
                 <a class="btn btn-dark btn-sm" href="<?= $alamat ?>?aksi=edit&id=<?= (int) $baris['id'] ?>">Edit</a>
-                <form method="post" action="<?= $alamat ?>" class="form-hapus" data-nama="<?= e($baris['nama'] ?? $baris['judul'] ?? $baris['produk'] ?? $baris['label'] ?? $baris['uraian'] ?? $baris['jenis'] ?? 'data ini') ?>">
+                <form method="post" action="<?= $alamat ?>" class="form-hapus" data-nama="<?= e($baris['nama'] ?? $baris['judul'] ?? $baris['produk'] ?? $baris['label'] ?? 'data ini') ?>">
                   <?= csrf_field() ?><input type="hidden" name="aksi" value="hapus"><input type="hidden" name="id" value="<?= (int) $baris['id'] ?>">
                   <button class="btn btn-danger btn-sm" type="submit">Hapus</button>
                 </form>
