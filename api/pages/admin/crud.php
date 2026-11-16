@@ -82,8 +82,9 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 $data[$nama] = mb_substr($nilai, 0, 255);
                 break;
             case 'password':
-                if ($nilai === '' && $id !== null) break; // saat edit: kosong = kata sandi tidak diubah
-                if (strlen($nilai) < 8) { $errors[] = 'Kata sandi minimal 8 karakter.'; break; }
+                if ($nilai === '' && ($id !== null || !empty($opsi['opsional']))) break; // kosong = tidak diubah
+                $minSandi = $opsi['min'] ?? 8;
+                if (strlen($nilai) < $minSandi) { $errors[] = "\"$label\" minimal $minSandi karakter."; break; }
                 $data[$nama] = password_hash($nilai, PASSWORD_DEFAULT);
                 break;
             default: // text, textarea
@@ -184,7 +185,7 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
               <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,faq,darurat">Paket layanan warga</button>
               <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>
@@ -217,8 +218,8 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
           <input id="f-<?= $nama ?>" name="<?= $nama ?>" value="<?= e($v) ?>" placeholder="Atau tempel alamat gambar (https://...)" style="margin-top:8px">
         <?php elseif ($jenis === 'password'): ?>
           <label for="f-<?= $nama ?>"><?= e($label) ?></label>
-          <input id="f-<?= $nama ?>" name="<?= $nama ?>" type="password" autocomplete="new-password" minlength="8" <?= $id ? '' : 'required' ?>>
-          <div class="hint"><?= $id ? 'Kosongkan kalau kata sandi tidak diganti. ' : '' ?>Minimal 8 karakter.</div>
+          <input id="f-<?= $nama ?>" name="<?= $nama ?>" type="password" autocomplete="new-password" minlength="<?= (int) ($opsi['min'] ?? 8) ?>" <?= $id || !empty($opsi['opsional']) ? '' : 'required' ?>>
+          <div class="hint"><?= $id ? 'Kosongkan kalau tidak diganti. ' : '' ?>Minimal <?= (int) ($opsi['min'] ?? 8) ?> karakter.<?= isset($opsi['catatan']) ? ' ' . e($opsi['catatan']) : '' ?></div>
         <?php else: ?>
           <label for="f-<?= $nama ?>"><?= e($label) ?></label>
           <input id="f-<?= $nama ?>" name="<?= $nama ?>" type="<?= $jenis === 'number' ? 'number' : ($jenis === 'date' ? 'date' : 'text') ?>"

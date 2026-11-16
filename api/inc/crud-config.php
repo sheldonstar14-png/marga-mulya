@@ -80,6 +80,7 @@ $CRUD = [
             ['wa', 'Nomor WhatsApp', 'text', ['wajib' => true, 'maks' => 20, 'contoh' => '081234567890']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
             ['foto', 'Foto produk', 'foto', []],
+            ['pin_hash', 'Kode tukar Tiket Hijau', 'password', ['min' => 6, 'opsional' => true, 'catatan' => 'Berikan hanya ke pemilik usaha. Dipakai untuk menandai kupon Tiket Hijau sudah dipakai. Kosongkan kalau usaha ini tidak ikut Tiket Hijau.']],
         ],
         'baru' => ['kategori' => 'Makanan', 'harga' => 10000],
         'sebelumSimpan' => function (array &$data, ?int $id): void {
@@ -305,4 +306,20 @@ $CRUD['layanan'] = [
         ['aktif', 'Tampilkan di website', 'check', []],
     ],
     'baru' => ['urutan' => 10, 'aktif' => 1, 'biaya' => 'Gratis', 'tempat' => 'Kantor desa, loket pelayanan'],
+];
+
+// ---------- Tambahan Fase 10 ----------
+$CRUD['faq'] = [
+    'judul' => 'Asisten desa (FAQ)', 'satu' => 'pertanyaan', 'tabel' => 'faq', 'urut' => 'urutan, id',
+    'catatan' => 'Asisten Desa sudah otomatis menjawab soal wisata, harga, kuota, cuaca, reservasi, surat, nomor darurat, UMKM, agenda, dan anggaran dari data CMS. Tambahkan di sini pertanyaan lain yang sering ditanyakan warga atau pengunjung.',
+    'kolom' => ['urutan' => 'Urutan', 'pertanyaan' => 'Pertanyaan', 'kata_kunci' => 'Kata kunci', 'aktif' => 'Aktif'],
+    'format' => ['aktif' => 'yatidak'],
+    'field' => [
+        ['pertanyaan', 'Pertanyaan', 'text', ['wajib' => true, 'maks' => 200, 'contoh' => 'Apakah ada tempat parkir bus?']],
+        ['kata_kunci', 'Kata kunci (pisahkan koma)', 'text', ['wajib' => true, 'maks' => 255, 'contoh' => 'parkir,bus,mobil,kendaraan']],
+        ['jawaban', 'Jawaban', 'textarea', ['wajib' => true]],
+        ['urutan', 'Urutan', 'number', ['min' => 0]],
+        ['aktif', 'Aktif', 'check', []],
+    ],
+    'baru' => ['urutan' => 10, 'aktif' => 1],
 ];

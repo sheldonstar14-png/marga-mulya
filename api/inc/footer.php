@@ -26,7 +26,26 @@
     tombol.setAttribute('aria-expanded', nav.classList.contains('open'));
   });
 </script>
+<button class="asisten-btn" id="asistenBtn" aria-expanded="false" aria-controls="asistenPanel">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1.2" fill="currentColor"/><circle cx="12" cy="10.5" r="1.2" fill="currentColor"/><circle cx="15" cy="10.5" r="1.2" fill="currentColor"/></svg>
+  <span>Tanya Asisten Desa</span>
+</button>
+<section class="asisten-panel" id="asistenPanel" hidden role="dialog" aria-label="Asisten <?= e(setting('nama_desa')) ?>">
+  <div class="asisten-head">
+    <div><b>Asisten <?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small>Jawaban otomatis dari data resmi desa</small></div>
+    <button type="button" id="asistenTutup" aria-label="Tutup asisten">&times;</button>
+  </div>
+  <div class="asisten-log" id="asistenLog" aria-live="polite"></div>
+  <div class="asisten-saran" id="asistenSaran"></div>
+  <form class="asisten-form" id="asistenForm">
+    <label class="sr-only" for="asistenInput">Tulis pertanyaan</label>
+    <input id="asistenInput" maxlength="300" autocomplete="off" placeholder="Contoh: berapa harga tiket curug?">
+    <button class="btn btn-main btn-sm" type="submit">Kirim</button>
+  </form>
+  <p class="asisten-catatan">Asisten ini bukan manusia dan tidak menyimpan percakapan. Jangan tulis NIK atau data pribadi.</p>
+</section>
 <script src="/assets/js/akses.js"></script>
+<script src="/assets/js/asisten.js"></script>
 <?php if (!empty($pakaiPeta)): ?>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/assets/js/peta.js"></script>

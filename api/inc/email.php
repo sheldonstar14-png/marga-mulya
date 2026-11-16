@@ -123,6 +123,8 @@ function email_reservasi(string $kode): true|string
             $subjek = "Reservasi {$r['kode']} dikonfirmasi";
             $isi = $halo . '<p>Kabar baik! Reservasimu sudah <b>dikonfirmasi</b>. Tunjukkan kode QR di halaman status kepada petugas loket saat tiba.</p>'
                 . $rincian . $tombol($linkStatus, 'Buka tiket dan kode QR')
+                . ($r['kupon'] ? '<div style="border:2px dashed #3F7D3A;border-radius:12px;padding:12px 14px;margin:12px 0;background:#EEF2E4"><b>Kamu mendapat Tiket Hijau: ' . e($r['kupon']) . '</b><br>'
+                    . e(setting('tiket_hijau_syarat')) . ' Tunjukkan kode QR kupon di halaman status kepada penjual UMKM desa.</div>' : '')
                 . '<p style="font-size:14px;color:#56635A">Cek prakiraan cuaca di website sehari sebelum berangkat.</p>';
             break;
         case 'Dibatalkan':

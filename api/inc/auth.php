@@ -100,6 +100,7 @@ const MENU_PETUGAS = [
     'aspirasi'  => 'Aspirasi warga',
     'privasi'   => 'Permintaan data pribadi',
     'layanan'   => 'Layanan surat',
+    'faq'       => 'Asisten desa (FAQ)',
     'wisata'    => 'Wisata',
     'budaya'    => 'Budaya',
     'umkm'      => 'UMKM',

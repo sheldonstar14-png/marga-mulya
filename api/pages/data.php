@@ -21,13 +21,28 @@ $lainnya = array_values(array_diff(array_column(q('SELECT DISTINCT kategori FROM
 if ($lainnya) {
     $grupData['Lainnya'] = $lainnya;
 }
-$grupKhusus = ['Layanan surat', 'Transparansi', 'Pembangunan', 'Program bantuan', 'Bank sampah'];
+$grupKhusus = ['Dampak', 'Layanan surat', 'Transparansi', 'Pembangunan', 'Program bantuan', 'Bank sampah'];
 $grup = $_GET['grup'] ?? 'Penduduk';
 if (!isset($grupData[$grup]) && !in_array($grup, $grupKhusus, true)) {
     $grup = 'Penduduk';
 }
 
 // ---------- Data untuk tab khusus ----------
+if ($grup === 'Dampak') {
+    $dampak = ringkasan_dampak();
+    // Pengunjung dan emisi per orang, 6 bulan terakhir
+    $bulanDampak = [];
+    for ($i = 5; $i >= 0; $i--) $bulanDampak[date('Y-m', strtotime("first day of -$i month"))] = ['orang' => 0, 'kg' => 0.0, 'tercatat' => 0];
+    foreach (q("SELECT tanggal, jumlah, emisi_kg, kendaraan FROM reservasi WHERE status IN ('Dikonfirmasi', 'Selesai') AND tanggal >= ?", [array_key_first($bulanDampak) . '-01']) as $r) {
+        $k = substr($r['tanggal'], 0, 7);
+        if (!isset($bulanDampak[$k])) continue;
+        $bulanDampak[$k]['orang'] += (int) $r['jumlah'];
+        if ($r['kendaraan'] !== '') { $bulanDampak[$k]['kg'] += (float) $r['emisi_kg']; $bulanDampak[$k]['tercatat'] += (int) $r['jumlah']; }
+    }
+    $maksOrang = max(1, max(array_column($bulanDampak, 'orang')));
+    $moda = array_map(fn($r) => ['label' => $r['kendaraan'], 'nilai' => (int) $r['n'], 'satuan' => 'orang'],
+        q("SELECT kendaraan, SUM(jumlah) AS n FROM reservasi WHERE status IN ('Dikonfirmasi', 'Selesai') AND kendaraan <> '' GROUP BY kendaraan ORDER BY n DESC"));
+}
 if ($grup === 'Layanan surat') {
     $layanan = q('SELECT * FROM layanan WHERE aktif = 1 ORDER BY urutan, id');
     $pilihLayanan = (int) ($_GET['l'] ?? ($layanan[0]['id'] ?? 0));
@@ -85,7 +100,41 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
     <?php endforeach; ?>
   </nav>
 
-<?php if ($grup === 'Layanan surat'): ?>
+<?php if ($grup === 'Dampak'): $d = $dampak; ?>
+  <h2 class="sub-judul">Laporan dampak desa</h2>
+  <p class="muted" style="max-width:70ch">Setiap kunjungan, setoran sampah, aspirasi, dan rupiah dana desa tercatat. Angka di bawah dihitung otomatis dari data yang diisi petugas, jadi selalu terbaru.</p>
+  <div class="dampak-utama">
+    <div class="dampak-besar"><span>Emisi yang dihemat pengunjung</span><b><?= angka(round($d['kg_hemat'])) ?> kg CO2e</b>
+      <small>dibanding kalau semua pengunjung datang dengan mobil pribadi</small></div>
+    <div class="dampak-besar"><span>Pengunjung datang dengan transport hijau</span><b><?= persen_id($d['orang_hijau'], $d['orang_tercatat']) ?>%</b>
+      <small><?= angka($d['orang_hijau']) ?> dari <?= angka($d['orang_tercatat']) ?> orang: bus, angkutan umum, kereta, sepeda</small></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>Jejak karbon rata-rata</span><b><?= angka(round($d['kg'] / max(1, $d['orang_tercatat']), 1)) ?> kg</b><small>CO2e per pengunjung, pulang pergi</small></div>
+    <div class="stat"><span>Tiket Hijau ditukar di UMKM</span><b><?= $d['kupon_dipakai'] ?> dari <?= $d['kupon_terbit'] ?></b><small>sekitar <?= rupiah($d['nilai_umkm']) ?> belanja berputar ke warga</small></div>
+    <div class="stat"><span>Sampah dikelola 12 bulan</span><b><?= angka(round($d['sampah_kg'] / 1000, 1)) ?> ton</b><small>lewat bank sampah desa</small></div>
+    <div class="stat"><span>Aspirasi warga selesai</span><b><?= persen_id($d['asp_selesai'], $d['asp_total']) ?>%</b><small><?= $d['asp_selesai'] ?> dari <?= $d['asp_total'] ?> laporan</small></div>
+    <?php if ($d['apb_tahun']): ?><div class="stat"><span>Belanja desa <?= $d['apb_tahun'] ?> terealisasi</span><b><?= persen_id($d['apb_r'], $d['apb_a']) ?>%</b><small>dari <?= rupiah_ringkas($d['apb_a']) ?></small></div><?php endif; ?>
+    <?php if ($d['ulasan_n']): ?><div class="stat"><span>Kepuasan pengunjung</span><b><?= number_format($d['ulasan_rata'], 1, ',', '.') ?> / 5</b><small>dari <?= $d['ulasan_n'] ?> ulasan terverifikasi</small></div><?php endif; ?>
+  </div>
+  <div class="grid g2">
+    <div class="panel">
+      <h3>Pengunjung per bulan</h3>
+      <div class="vbars">
+        <?php $k = 0; foreach ($bulanDampak as $bln => $b): $k++; $per = $b['tercatat'] ? $b['kg'] / $b['tercatat'] : null; ?>
+          <div class="vbar <?= $k === count($bulanDampak) ? 'now' : '' ?>"><b><?= $b['orang'] ?></b><div style="height:<?= round($b['orang'] / $maksOrang * 130) ?>px"></div><span><?= tgl($bln . '-01', 'bulan') ?></span><small class="muted"><?= $per === null ? '-' : angka(round($per, 1)) . ' kg' ?></small></div>
+        <?php endforeach; ?>
+      </div>
+      <p class="hint">Angka kecil di bawah bulan: rata-rata jejak karbon per orang. Makin kecil, makin hijau.</p>
+    </div>
+    <div class="panel">
+      <h3>Cara pengunjung datang</h3>
+      <div class="bars"><?= bar_list($moda) ?></div>
+    </div>
+  </div>
+  <p class="hint">Cara menghitung: emisi perjalanan = faktor emisi kendaraan (UK DESNZ) x jarak pulang pergi. Data dari reservasi yang dikonfirmasi dan selesai. Nilai belanja UMKM = jumlah kupon ditukar x nilai kupon.</p>
+
+<?php elseif ($grup === 'Layanan surat'): ?>
   <h2 class="sub-judul">Mau mengurus apa?</h2>
   <p class="muted" style="max-width:70ch">Pilih keperluanmu untuk melihat dokumen yang harus dibawa. Centang yang sudah siap, supaya cukup sekali datang ke kantor desa. Tidak perlu mengunggah KTP atau KK di sini.</p>
   <?php if (!$layanan): ?><p class="muted">Daftar layanan belum diisi.</p><?php else: ?>
@@ -128,8 +177,8 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   <?php else: ?>
     <h2 class="sub-judul">APBDes tahun <?= $tahun ?></h2>
     <div class="stat-row">
-      <div class="stat"><span>Pendapatan desa</span><b><?= rupiah_ringkas($pendapatan) ?></b><small>terealisasi <?= persen($realisasiPendapatan, $pendapatan) ?>%</small></div>
-      <div class="stat"><span>Belanja desa</span><b><?= rupiah_ringkas($belanja) ?></b><small>terealisasi <?= persen($realisasiBelanja, $belanja) ?>%</small></div>
+      <div class="stat"><span>Pendapatan desa</span><b><?= rupiah_ringkas($pendapatan) ?></b><small>terealisasi <?= persen_id($realisasiPendapatan, $pendapatan) ?>%</small></div>
+      <div class="stat"><span>Belanja desa</span><b><?= rupiah_ringkas($belanja) ?></b><small>terealisasi <?= persen_id($realisasiBelanja, $belanja) ?>%</small></div>
       <div class="stat"><span><?= $pendapatan >= $belanja ? 'Surplus' : 'Defisit' ?> anggaran</span><b><?= rupiah_ringkas(abs($pendapatan - $belanja)) ?></b><small>pendapatan dikurangi belanja</small></div>
     </div>
     <div class="grid g2">
@@ -140,8 +189,8 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
           <?php foreach ($baris as $p): $pr = persen((float) $p['realisasi'], (float) $p['anggaran']); ?>
             <div class="anggaran-row">
               <div class="anggaran-atas"><span><?= e($p['uraian']) ?></span><b><?= rupiah_ringkas((float) $p['anggaran']) ?></b></div>
-              <div class="bar-track" role="img" aria-label="Terealisasi <?= $pr ?> persen"><div class="bar-fill" style="width:<?= $pr ?>%"></div></div>
-              <small class="muted">Terealisasi <?= rupiah($p['realisasi']) ?> (<?= $pr ?>%)</small>
+              <div class="bar-track" role="img" aria-label="Terealisasi <?= str_replace('.', ',', (string) $pr) ?> persen"><div class="bar-fill" style="width:<?= $pr ?>%"></div></div>
+              <small class="muted">Terealisasi <?= rupiah($p['realisasi']) ?> (<?= str_replace('.', ',', (string) $pr) ?>%)</small>
             </div>
           <?php endforeach; ?>
         </div>

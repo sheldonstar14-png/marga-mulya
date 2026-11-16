@@ -87,6 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'ulasan'
             'INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, kendaraan, jarak_km, emisi_kg, catatan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [$kode, $w['id'], $isi['tanggal'], $jumlah, $isi['nama'], $wa, $isi['email'], $isi['kendaraan'], $jarak, emisi_kunjungan($isi['kendaraan'], $jarak, $jumlah), $isi['catatan'], 'Menunggu']
         );
+        // Tiket Hijau: pengunjung berskor hijau mendapat kupon belanja UMKM (aktif setelah dikonfirmasi)
+        if (berhak_tiket_hijau(emisi_kunjungan($isi['kendaraan'], $jarak, $jumlah), $jumlah, $isi['kendaraan'])) {
+            q('UPDATE reservasi SET kupon = ? WHERE kode = ?', ['HIJAU-' . substr($kode, 3), $kode]);
+        }
         // Email ke pengunjung dan ke desa (kalau gagal, reservasi tetap tersimpan)
         require_once __DIR__ . '/../inc/email.php';
         $terkirim = email_reservasi($kode) === true;
@@ -126,6 +130,17 @@ function kotak_emisi(array $r, bool $gelap): string
     return '<div class="eco' . ($gelap ? ' eco-gelap' : '') . '"><span class="eco-skor skor-' . $huruf . '" aria-label="Skor hijau ' . $huruf . '">' . $huruf . '</span>'
         . '<div><b>Jejak karbon perjalanan: ' . angka(round($total, 1)) . ' kg CO2e</b> <span class="small">(' . angka(round($perOrang, 1)) . ' kg per orang, ' . $label . ')</span>'
         . '<br><span class="small">' . e($r['kendaraan']) . ', ' . (int) $r['jarak_km'] . ' km sekali jalan, dihitung pulang pergi. ' . e($saran) . '</span></div></div>';
+}
+
+// Kotak Tiket Hijau di tiket dan cek status
+function kotak_kupon(array $r): string
+{
+    if (empty($r['kupon'])) return '';
+    $status = $r['kupon_dipakai_pada'] ? 'Sudah dipakai di ' . $r['kupon_umkm'] : ($r['status'] === 'Menunggu' ? 'Aktif setelah reservasi dikonfirmasi' : 'Tunjukkan ke penjual UMKM desa');
+    return '<div class="kupon"><div class="kupon-atas"><span class="kupon-label">Tiket Hijau</span><b>' . e($r['kupon']) . '</b></div>'
+        . '<p class="small" style="margin:6px 0">Terima kasih memilih perjalanan rendah emisi. ' . e(setting('tiket_hijau_syarat')) . '</p>'
+        . '<div class="qr-box qr-terang"><div class="qr" data-qr="' . e(url_dasar() . '/umkm?kupon=' . urlencode($r['kupon'])) . '"></div>'
+        . '<span class="small"><b>' . e($status) . '.</b> Penjual memindai kode ini untuk menukar kupon.</span></div></div>';
 }
 
 $judul = 'Reservasi - ' . setting('nama_desa');
@@ -186,7 +201,7 @@ require __DIR__ . '/../inc/header.php';
       <legend>Perjalanan ke desa</legend>
       <div class="grid g2" style="gap:12px">
         <div><label for="kendaraan">Kendaraan</label>
-          <select id="kendaraan" name="kendaraan" required data-faktor="<?= e(json_encode(KENDARAAN)) ?>">
+          <select id="kendaraan" name="kendaraan" required data-faktor="<?= e(json_encode(KENDARAAN)) ?>" data-hijau="<?= setting('tiket_hijau_aktif') === '1' ? e(strtoupper(setting('tiket_hijau_skor'))) : '' ?>" data-hadiah="<?= e(rupiah((int) setting('tiket_hijau_nilai'))) ?>">
             <option value="">Pilih kendaraan</option>
             <?php foreach (array_keys(KENDARAAN) as $k): ?><option <?= $isi['kendaraan'] === $k ? 'selected' : '' ?>><?= e($k) ?></option><?php endforeach; ?>
           </select></div>
@@ -238,6 +253,7 @@ require __DIR__ . '/../inc/header.php';
           <?= ($_GET['surel'] ?? '') === '1' ? 'Rincian tiket juga sudah dikirim ke ' . e($tiket['email']) . '. Cek folder Spam kalau belum masuk.' : 'Simpan kode ini. Email konfirmasi belum bisa dikirim, tapi reservasimu sudah tersimpan.' ?>
         </p>
         <?= kotak_emisi($tiket, true) ?>
+        <?= kotak_kupon($tiket) ?>
         <div class="qr-box"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($tiket['kode'])) ?>"></div>
           <span class="small">Tunjukkan kode QR ini ke petugas loket saat tiba.</span></div>
       </div>
@@ -268,7 +284,7 @@ require __DIR__ . '/../inc/header.php';
               <?php endforeach; endif; ?>
             </ol>
             <span class="small"><?= e($keteranganStatus[$hasilCek['status']] ?? '') ?></span>
-            <?= $hasilCek['status'] !== 'Dibatalkan' ? kotak_emisi($hasilCek, false) : '' ?>
+            <?= $hasilCek['status'] !== 'Dibatalkan' ? kotak_emisi($hasilCek, false) . kotak_kupon($hasilCek) : '' ?>
 
             <?php if (in_array($hasilCek['status'], ['Menunggu', 'Dikonfirmasi'], true)): ?>
               <div class="qr-box qr-terang"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($hasilCek['kode'])) ?>"></div>
@@ -371,6 +387,13 @@ $scriptHalaman = <<<'JS'
     let teks = 'Perkiraan jejak karbon pulang pergi: <b>' + total.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg CO2e</b> (' + (total / orang).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg per orang).';
     if (bus < total * 0.7) teks += ' Dengan bus atau elf bersama, emisinya sekitar ' + bus.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg.';
     if (total === 0) teks = 'Perjalanan tanpa emisi. Keren!';
+    const per = total / orang, huruf = per <= 2 ? 'A' : per <= 5 ? 'B' : per <= 10 ? 'C' : per <= 20 ? 'D' : 'E';
+    const hijau = (kendaraan.dataset.hijau || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (hijau.length) {
+      teks += hijau.includes(huruf)
+        ? ' <span class="eco-hadiah">Skor ' + huruf + ': kamu mendapat Tiket Hijau, kupon belanja ' + kendaraan.dataset.hadiah + ' di UMKM desa.</span>'
+        : ' <span class="small">Skor ' + huruf + '. Datang dengan bus, angkutan umum, kereta, atau berbagi kendaraan untuk mendapat Tiket Hijau.</span>';
+    }
     infoEmisi.innerHTML = teks;
   }
   [kendaraan, jarak, jumlah].forEach(el => el.addEventListener('input', perbaruiEmisi));

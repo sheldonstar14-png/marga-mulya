@@ -285,3 +285,66 @@ function label_akses(array $w): array
     if (!empty($w['ada_toilet'])) $label[] = ['akses-netral', 'Ada toilet'];
     return $label;
 }
+
+// ---------- Tambahan Fase 10 ----------
+
+// Apakah reservasi berhak Tiket Hijau (kupon UMKM)? Dilihat dari skor hijau per orang.
+function berhak_tiket_hijau(float $emisiTotal, int $orang, string $kendaraan): bool
+{
+    if (setting('tiket_hijau_aktif') !== '1' || $kendaraan === '') return false;
+    [$huruf] = skor_hijau($emisiTotal / max(1, $orang));
+    $skorBoleh = array_map('trim', explode(',', strtoupper(setting('tiket_hijau_skor'))));
+    return in_array($huruf, $skorBoleh, true);
+}
+
+// Status kupon: ['ok' => bool, 'teks' => keterangan, 'r' => baris reservasi]
+function cek_kupon(string $kode): array
+{
+    $r = q1('SELECT r.kode, r.kupon, r.kupon_dipakai_pada, r.kupon_umkm, r.tanggal, r.status, r.jumlah, w.nama AS wisata FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.kupon = ?', [strtoupper(trim($kode))]);
+    if (!$r) return ['ok' => false, 'teks' => 'Kupon tidak ditemukan.', 'r' => null];
+    if ($r['kupon_dipakai_pada']) return ['ok' => false, 'teks' => 'Kupon sudah dipakai di ' . $r['kupon_umkm'] . ' pada ' . tgl(substr($r['kupon_dipakai_pada'], 0, 10)) . '.', 'r' => $r];
+    if ($r['status'] === 'Dibatalkan' || $r['status'] === 'Menunggu') return ['ok' => false, 'teks' => 'Kupon belum aktif. Kupon berlaku setelah reservasi dikonfirmasi.', 'r' => $r];
+    $hariIni = date('Y-m-d');
+    if ($hariIni < $r['tanggal']) return ['ok' => false, 'teks' => 'Kupon baru bisa dipakai mulai tanggal kunjungan, ' . tgl($r['tanggal']) . '.', 'r' => $r];
+    if ($hariIni > date('Y-m-d', strtotime($r['tanggal'] . ' +7 days'))) return ['ok' => false, 'teks' => 'Masa berlaku kupon sudah lewat (7 hari setelah kunjungan).', 'r' => $r];
+    return ['ok' => true, 'teks' => 'Kupon berlaku. ' . setting('tiket_hijau_syarat'), 'r' => $r];
+}
+
+// Ringkasan dampak desa untuk Beranda dan tab Dampak (dari data yang sudah tercatat)
+function ringkasan_dampak(): array
+{
+    $tahun = date('Y');
+    $hijau = "'Bus atau elf rombongan', 'Angkutan umum', 'Kereta lalu ojek', 'Sepeda atau jalan kaki'";
+    $kunjungan = q1("SELECT COALESCE(SUM(jumlah), 0) AS orang, COALESCE(SUM(emisi_kg), 0) AS kg,
+        COALESCE(SUM(CASE WHEN kendaraan IN ($hijau) THEN jumlah ELSE 0 END), 0) AS orang_hijau,
+        COALESCE(SUM(CASE WHEN kendaraan <> '' THEN jumlah ELSE 0 END), 0) AS orang_tercatat
+        FROM reservasi WHERE status IN ('Dikonfirmasi', 'Selesai')");
+    // Emisi kalau semua pengunjung yang tercatat datang dengan mobil pribadi (pembanding)
+    $semuaMobil = 0.0;
+    foreach (q("SELECT jarak_km, jumlah FROM reservasi WHERE status IN ('Dikonfirmasi', 'Selesai') AND kendaraan <> ''") as $r) {
+        $semuaMobil += emisi_kunjungan('Mobil pribadi', (int) $r['jarak_km'], (int) $r['jumlah']);
+    }
+    $kupon = q1("SELECT COUNT(kupon) AS terbit, COUNT(kupon_dipakai_pada) AS dipakai FROM reservasi WHERE kupon IS NOT NULL");
+    $sampahAkhir = q1('SELECT MAX(bulan) AS b FROM sampah')['b'] ?? null;
+    $sampahKg = $sampahAkhir ? (float) q1('SELECT COALESCE(SUM(berat_kg), 0) AS n FROM sampah WHERE bulan > ?', [date('Y-m-d', strtotime(substr($sampahAkhir, 0, 7) . '-01 -12 month'))])['n'] : 0;
+    $asp = q1("SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN status = 'Selesai' THEN 1 ELSE 0 END), 0) AS selesai FROM aspirasi");
+    $tahunApb = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
+    $apb = $tahunApb ? q1("SELECT COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? AND jenis = 'Belanja'", [$tahunApb]) : ['a' => 0, 'r' => 0];
+    $ulasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE tampil = 1');
+    return [
+        'orang' => (int) $kunjungan['orang'], 'kg' => (float) $kunjungan['kg'],
+        'orang_tercatat' => (int) $kunjungan['orang_tercatat'], 'orang_hijau' => (int) $kunjungan['orang_hijau'],
+        'kg_hemat' => max(0, $semuaMobil - (float) $kunjungan['kg']),
+        'kupon_terbit' => (int) $kupon['terbit'], 'kupon_dipakai' => (int) $kupon['dipakai'],
+        'nilai_umkm' => (int) $kupon['dipakai'] * (int) setting('tiket_hijau_nilai'),
+        'sampah_kg' => $sampahKg, 'asp_total' => (int) $asp['total'], 'asp_selesai' => (int) $asp['selesai'],
+        'apb_tahun' => $tahunApb, 'apb_a' => (float) $apb['a'], 'apb_r' => (float) $apb['r'],
+        'ulasan_n' => (int) $ulasan['n'], 'ulasan_rata' => (float) $ulasan['rata'],
+    ];
+}
+
+// Persen untuk ditampilkan dengan koma desimal Indonesia: 74.2 -> "74,2"
+function persen_id(float $bagian, float $total): string
+{
+    return str_replace('.', ',', (string) persen($bagian, $total));
+}

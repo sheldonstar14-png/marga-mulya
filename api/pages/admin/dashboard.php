@@ -69,7 +69,7 @@ require __DIR__ . '/../../inc/admin-header.php';
 </div>
 <div class="stat-row">
   <div class="stat"><span>Rata-rata jejak karbon per pengunjung</span><b><?= $emisi['orang'] ? angka(round($emisi['kg'] / $emisi['orang'], 1)) : 0 ?> kg</b><small class="muted">CO2e pulang pergi</small></div>
-  <div class="stat"><span>Datang dengan transport bersama atau tanpa emisi</span><b><?= persen((float) $emisi['hijau'], (float) $emisi['orang']) ?>%</b><small class="muted">bus, angkutan umum, kereta, sepeda</small></div>
+  <div class="stat"><span>Datang dengan transport bersama atau tanpa emisi</span><b><?= persen_id((float) $emisi['hijau'], (float) $emisi['orang']) ?>%</b><small class="muted">bus, angkutan umum, kereta, sepeda</small></div>
   <?php if ($aspirasiBaru !== null): ?><a class="stat" style="text-decoration:none;color:inherit" href="/admin/aspirasi?status=Diterima"><span>Aspirasi warga belum ditanggapi</span><b><?= $aspirasiBaru ?></b><small class="muted">buka menu Aspirasi</small></a><?php endif; ?>
 </div>
 

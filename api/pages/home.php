@@ -96,10 +96,15 @@ require __DIR__ . '/../inc/header.php';
   </div>
 </div></div>
 
-<div class="sec"><div class="wrap">
-  <div class="head-row"><h2>Desa yang terbuka</h2><a href="/data-desa?grup=Transparansi">Lihat informasi lengkap</a></div>
+<?php $d = ringkasan_dampak(); ?>
+<div class="sec dampak-home"><div class="wrap">
+  <div class="head-row"><h2>Dampak setiap kunjungan</h2><a href="/data-desa?grup=Dampak">Laporan dampak lengkap</a></div>
+  <div class="dampak-utama">
+    <a class="dampak-besar" href="/data-desa?grup=Dampak"><span>Emisi yang dihemat pengunjung</span><b><?= angka(round($d['kg_hemat'])) ?> kg CO2e</b><small>dibanding semua datang dengan mobil pribadi</small></a>
+    <a class="dampak-besar" href="/umkm"><span>Belanja Tiket Hijau ke UMKM</span><b><?= rupiah($d['nilai_umkm']) ?></b><small><?= $d['kupon_dipakai'] ?> kupon ditukar pengunjung berskor hijau</small></a>
+  </div>
   <div class="stat-row terbuka">
-    <?php if ($apb && $apb['a'] > 0): ?><a class="stat" href="/data-desa?grup=Transparansi"><span>Belanja desa <?= $tahunApb ?> terealisasi</span><b><?= persen((float) $apb['r'], (float) $apb['a']) ?>%</b><small>dari <?= rupiah_ringkas((float) $apb['a']) ?></small></a><?php endif; ?>
+    <?php if ($apb && $apb['a'] > 0): ?><a class="stat" href="/data-desa?grup=Transparansi"><span>Belanja desa <?= $tahunApb ?> terealisasi</span><b><?= persen_id((float) $apb['r'], (float) $apb['a']) ?>%</b><small>dari <?= rupiah_ringkas((float) $apb['a']) ?></small></a><?php endif; ?>
     <a class="stat" href="/data-desa?grup=Pembangunan"><span>Proyek pembangunan</span><b><?= $proyekBerjalan ?> berjalan</b><small><?= $proyekSelesai ?> sudah selesai</small></a>
     <?php if ($kgSampah > 0): ?><a class="stat" href="/data-desa?grup=Bank+sampah"><span>Sampah dikelola bank sampah</span><b><?= angka(round($kgSampah / 1000, 1)) ?> ton</b><small>dalam 6 bulan terakhir</small></a><?php endif; ?>
     <a class="stat" href="/kontak#aspirasi"><span>Aspirasi warga ditindaklanjuti</span><b><?= $aspSelesai ?> dari <?= $aspTotal ?></b><small>kirim aspirasimu</small></a>

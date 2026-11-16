@@ -49,6 +49,7 @@ $rute = [
     'galeri'    => 'galeri',
     'kontak'    => 'kontak',
     'kuota'     => 'kuota',   // bukan halaman: data sisa kuota (JSON) untuk form reservasi
+    'asisten'   => 'asisten', // bukan halaman: jawaban Asisten Desa (JSON)
 ];
 
 if ($depan === 'admin') {

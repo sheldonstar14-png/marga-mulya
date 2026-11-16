@@ -420,3 +420,48 @@ html.mode-kontras .hero-lead,html.mode-kontras .wx-note{color:#fff}
 .akses-netral{background:#EEF2F4;border-color:#C9D6DC;color:#2F5566}
 .akses-box{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--white)}
 .akses-box h3{margin-bottom:8px}
+
+/* ---------- Tambahan Fase 10 ---------- */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Laporan dampak */
+.dampak-utama{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:14px}
+.dampak-besar{display:block;background:var(--leaf-d);color:#F7F8F2;border-radius:var(--r-m);padding:20px 22px;text-decoration:none}
+.dampak-besar span{font-size:.9rem;color:var(--shoot)}
+.dampak-besar b{display:block;font-family:var(--head);font-size:clamp(1.9rem,5vw,2.6rem);line-height:1.15;margin:4px 0}
+.dampak-besar small{font-size:.85rem;color:#C9D3C3}
+a.dampak-besar:hover{background:#244C21}
+.vbar small{font-size:.72rem}
+/* Tiket Hijau */
+.kupon{margin-top:14px;border:2px dashed var(--shoot);border-radius:var(--r-m);padding:12px;background:rgba(201,220,107,.12)}
+.panel .kupon,.etik-box .kupon{border-color:var(--leaf);background:#EEF2E4}
+.kupon-atas{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.kupon-atas b{font-family:var(--head);font-size:1.2rem;letter-spacing:.04em}
+.kupon-label{background:var(--shoot);color:var(--ink);font-weight:800;font-size:.8rem;padding:3px 10px;border-radius:999px}
+.ticket .kupon p{color:#E3EAD8}
+.eco-hadiah{display:block;margin-top:6px;background:#E3EFD6;border-left:4px solid var(--leaf);padding:6px 10px;border-radius:4px;color:var(--leaf-d);font-weight:700}
+.tag-hijau{background:var(--shoot);color:var(--ink)}
+.tiket-hijau-info{background:#EEF2E4;border-color:#BFD49A;font-size:.95rem}
+.kupon-cek.kupon-ok{border:2px solid var(--leaf);background:#F2F7EA}
+.kupon-cek.kupon-tidak{border:2px solid var(--danger);background:#FBEDEA}
+/* Asisten desa */
+.asisten-btn{position:fixed;right:16px;bottom:16px;z-index:70;display:flex;align-items:center;gap:8px;background:var(--leaf-d);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;box-shadow:0 8px 24px rgba(30,43,34,.3);cursor:pointer;min-height:48px}
+.asisten-btn:hover{background:#244C21}
+.asisten-btn[hidden]{display:none}
+.asisten-panel{position:fixed;right:16px;bottom:16px;z-index:71;width:min(380px,calc(100vw - 24px));height:min(600px,calc(100vh - 90px));background:var(--white);border-radius:var(--r-l);box-shadow:0 18px 50px rgba(30,43,34,.3);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+.asisten-panel[hidden]{display:none}
+.asisten-head{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--leaf-d);color:#fff;padding:14px 16px}
+.asisten-head small{display:block;font-size:.78rem;color:var(--shoot)}
+.asisten-head button{background:none;border:0;color:#fff;font-size:1.8rem;line-height:1;cursor:pointer;min-width:44px;min-height:44px}
+.asisten-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.chat-b{max-width:88%;padding:10px 12px;border-radius:14px;font-size:.93rem;line-height:1.5;overflow-wrap:anywhere}
+.chat-bot{background:var(--white);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.chat-saya{background:var(--leaf);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-tunggu{color:var(--muted);font-style:italic}
+.chat-link{display:block;margin-top:8px;font-weight:700}
+.asisten-saran{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;border-top:1px solid var(--line);scrollbar-width:thin}
+.asisten-saran .chip{flex:none;font-size:.82rem;min-height:34px;padding:4px 12px}
+.asisten-form{display:flex;gap:8px;padding:10px 12px 6px}
+.asisten-form input{flex:1;font-size:16px;padding:10px 12px}
+.asisten-catatan{font-size:.72rem;color:var(--muted);margin:0;padding:0 12px 10px}
+@media (max-width:520px){.asisten-btn span{display:none}.asisten-btn{padding:12px}.asisten-panel{right:8px;bottom:8px;width:calc(100vw - 16px);height:calc(100vh - 80px)}}
+@media print{.asisten-btn,.asisten-panel{display:none!important}}
