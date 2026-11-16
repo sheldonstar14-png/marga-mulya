@@ -184,7 +184,7 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
               <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,darurat">Paket layanan warga</button>
               <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>

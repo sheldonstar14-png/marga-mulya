@@ -240,3 +240,48 @@ function rupiah_ringkas(float $n): string
     if ($n >= 1e6) return 'Rp' . rtrim(rtrim(number_format($n / 1e6, 1, ',', '.'), '0'), ',') . ' juta';
     return rupiah($n);
 }
+
+// ---------- Tambahan Fase 9 ----------
+
+// Cek kata kasar dari daftar di Pengaturan (dipisah koma). Dipakai untuk menahan ulasan publik agar ditinjau dulu.
+function ada_kata_terlarang(string $teks): bool
+{
+    $daftar = array_filter(array_map(fn($k) => mb_strtolower(trim($k)), explode(',', setting('kata_terlarang'))));
+    $teks = mb_strtolower($teks);
+    foreach ($daftar as $kata) {
+        if (preg_match('/(^|[^\p{L}])' . preg_quote($kata, '/') . '($|[^\p{L}])/u', $teks)) return true;
+    }
+    return false;
+}
+
+// Masa simpan data pribadi (UU PDP: data disimpan secukupnya sesuai tujuan).
+// Reservasi yang sudah lewat, aspirasi yang sudah selesai, dan pesan lama dianonimkan:
+// nama dan kontak dihapus, angka statistik (jumlah orang, emisi, kategori) tetap ada.
+function bersihkan_data_lama(): int
+{
+    $hari = max(30, (int) setting('simpan_data_hari'));
+    $batas = date('Y-m-d', strtotime("-$hari days"));
+    $jalankan = function (string $sql) use ($batas): int { $st = db()->prepare($sql); $st->execute([$batas]); return $st->rowCount(); };
+    $n = $jalankan("UPDATE reservasi SET nama = '(dihapus)', wa = '', email = '', catatan = '' WHERE tanggal < ? AND status IN ('Selesai', 'Dibatalkan') AND nama <> '(dihapus)'");
+    $n += $jalankan("UPDATE aspirasi SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
+    $n += $jalankan("UPDATE pesan SET nama = '(dihapus)', kontak = '' WHERE dibuat_pada < ? AND dibaca = 1 AND nama <> '(dihapus)'");
+    return $n;
+}
+
+// Jam dari teks "08.00 sampai 11.00" -> ['0800', '1100'], atau null kalau tidak terbaca
+function jam_agenda(string $teks): ?array
+{
+    if (!preg_match_all('/(\d{1,2})[.:](\d{2})/', $teks, $m) || !$m[0]) return null;
+    $jam = array_map(fn($h, $i) => sprintf('%02d%02d', (int) $h, (int) $i), $m[1], $m[2]);
+    return [$jam[0], $jam[1] ?? sprintf('%04d', min(2359, (int) $jam[0] + 100))];
+}
+
+// Label aksesibilitas destinasi untuk kartu dan detail wisata
+function label_akses(array $w): array
+{
+    $label = [['jalur-' . strtolower($w['tingkat_jalur'] ?? 'Mudah'), 'Jalur ' . strtolower($w['tingkat_jalur'] ?? 'Mudah')]];
+    if (!empty($w['ramah_lansia'])) $label[] = ['akses-ya', 'Ramah lansia'];
+    if (!empty($w['ramah_kursi_roda'])) $label[] = ['akses-ya', 'Bisa kursi roda'];
+    if (!empty($w['ada_toilet'])) $label[] = ['akses-netral', 'Ada toilet'];
+    return $label;
+}

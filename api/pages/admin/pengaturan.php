@@ -37,6 +37,9 @@ $grup = [
             'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
             'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
             'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
+            'simpan_data_hari' => ['Lama penyimpanan data pribadi (hari, minimal 30). Setelah itu nama dan kontak dihapus otomatis', 'text'],
+            'kontak_privasi' => ['Penanggung jawab data pribadi (tampil di bagian Privasi)', 'text'],
+            'kata_terlarang' => ['Kata kasar yang membuat ulasan ditahan untuk ditinjau (pisahkan dengan koma)', 'area'],
         ],
     ],
 ];
@@ -54,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
+    if (isset($baru['simpan_data_hari']) && (!ctype_digit($baru['simpan_data_hari']) || (int) $baru['simpan_data_hari'] < 30)) $errors[] = 'Lama penyimpanan data pribadi berupa angka hari, minimal 30.';
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
 
     if (!$errors) {

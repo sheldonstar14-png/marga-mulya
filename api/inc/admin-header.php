@@ -5,9 +5,10 @@ header('Cache-Control: no-store'); // halaman admin tidak boleh disimpan di cach
 $superAdmin = $admin['peran'] === 'Super admin';
 $jumlahMenunggu = boleh($admin, 'reservasi') ? (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'] : 0;
 $jumlahPesanBaru = boleh($admin, 'pesan') ? (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibaca = 0')['n'] : 0;
+$jumlahPrivasiBaru = boleh($admin, 'privasi') ? (int) q1("SELECT COUNT(*) AS n FROM permintaan_data WHERE status = 'Diterima'")['n'] : 0;
 $jumlahAspirasiBaru = boleh($admin, 'aspirasi') ? (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima'")['n'] : 0;
 $grupMenu = [
-    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'ulasan' => 'Ulasan'],
+    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'layanan' => 'Layanan surat', 'ulasan' => 'Ulasan'],
     'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'darurat' => 'Nomor darurat'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'sampah' => 'Bank sampah'],
@@ -18,7 +19,7 @@ foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
     $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
     if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
-$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru];
+$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru];
 ?>
 <!DOCTYPE html>
 <html lang="id">

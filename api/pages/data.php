@@ -21,13 +21,19 @@ $lainnya = array_values(array_diff(array_column(q('SELECT DISTINCT kategori FROM
 if ($lainnya) {
     $grupData['Lainnya'] = $lainnya;
 }
-$grupKhusus = ['Transparansi', 'Pembangunan', 'Program bantuan', 'Bank sampah'];
+$grupKhusus = ['Layanan surat', 'Transparansi', 'Pembangunan', 'Program bantuan', 'Bank sampah'];
 $grup = $_GET['grup'] ?? 'Penduduk';
 if (!isset($grupData[$grup]) && !in_array($grup, $grupKhusus, true)) {
     $grup = 'Penduduk';
 }
 
 // ---------- Data untuk tab khusus ----------
+if ($grup === 'Layanan surat') {
+    $layanan = q('SELECT * FROM layanan WHERE aktif = 1 ORDER BY urutan, id');
+    $pilihLayanan = (int) ($_GET['l'] ?? ($layanan[0]['id'] ?? 0));
+} elseif ($grup === 'Kesehatan') {
+    $posyandu = q("SELECT id, judul, tanggal, jam, tempat FROM agenda WHERE judul LIKE '%osyandu%' AND tanggal >= ? ORDER BY tanggal LIMIT 3", [date('Y-m-d')]);
+}
 if ($grup === 'Transparansi') {
     $tahun = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
     $pos = $tahun ? q('SELECT jenis, uraian, anggaran, realisasi FROM apbdes WHERE tahun = ? ORDER BY urutan, id', [$tahun]) : [];
@@ -79,7 +85,44 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
     <?php endforeach; ?>
   </nav>
 
-<?php if ($grup === 'Transparansi'): ?>
+<?php if ($grup === 'Layanan surat'): ?>
+  <h2 class="sub-judul">Mau mengurus apa?</h2>
+  <p class="muted" style="max-width:70ch">Pilih keperluanmu untuk melihat dokumen yang harus dibawa. Centang yang sudah siap, supaya cukup sekali datang ke kantor desa. Tidak perlu mengunggah KTP atau KK di sini.</p>
+  <?php if (!$layanan): ?><p class="muted">Daftar layanan belum diisi.</p><?php else: ?>
+  <div class="field" style="max-width:420px">
+    <label for="pilih-layanan">Keperluan</label>
+    <select id="pilih-layanan">
+      <?php foreach ($layanan as $l): ?><option value="<?= (int) $l['id'] ?>" <?= (int) $l['id'] === $pilihLayanan ? 'selected' : '' ?>><?= e($l['nama']) ?></option><?php endforeach; ?>
+    </select>
+  </div>
+  <?php foreach ($layanan as $l): $syarat = per_baris($l['syarat']);
+    $teksWa = "Persiapan {$l['nama']} di " . setting('nama_desa') . ":\n" . implode("\n", array_map(fn($x) => '- ' . $x, $syarat)) . "\nTempat: {$l['tempat']}. Lama proses: {$l['lama_proses']}. Biaya: {$l['biaya']}."; ?>
+    <article class="panel layanan-kartu" id="layanan-<?= (int) $l['id'] ?>" data-layanan="<?= (int) $l['id'] ?>">
+      <div class="head-row" style="margin-bottom:6px"><h3 style="margin:0"><?= e($l['nama']) ?></h3><span class="small muted"><span class="hitung-siap">0</span> dari <?= count($syarat) ?> siap</span></div>
+      <div class="bar-track" aria-hidden="true"><div class="bar-fill siap-bar" style="width:0%"></div></div>
+      <fieldset class="syarat-list"><legend class="small" style="margin:12px 0 6px;font-weight:700">Dokumen yang dibawa</legend>
+        <?php foreach ($syarat as $i => $x): ?>
+          <label class="cek"><input type="checkbox" class="syarat-cek"> <?= e($x) ?></label>
+        <?php endforeach; ?>
+      </fieldset>
+      <dl class="layanan-info">
+        <div><dt>Tempat</dt><dd><?= e($l['tempat']) ?></dd></div>
+        <div><dt>Lama proses</dt><dd><?= e($l['lama_proses']) ?></dd></div>
+        <div><dt>Biaya</dt><dd><?= e($l['biaya']) ?></dd></div>
+        <div><dt>Jam layanan</dt><dd><?= e(setting('jam_layanan')) ?></dd></div>
+      </dl>
+      <?php if ($l['keterangan']): ?><p class="small muted" style="margin:0 0 12px"><?= e($l['keterangan']) ?></p><?php endif; ?>
+      <div class="actions">
+        <a class="btn btn-wa btn-sm" href="https://wa.me/?text=<?= rawurlencode($teksWa) ?>" target="_blank" rel="noopener">Simpan daftar ke WhatsApp</a>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="window.print()">Cetak</button>
+        <a class="btn btn-ghost btn-sm" href="<?= e(wa_link(setting('wa'), 'Halo ' . setting('nama_desa') . ', saya ingin bertanya tentang ' . $l['nama'] . '.')) ?>" target="_blank" rel="noopener">Tanya petugas</a>
+      </div>
+    </article>
+  <?php endforeach; ?>
+  <p class="hint">Syarat bisa berubah sesuai aturan terbaru. Kalau ragu, tanyakan dulu lewat WhatsApp desa.</p>
+  <?php endif; ?>
+
+<?php elseif ($grup === 'Transparansi'): ?>
   <?php if (!$pos): ?>
     <p class="muted">Data APBDes belum diisi.</p>
   <?php else: ?>
@@ -192,6 +235,18 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   <?php endif; ?>
 
 <?php else: ?>
+  <?php if ($grup === 'Kesehatan' && !empty($posyandu)): ?>
+    <div class="panel posyandu-box" style="margin-bottom:16px">
+      <h3>Jadwal posyandu terdekat</h3>
+      <p class="small muted" style="margin-top:0">Simpan ke kalender HP supaya tidak lupa membawa balita menimbang dan imunisasi.</p>
+      <?php foreach ($posyandu as $a): ?>
+        <div class="posyandu-baris">
+          <div><b><?= e($a['judul']) ?></b><br><span class="small muted"><?= tgl($a['tanggal'], 'hari') ?>, <?= e($a['jam']) ?>, <?= e($a['tempat']) ?></span></div>
+          <a class="btn btn-ghost btn-sm" href="/agenda?ics=<?= (int) $a['id'] ?>">Tambah ke kalender</a>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
   <div class="grid g2">
     <?php foreach ($grupData[$grup] as $kategori): ?>
       <div class="panel">
@@ -202,4 +257,27 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   </div>
 <?php endif; ?>
 </div>
-<?php require __DIR__ . '/../inc/footer.php'; ?>
+<?php
+$scriptHalaman = <<<'JS'
+<script>
+// Pemandu layanan: tampilkan satu layanan yang dipilih, hitung dokumen yang sudah siap
+(function () {
+  const pilih = document.getElementById('pilih-layanan');
+  if (!pilih) return;
+  const kartu = document.querySelectorAll('.layanan-kartu');
+  const tampil = () => kartu.forEach(k => { k.hidden = k.dataset.layanan !== pilih.value; });
+  pilih.addEventListener('change', () => { tampil(); history.replaceState(null, '', '?grup=Layanan+surat&l=' + pilih.value); });
+  tampil();
+  kartu.forEach(k => {
+    const cek = k.querySelectorAll('.syarat-cek');
+    const hitung = () => {
+      const siap = [...cek].filter(c => c.checked).length;
+      k.querySelector('.hitung-siap').textContent = siap;
+      k.querySelector('.siap-bar').style.width = (siap / cek.length * 100) + '%';
+    };
+    cek.forEach(c => c.addEventListener('change', hitung));
+  });
+})();
+</script>
+JS;
+require __DIR__ . '/../inc/footer.php'; ?>

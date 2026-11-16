@@ -6,6 +6,7 @@
 -- pengaturan) dan TIDAK mengubah akun atau kata sandi admin.
 -- =========================================================
 
+DELETE FROM permintaan_data;
 DELETE FROM aspirasi;
 DELETE FROM ulasan;
 DELETE FROM reservasi;

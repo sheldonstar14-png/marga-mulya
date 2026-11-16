@@ -36,8 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ulasan'
     elseif ($nilaiBintang < 1 || $nilaiBintang > 5) $errorUlasan = 'Pilih jumlah bintang 1 sampai 5.';
     elseif (mb_strlen($komentar) < 5 || mb_strlen($komentar) > 1000) $errorUlasan = 'Tulis ulasan 5 sampai 1.000 huruf.';
     if ($errorUlasan === '') {
-        q('INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar) VALUES (?, ?, ?, ?, ?)', [$res['id'], $res['wisata_id'], $res['nama'], $nilaiBintang, $komentar]);
-        redirect('/reservasi?cek=' . urlencode($kodeUlasan) . '&ulasan=terima#ulasan');
+        // Ulasan dengan kata kasar tidak langsung tampil, tetapi ditinjau petugas dulu
+        $ditahan = ada_kata_terlarang($komentar);
+        q('INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar, tampil) VALUES (?, ?, ?, ?, ?, ?)', [$res['id'], $res['wisata_id'], $res['nama'], $nilaiBintang, $komentar, $ditahan ? 0 : 1]);
+        redirect('/reservasi?cek=' . urlencode($kodeUlasan) . '&ulasan=' . ($ditahan ? 'tinjau' : 'terima') . '#ulasan');
     }
     $_GET['cek'] = $kodeUlasan;
 }
@@ -70,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'ulasan'
     if (!ctype_digit($isi['jarak_km']) || $jarak < 1 || $jarak > 2000) $errors[] = 'Isi perkiraan jarak dari rumah ke desa dalam kilometer (1 sampai 2.000).';
     if (mb_strlen($isi['catatan']) > 255) $errors[] = 'Catatan maksimal 255 huruf.';
     if (empty($_POST['setuju'])) $errors[] = 'Centang persetujuan kode etik pengunjung sebelum mengirim.';
+    if (empty($_POST['setuju_data'])) $errors[] = 'Centang persetujuan penggunaan data pribadi untuk mengurus reservasi.';
 
     if (!$errors) {
         $sisa = $w['kuota'] - terpakai($w['id'], $isi['tanggal']);
@@ -209,6 +212,8 @@ require __DIR__ . '/../inc/header.php';
         <input type="checkbox" name="setuju" value="1" required style="width:22px;height:22px;flex:none;margin-top:2px" <?= !empty($_POST['setuju']) ? 'checked' : '' ?>>
         <span>Saya sudah membaca dan akan mematuhi kode etik pengunjung, termasuk menjaga kebersihan dan kelestarian alam desa.</span>
       </label>
+      <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required <?= !empty($_POST['setuju_data']) ? 'checked' : '' ?>>
+        <span>Saya setuju nama, kontak, dan data perjalanan dipakai untuk mengurus reservasi ini. Data dihapus otomatis <?= max(30, (int) setting('simpan_data_hari')) ?> hari setelah kunjungan. <a href="/kontak#privasi" target="_blank" rel="noopener">Baca kebijakan privasi</a></span></label>
     </div>
 
     <div class="card-foot" style="padding-top:0">
@@ -274,6 +279,7 @@ require __DIR__ . '/../inc/header.php';
               $ulasanAda = q1('SELECT bintang, komentar FROM ulasan WHERE reservasi_id = ?', [$hasilCek['id']]); ?>
               <div id="ulasan" class="etik-box">
                 <?php if (($_GET['ulasan'] ?? '') === 'terima'): ?><div class="alert alert-ok" role="status">Terima kasih, ulasanmu sudah tersimpan.</div><?php endif; ?>
+                <?php if (($_GET['ulasan'] ?? '') === 'tinjau'): ?><div class="alert alert-ok" role="status">Terima kasih. Ulasanmu akan tampil setelah ditinjau petugas, karena ada kata yang perlu diperiksa.</div><?php endif; ?>
                 <?php if ($ulasanAda): ?>
                   <h3 style="font-size:1.05rem">Ulasanmu</h3>
                   <p style="margin:0"><span class="bintang" aria-label="<?= (int) $ulasanAda['bintang'] ?> dari 5 bintang"><?= bintang($ulasanAda['bintang']) ?></span><br><?= e($ulasanAda['komentar']) ?></p>
@@ -289,7 +295,7 @@ require __DIR__ . '/../inc/header.php';
                         <input type="radio" id="b<?= $b ?>" name="bintang" value="<?= $b ?>" <?= (int) ($_POST['bintang'] ?? 0) === $b ? 'checked' : '' ?> required><label for="b<?= $b ?>" title="<?= $b ?> bintang">★</label>
                       <?php endfor; ?>
                     </fieldset>
-                    <div class="field"><label for="komentar">Ceritakan pengalamanmu</label><textarea id="komentar" name="komentar" rows="3" maxlength="1000" required><?= e($_POST['komentar'] ?? '') ?></textarea></div>
+                    <div class="field"><label for="komentar">Ceritakan pengalamanmu</label><div class="hint" style="margin:-2px 0 6px">Nama depanmu akan tampil bersama ulasan.</div><textarea id="komentar" name="komentar" rows="3" maxlength="1000" required><?= e($_POST['komentar'] ?? '') ?></textarea></div>
                     <button class="btn btn-main btn-sm" type="submit">Kirim ulasan</button>
                   </form>
                 <?php endif; ?>

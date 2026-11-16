@@ -364,3 +364,59 @@ a.stat:hover{border-color:var(--leaf)}
 .eco-gelap{background:rgba(255,255,255,.08);color:#F7F8F2}
 .eco-skor{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--head);font-weight:800;font-size:1.3rem;color:#fff}
 .skor-A{background:#2B7A3A}.skor-B{background:#5E9A3A}.skor-C{background:#C9A227;color:#1E2B22}.skor-D{background:#D9822B}.skor-E{background:#B3402E}
+
+/* ---------- Tambahan Fase 9 ---------- */
+/* Mode mudah */
+.top-aksi{display:flex;gap:8px;align-items:center;order:3}
+.nav{order:2}
+.akses-btn{display:flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font:inherit;font-size:.9rem;min-height:44px;cursor:pointer;color:var(--ink)}
+.akses-btn span[aria-hidden]{font-family:var(--head);font-weight:800}
+.akses-btn[aria-expanded="true"]{border-color:var(--leaf);background:#EEF2E4}
+.akses-panel{position:absolute;top:100%;right:20px;z-index:60;background:var(--white);border:1px solid var(--line);border-radius:var(--r-m);padding:10px;display:grid;gap:6px;width:min(300px,calc(100vw - 40px));box-shadow:0 10px 30px rgba(30,43,34,.15)}
+.akses-panel[hidden]{display:none}
+.akses-panel button{font:inherit;text-align:left;padding:10px 12px;border-radius:var(--r-s);border:1.5px solid var(--line);background:var(--paper);cursor:pointer;min-height:44px;color:var(--ink)}
+.akses-panel button[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:#fff;font-weight:700}
+.akses-panel button[aria-pressed="true"]::after{content:"  (aktif)"}
+.akses-panel button:disabled{opacity:.6;cursor:not-allowed}
+@media (max-width:1320px){.akses-teks{display:none}}
+.akses-btn{white-space:nowrap;flex:none}
+html.mode-besar{font-size:125%}
+html.mode-besar body{font-size:21px;line-height:1.7}
+html.mode-kontras{--muted:#1E2B22;--line:#4A5A4F;--paper:#FFFFFF;--leaf:#1F5A1C;--leaf-d:#173F15}
+html.mode-kontras .muted,html.mode-kontras .hint,html.mode-kontras .small{color:#1E2B22}
+html.mode-kontras a{text-decoration:underline;text-decoration-thickness:2px}
+html.mode-kontras .brand,html.mode-kontras .btn,html.mode-kontras .nav a,html.mode-kontras a.card,html.mode-kontras a.stat{text-decoration:none}
+html.mode-kontras .panel,html.mode-kontras .card,html.mode-kontras input,html.mode-kontras select,html.mode-kontras textarea{border-width:2px}
+html.mode-kontras .hero-lead,html.mode-kontras .wx-note{color:#fff}
+.penanda-offline{background:var(--ink);color:#fff;text-align:center;padding:8px 16px;font-size:.92rem}
+
+/* Persetujuan data */
+.cek-setuju{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:.92rem;margin:4px 0 14px}
+.cek-setuju input{width:22px;height:22px;flex:none;margin-top:2px}
+.privasi-poin ul{padding-left:18px;margin:0}
+.privasi-poin li{margin-bottom:6px}
+
+/* Pemandu layanan surat */
+.layanan-kartu{max-width:760px;margin-bottom:14px}
+.layanan-kartu .syarat-list{border:0;padding:0;margin:0 0 12px;display:grid;gap:4px}
+.layanan-kartu .cek{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:var(--r-s);background:var(--paper);font-weight:400}
+.layanan-kartu .cek input{width:22px;height:22px;flex:none;margin-top:1px}
+.layanan-kartu .cek:has(input:checked){background:#E3EFD6;text-decoration:line-through;text-decoration-color:var(--leaf)}
+.layanan-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px}
+.layanan-info dt{font-size:.8rem;color:var(--muted)}
+.layanan-info dd{margin:0;font-weight:700}
+@media print{.top,footer,.chips,.actions,.field,.hint,.penanda-offline{display:none!important}.layanan-kartu[hidden]{display:none!important}}
+
+/* Posyandu */
+.posyandu-baris{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.posyandu-baris:first-of-type{border-top:0}
+
+/* Aksesibilitas wisata */
+.akses-label{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.akses-label span{font-size:.76rem;padding:2px 9px;border-radius:999px;font-weight:700;border:1px solid}
+.jalur-mudah,.akses-ya{background:#E3EFD6;border-color:#BFD49A;color:var(--leaf-d)}
+.jalur-sedang{background:#FDF1D8;border-color:#EBCB86;color:#7A5A12}
+.jalur-menantang{background:#F9DED8;border-color:#E8B9AF;color:#8C2F20}
+.akses-netral{background:#EEF2F4;border-color:#C9D6DC;color:#2F5566}
+.akses-box{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--white)}
+.akses-box h3{margin-bottom:8px}

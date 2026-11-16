@@ -200,3 +200,19 @@ function email_admin_aspirasi_baru(string $kode): true|string
         . '<p><a href="' . e(url_dasar() . '/admin/aspirasi?status=Diterima') . '">Buka CMS untuk menanggapi</a></p>';
     return kirim_email($tujuan, $subjek, bungkus_email('Aspirasi baru masuk', $isi));
 }
+
+// ---------- Tambahan Fase 9 ----------
+
+// Email perkembangan permintaan data pribadi (kalau kontak berupa email)
+function email_permintaan_data(string $kode): true|string
+{
+    $p = q1('SELECT * FROM permintaan_data WHERE kode = ?', [$kode]);
+    if (!$p || !filter_var($p['kontak'], FILTER_VALIDATE_EMAIL)) {
+        return 'kontak bukan alamat email';
+    }
+    $subjek = "Permintaan data pribadi {$p['kode']}: {$p['status']}";
+    $isi = '<p>Halo ' . e($p['nama']) . ',</p><p>Permintaan <b>' . e(strtolower($p['jenis'])) . ' data pribadi</b> kamu sekarang berstatus <b>' . e($p['status']) . '</b>.</p>'
+        . ($p['tanggapan'] ? '<p><b>Tanggapan petugas:</b><br>' . nl2br(e($p['tanggapan'])) . '</p>' : '')
+        . '<p><a href="' . e(url_dasar() . '/kontak?data=' . urlencode($p['kode']) . '#privasi') . '">Lihat perkembangan</a></p>';
+    return kirim_email($p['kontak'], $subjek, bungkus_email($subjek, $isi));
+}

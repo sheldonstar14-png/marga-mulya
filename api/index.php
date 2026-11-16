@@ -12,6 +12,31 @@ $path  = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $parts = $path === '' ? [] : explode('/', $path);
 $depan = $parts[0] ?? '';
 
+// ---------- Aplikasi web (PWA): service worker dan manifest, bukan halaman ----------
+if ($path === 'sw.js') {
+    header('Content-Type: application/javascript; charset=utf-8');
+    header('Cache-Control: no-cache');
+    header('Service-Worker-Allowed: /');
+    readfile(__DIR__ . '/pwa/sw.js');
+    return;
+}
+if ($path === 'manifest.webmanifest') {
+    try { $namaApp = setting('nama_desa'); } catch (Throwable $e) { $namaApp = 'Desa Marga Mulya'; }
+    header('Content-Type: application/manifest+json; charset=utf-8');
+    echo json_encode([
+        'name' => $namaApp, 'short_name' => mb_strimwidth(str_replace('Desa ', '', $namaApp), 0, 12, ''),
+        'description' => 'Wisata, layanan warga, dan informasi ' . $namaApp,
+        'lang' => 'id', 'start_url' => '/?pwa=1', 'scope' => '/', 'display' => 'standalone',
+        'background_color' => '#F7F8F2', 'theme_color' => '#2B5A28',
+        'icons' => [
+            ['src' => '/assets/img/ikon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
+            ['src' => '/assets/img/ikon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
+            ['src' => '/assets/img/ikon-maskable-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return;
+}
+
 // Daftar alamat dan file halamannya (di folder pages/)
 $rute = [
     ''          => 'home',
@@ -54,5 +79,14 @@ try {
     ob_end_clean();
     http_response_code(500);
     $pesanError = $e->getMessage();
+    // Catat detail lengkap ke log server (Vercel: Project > Logs) tanpa menampilkannya ke pengunjung
+    error_log('[marga-mulya] ' . get_class($e) . ': ' . $pesanError . ' di ' . $e->getFile() . ':' . $e->getLine());
+    // Jenis gangguan yang aman ditampilkan, supaya tim tahu harus memperbaiki apa
+    $jenisError = match (true) {
+        (bool) preg_match("/doesn't exist|Unknown column|no such table|no such column|Base table or view not found/i", $pesanError) => 'struktur',
+        (bool) preg_match('/APP_SECRET/', $pesanError) => 'secret',
+        (bool) preg_match('/SQLSTATE\[HY000\] \[\d+\]|Connection refused|getaddrinfo|Access denied|timed out/i', $pesanError) => 'koneksi',
+        default => 'lain',
+    };
     require __DIR__ . '/pages/error-db.php';
 }

@@ -29,6 +29,7 @@ $halamanAdmin = [
     'checkin'     => 'checkin.php',
     'import-statistik' => 'import-statistik.php',
     'aspirasi'    => 'aspirasi.php',
+    'privasi'     => 'privasi.php',
 ];
 // Halaman yang memakai hak akses menu lain
 $aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik'];

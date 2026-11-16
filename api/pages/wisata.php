@@ -2,7 +2,7 @@
 // =========================================================
 // HALAMAN WISATA: daftar destinasi, peta potensi, budaya
 // =========================================================
-$wisata = q('SELECT id, slug, nama, jenis, harga, kuota, ringkas, foto, lat, lng FROM wisata WHERE aktif = 1 ORDER BY id');
+$wisata = q('SELECT id, slug, nama, jenis, harga, kuota, ringkas, foto, lat, lng, tingkat_jalur, ramah_lansia, ramah_kursi_roda, ada_toilet FROM wisata WHERE aktif = 1 ORDER BY id');
 $rating = [];
 foreach (q('SELECT wisata_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE tampil = 1 GROUP BY wisata_id') as $r) {
     $rating[$r['wisata_id']] = $r;
@@ -39,6 +39,7 @@ require __DIR__ . '/../inc/header.php';
           <h3 style="margin:4px 0 0"><?= e($w['nama']) ?></h3>
           <?php if (isset($rating[$w['id']])): ?><span class="small"><span class="bintang" aria-hidden="true">★</span> <b><?= number_format((float) $rating[$w['id']]['rata'], 1, ',', '.') ?></b> <span class="muted">(<?= (int) $rating[$w['id']]['n'] ?> ulasan)</span></span><?php endif; ?>
           <p><?= e($w['ringkas']) ?></p>
+          <div class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></div>
           <div class="card-foot"><span class="price"><?= rupiah($w['harga']) ?></span><span class="small muted">Kuota <?= (int) $w['kuota'] ?>/hari</span></div>
         </div>
       </a>

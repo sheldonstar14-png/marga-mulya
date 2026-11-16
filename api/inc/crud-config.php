@@ -28,11 +28,16 @@ $CRUD = [
             ['tips', 'Tips untuk pengunjung', 'text', ['maks' => 255]],
             ['kode_etik', 'Kode etik khusus destinasi ini (satu baris satu aturan, opsional)', 'textarea', ['contoh' => 'Dilarang memakai sabun di kolam']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
+            ['tingkat_jalur', 'Tingkat kesulitan jalur', 'select', ['pilihan' => ['Mudah', 'Sedang', 'Menantang']]],
+            ['ramah_lansia', 'Ramah lansia dan ibu hamil', 'check', []],
+            ['ramah_kursi_roda', 'Bisa dicapai kursi roda', 'check', []],
+            ['ada_toilet', 'Ada toilet', 'check', []],
+            ['catatan_akses', 'Catatan aksesibilitas (jalur, tangga, jarak dari parkir)', 'text', ['maks' => 255]],
             ['gmaps_ulasan', 'Link ulasan Google Maps (opsional, kalau destinasi sudah terdaftar di Google Maps)', 'text', ['maks' => 255, 'contoh' => 'https://g.page/r/.../review']],
             ['foto', 'Foto utama', 'foto', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
-        'baru' => ['jenis' => 'Alam', 'harga' => 10000, 'kuota' => 50, 'aktif' => 1],
+        'baru' => ['jenis' => 'Alam', 'harga' => 10000, 'kuota' => 50, 'aktif' => 1, 'tingkat_jalur' => 'Mudah', 'ada_toilet' => 1],
         // Sebelum disimpan: buat slug (alamat) dari nama untuk destinasi baru
         'sebelumSimpan' => function (array &$data, ?int $id): void {
             if ($id === null) {
@@ -281,4 +286,23 @@ $CRUD += [
         'baru' => ['urutan' => 10],
         'cekSimpan' => fn(array $data, ?int $id, array $admin) => !preg_match('/^[0-9+\- ]{3,30}$/', $data['nomor'] ?? '') ? 'Nomor hanya boleh berisi angka, spasi, tanda + atau -.' : null,
     ],
+];
+
+// ---------- Tambahan Fase 9 ----------
+$CRUD['layanan'] = [
+    'judul' => 'Layanan surat', 'satu' => 'layanan', 'tabel' => 'layanan', 'urut' => 'urutan, id',
+    'catatan' => 'Daftar syarat yang tampil di pemandu "Mau mengurus apa?" (Informasi Desa > Layanan surat). Warga jadi tahu apa yang harus dibawa sebelum datang. Tulis satu syarat per baris.',
+    'kolom' => ['urutan' => 'Urutan', 'nama' => 'Layanan', 'lama_proses' => 'Lama proses', 'biaya' => 'Biaya', 'aktif' => 'Tampil'],
+    'format' => ['aktif' => 'yatidak'],
+    'field' => [
+        ['nama', 'Nama layanan', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Surat keterangan domisili']],
+        ['syarat', 'Syarat yang dibawa (satu baris satu syarat)', 'textarea', ['wajib' => true]],
+        ['lama_proses', 'Lama proses', 'text', ['wajib' => true, 'maks' => 100, 'contoh' => '1 hari kerja']],
+        ['biaya', 'Biaya', 'text', ['wajib' => true, 'maks' => 100, 'contoh' => 'Gratis']],
+        ['tempat', 'Tempat mengurus', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Kantor desa, loket pelayanan']],
+        ['keterangan', 'Keterangan tambahan (opsional)', 'textarea', []],
+        ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
+        ['aktif', 'Tampilkan di website', 'check', []],
+    ],
+    'baru' => ['urutan' => 10, 'aktif' => 1, 'biaya' => 'Gratis', 'tempat' => 'Kantor desa, loket pelayanan'],
 ];

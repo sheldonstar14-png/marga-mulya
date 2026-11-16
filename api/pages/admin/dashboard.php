@@ -2,6 +2,8 @@
 // =========================================================
 // DASHBOARD CMS
 // =========================================================
+// Hapus otomatis nama dan kontak di data lama sesuai masa simpan (UU Pelindungan Data Pribadi)
+$dataDibersihkan = bersihkan_data_lama();
 $hariIni = date('Y-m-d');
 $lihatReservasi = boleh($admin, 'reservasi');
 $lihatPesan = boleh($admin, 'pesan');

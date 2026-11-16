@@ -7,7 +7,7 @@
     </div>
     <div>
       <h3>Jelajahi</h3>
-      <p><a href="/wisata">Wisata</a><br><a href="/reservasi">Reservasi dan cek status</a><br><a href="/umkm">Produk UMKM</a></p>
+      <p><a href="/wisata">Wisata</a><br><a href="/reservasi">Reservasi dan cek status</a><br><a href="/data-desa?grup=Layanan+surat">Syarat layanan surat</a><br><a href="/kontak#privasi">Privasi dan data pribadi</a></p>
     </div>
     <div>
       <h3>Hubungi kami</h3>
@@ -26,6 +26,7 @@
     tombol.setAttribute('aria-expanded', nav.classList.contains('open'));
   });
 </script>
+<script src="/assets/js/akses.js"></script>
 <?php if (!empty($pakaiPeta)): ?>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/assets/js/peta.js"></script>

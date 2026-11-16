@@ -51,6 +51,12 @@ require __DIR__ . '/../inc/header.php';
         <div class="chips"><?php foreach ($fasilitas as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div>
       <?php endif; ?>
       <?php if ($w['tips']): ?><p class="cms-note">Tips pengelola: <?= e($w['tips']) ?></p><?php endif; ?>
+      <div class="akses-box">
+        <h3>Aksesibilitas</h3>
+        <div class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></div>
+        <?php if ($w['catatan_akses']): ?><p class="small" style="margin:8px 0 0"><?= e($w['catatan_akses']) ?></p><?php endif; ?>
+        <p class="small muted" style="margin:6px 0 0">Butuh bantuan khusus, misalnya pendamping atau kursi roda? Tulis di catatan saat reservasi.</p>
+      </div>
 
       <h2 style="margin-top:32px">Pilih tanggal kunjungan</h2>
       <p class="muted">Sisa kuota 14 hari ke depan. Klik tanggal untuk langsung memesan. Ikon cuaca muncul untuk tanggal yang sudah ada prakiraannya.</p>
