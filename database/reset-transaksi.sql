@@ -2,10 +2,11 @@
 -- BERSIHKAN DATA UJI COBA (jalankan sehari sebelum submit)
 -- Menghapus SEMUA reservasi dan pesan, lalu mengisi ulang contoh
 -- dengan tanggal yang segar.
--- TIDAK menyentuh konten (wisata, UMKM, berita, galeri, foto, statistik,
+-- Ulasan contoh juga diisi ulang. TIDAK menyentuh konten (wisata, UMKM, berita, galeri, foto, statistik,
 -- pengaturan) dan TIDAK mengubah akun atau kata sandi admin.
 -- =========================================================
 
+DELETE FROM ulasan;
 DELETE FROM reservasi;
 DELETE FROM pesan;
 
@@ -38,3 +39,17 @@ SELECT 'MM-0402', id, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 42, 'Keluarga Besar 
 INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 ('Andi', 'andi@contoh.id', 'Wisata', 'Apakah curug bisa dikunjungi rombongan 40 orang?', 0),
 ('Bu Sri', '081200000007', 'Layanan administrasi', 'Syarat membuat surat keterangan usaha apa saja?', 1);
+
+-- Contoh ulasan untuk reservasi contoh yang sudah selesai (dilewati kalau reservasinya tidak ada)
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Jeruknya manis dan petugasnya ramah. Anak-anak senang sekali memetik sendiri.' FROM reservasi WHERE kode = 'MM-0430';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Pemandangan pagi luar biasa, jalur pematang terawat dan pemandunya sabar.' FROM reservasi WHERE kode = 'MM-0301';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 4, 'Seru untuk rombongan sekolah. Parkir bus agak sempit, sebaiknya datang pagi.' FROM reservasi WHERE kode = 'MM-0322';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Airnya jernih dan jalan menuju curug sudah dibeton. Wajib bawa sandal gunung.' FROM reservasi WHERE kode = 'MM-0350';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Belajar menganyam langsung dari pengrajin, pengalaman yang berharga untuk mahasiswa.' FROM reservasi WHERE kode = 'MM-0377';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 4, 'Datang pagi sesuai saran cuaca di website, ternyata cerah seharian.' FROM reservasi WHERE kode = 'MM-0402';

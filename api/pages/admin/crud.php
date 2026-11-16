@@ -183,7 +183,7 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
               <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,wisata,budaya,umkm">Paket pengelola wisata</button>
+              <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>
             <div class="cek-grid">
@@ -239,7 +239,12 @@ else:
         : q("SELECT * FROM $tabel ORDER BY {$c['urut']}");
     $format = $c['format'] ?? [];
     ?>
-    <div class="head-row"><h2><?= e($c['judul']) ?></h2><a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah">Tambah <?= e($c['satu']) ?></a></div>
+    <div class="head-row"><h2><?= e($c['judul']) ?></h2>
+      <div class="actions">
+        <?php if (!empty($c['tombolTambahan'])): ?><a class="btn btn-ghost btn-sm" href="<?= e($c['tombolTambahan'][0]) ?>"><?= e($c['tombolTambahan'][1]) ?></a><?php endif; ?>
+        <a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah">Tambah <?= e($c['satu']) ?></a>
+      </div>
+    </div>
     <?php if (!empty($c['catatan'])): ?><p class="muted"><?= e($c['catatan']) ?></p><?php endif; ?>
     <?php if ($saring): ?>
       <nav class="chips" aria-label="Saring">

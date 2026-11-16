@@ -6,6 +6,7 @@
 -- jadi semua data akan kembali ke data contoh.
 -- =========================================================
 
+DROP TABLE IF EXISTS ulasan;
 DROP TABLE IF EXISTS reservasi;
 DROP TABLE IF EXISTS tes_koneksi;
 DROP TABLE IF EXISTS pengaturan;
@@ -58,6 +59,7 @@ CREATE TABLE wisata (
   fasilitas VARCHAR(255) NOT NULL DEFAULT '',
   tips VARCHAR(255) NOT NULL DEFAULT '',
   kode_etik TEXT NULL,
+  gmaps_ulasan VARCHAR(255) NULL,
   lat DECIMAL(9,6) NOT NULL,
   lng DECIMAL(9,6) NOT NULL,
   foto VARCHAR(255) NULL,
@@ -123,9 +125,24 @@ CREATE TABLE reservasi (
   jumlah INT NOT NULL,
   nama VARCHAR(150) NOT NULL,
   wa VARCHAR(20) NOT NULL,
+  email VARCHAR(150) NOT NULL DEFAULT '',
   catatan VARCHAR(255) NOT NULL DEFAULT '',
   status VARCHAR(20) NOT NULL DEFAULT 'Menunggu',
   dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (wisata_id) REFERENCES wisata(id)
+);
+
+-- ---------- Ulasan pengunjung (hanya dari reservasi yang sudah Selesai) ----------
+CREATE TABLE ulasan (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reservasi_id INT NOT NULL UNIQUE,
+  wisata_id INT NOT NULL,
+  nama VARCHAR(150) NOT NULL,
+  bintang TINYINT NOT NULL,
+  komentar TEXT NOT NULL,
+  tampil TINYINT NOT NULL DEFAULT 1,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (reservasi_id) REFERENCES reservasi(id),
   FOREIGN KEY (wisata_id) REFERENCES wisata(id)
 );
 
@@ -303,7 +320,12 @@ INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, stat
 ('MM-0428', 2, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 6, 'Rombongan SMA 2', '081200000002', 'Butuh pemandu', 'Menunggu'),
 ('MM-0429', 3, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 25, 'SD Harapan Bangsa', '081200000003', 'Kelas 5, didampingi 3 guru', 'Menunggu'),
 ('MM-0430', 4, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 3, 'Fajar Nugroho', '081200000004', '', 'Selesai'),
-('MM-0431', 1, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 2, 'Maya Anggraini', '081200000005', '', 'Menunggu');
+('MM-0431', 1, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 2, 'Maya Anggraini', '081200000005', '', 'Menunggu'),
+('MM-0301', 1, DATE_SUB(CURDATE(), INTERVAL 150 DAY), 38, 'Rombongan PKK Sukamaju', '081200000011', '', 'Selesai'),
+('MM-0322', 4, DATE_SUB(CURDATE(), INTERVAL 120 DAY), 45, 'SMP Negeri 3', '081200000012', '', 'Selesai'),
+('MM-0350', 2, DATE_SUB(CURDATE(), INTERVAL 90 DAY), 50, 'Komunitas Pesepeda Harapan', '081200000013', '', 'Selesai'),
+('MM-0377', 3, DATE_SUB(CURDATE(), INTERVAL 60 DAY), 30, 'Mahasiswa KKN', '081200000014', '', 'Selesai'),
+('MM-0402', 1, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 42, 'Keluarga Besar Wiryo', '081200000015', '', 'Selesai');
 
 INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 ('Andi', 'andi@contoh.id', 'Wisata', 'Apakah curug bisa dikunjungi rombongan 40 orang?', 0),
@@ -312,13 +334,27 @@ INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 -- Akun demo. Kata sandi semuanya: desa123 (ganti sebelum website dipakai sungguhan)
 INSERT INTO admin (nama, username, password_hash, peran, akses) VALUES
 ('Hj. Siti Rahmawati', 'admin', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Super admin', NULL),
-('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat'),
+('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,ulasan,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat'),
 ('Jurnalis Desa', 'sayajurnalis', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'berita,galeri'),
 ('Pengelola Data Desa', 'datapublik', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'statistik,profil,aparat'),
-('Pengelola Wisata', 'pengelolawisata', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'reservasi,pesan,wisata,budaya,umkm');
+('Pengelola Wisata', 'pengelolawisata', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'reservasi,pesan,ulasan,wisata,budaya,umkm');
 
 -- Kode etik khusus destinasi
 UPDATE wisata SET kode_etik = 'Berjalan hanya di pematang dan jalur yang disediakan, jangan menginjak tanaman padi.\nJangan menerbangkan drone di atas sawah tanpa izin pengelola.' WHERE slug = 'terasering';
 UPDATE wisata SET kode_etik = 'Dilarang memakai sabun, sampo, atau deterjen di kolam curug.\nIkuti petunjuk petugas saat jalur ditutup karena hujan.' WHERE slug = 'curug';
 UPDATE wisata SET kode_etik = 'Minta izin sebelum memotret pengrajin dan rumahnya.' WHERE slug = 'anyaman';
 UPDATE wisata SET kode_etik = 'Petik hanya buah yang ditunjuk petugas, jangan mematahkan ranting.' WHERE slug = 'jeruk';
+
+-- Contoh ulasan untuk reservasi contoh yang sudah selesai (dilewati kalau reservasinya tidak ada)
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Jeruknya manis dan petugasnya ramah. Anak-anak senang sekali memetik sendiri.' FROM reservasi WHERE kode = 'MM-0430';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Pemandangan pagi luar biasa, jalur pematang terawat dan pemandunya sabar.' FROM reservasi WHERE kode = 'MM-0301';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 4, 'Seru untuk rombongan sekolah. Parkir bus agak sempit, sebaiknya datang pagi.' FROM reservasi WHERE kode = 'MM-0322';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Airnya jernih dan jalan menuju curug sudah dibeton. Wajib bawa sandal gunung.' FROM reservasi WHERE kode = 'MM-0350';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 5, 'Belajar menganyam langsung dari pengrajin, pengalaman yang berharga untuk mahasiswa.' FROM reservasi WHERE kode = 'MM-0377';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, nama, 4, 'Datang pagi sesuai saran cuaca di website, ternyata cerah seharian.' FROM reservasi WHERE kode = 'MM-0402';

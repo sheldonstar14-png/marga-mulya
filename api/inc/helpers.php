@@ -151,3 +151,19 @@ function kode_etik(array $wisata): array
 {
     return array_values(array_unique([...per_baris((string) ($wisata['kode_etik'] ?? '')), ...per_baris(setting('kode_etik_umum'))]));
 }
+
+// ---------- Tambahan Fase 7B ----------
+
+// Alamat website lengkap, contoh https://marga-mulya.vercel.app (untuk link di email dan QR)
+function url_dasar(): string
+{
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+}
+
+// Bintang rating, contoh bintang(4) -> ★★★★☆
+function bintang(float $nilai): string
+{
+    $penuh = (int) round($nilai);
+    return str_repeat('★', $penuh) . str_repeat('☆', 5 - $penuh);
+}

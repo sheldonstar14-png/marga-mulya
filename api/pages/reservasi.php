@@ -18,11 +18,30 @@ $isi = [
     'jumlah'  => 2,
     'nama'    => '',
     'wa'      => '',
+    'email'   => '',
     'catatan' => '',
 ];
 
+// ---------- Ulasan dari pengunjung yang sudah berkunjung ----------
+$errorUlasan = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ulasan') {
+    $kodeUlasan = strtoupper(trim((string) ($_POST['kode'] ?? '')));
+    $res = q1("SELECT id, wisata_id, nama FROM reservasi WHERE kode = ? AND status = 'Selesai'", [$kodeUlasan]);
+    $nilaiBintang = (int) ($_POST['bintang'] ?? 0);
+    $komentar = trim((string) ($_POST['komentar'] ?? ''));
+    if (!$res) $errorUlasan = 'Ulasan hanya bisa diberikan untuk reservasi yang sudah selesai berkunjung.';
+    elseif (q1('SELECT id FROM ulasan WHERE reservasi_id = ?', [$res['id']])) $errorUlasan = 'Reservasi ini sudah pernah memberi ulasan. Terima kasih!';
+    elseif ($nilaiBintang < 1 || $nilaiBintang > 5) $errorUlasan = 'Pilih jumlah bintang 1 sampai 5.';
+    elseif (mb_strlen($komentar) < 5 || mb_strlen($komentar) > 1000) $errorUlasan = 'Tulis ulasan 5 sampai 1.000 huruf.';
+    if ($errorUlasan === '') {
+        q('INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar) VALUES (?, ?, ?, ?, ?)', [$res['id'], $res['wisata_id'], $res['nama'], $nilaiBintang, $komentar]);
+        redirect('/reservasi?cek=' . urlencode($kodeUlasan) . '&ulasan=terima#ulasan');
+    }
+    $_GET['cek'] = $kodeUlasan;
+}
+
 // ---------- Form dikirim ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'ulasan') {
     foreach ($isi as $kunci => $_) {
         $isi[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
     }
@@ -43,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($jumlah < 1 || $jumlah > 50) $errors[] = 'Jumlah orang antara 1 sampai 50. Untuk rombongan lebih besar, hubungi desa lewat WhatsApp.';
     if (mb_strlen($isi['nama']) < 2 || mb_strlen($isi['nama']) > 150) $errors[] = 'Isi nama pemesan (2 sampai 150 huruf).';
     if (strlen($wa) < 10 || strlen($wa) > 15) $errors[] = 'Nomor WhatsApp 10 sampai 15 digit, contoh 081234567890.';
+    if (!filter_var($isi['email'], FILTER_VALIDATE_EMAIL) || strlen($isi['email']) > 150) $errors[] = 'Isi alamat email yang benar, contoh nama@gmail.com. Kabar reservasi dikirim ke email ini.';
     if (mb_strlen($isi['catatan']) > 255) $errors[] = 'Catatan maksimal 255 huruf.';
     if (empty($_POST['setuju'])) $errors[] = 'Centang persetujuan kode etik pengunjung sebelum mengirim.';
 
@@ -56,16 +76,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $kode = kode_reservasi_baru();
         q(
-            'INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [$kode, $w['id'], $isi['tanggal'], $jumlah, $isi['nama'], $wa, $isi['catatan'], 'Menunggu']
+            'INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$kode, $w['id'], $isi['tanggal'], $jumlah, $isi['nama'], $wa, $isi['email'], $isi['catatan'], 'Menunggu']
         );
+        // Email ke pengunjung dan ke desa (kalau gagal, reservasi tetap tersimpan)
+        require_once __DIR__ . '/../inc/email.php';
+        $terkirim = email_reservasi($kode) === true;
+        email_admin_reservasi_baru($kode);
         // Pindah ke halaman tiket, supaya reservasi tidak terkirim dua kali kalau halaman dimuat ulang
-        redirect('/reservasi?baru=' . urlencode($kode));
+        redirect('/reservasi?baru=' . urlencode($kode) . '&surel=' . ($terkirim ? '1' : '0'));
     }
 }
 
 // ---------- Tiket baru dan cek status ----------
-$sqlDetail = 'SELECT r.*, w.nama AS nama_wisata, w.harga FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.kode = ?';
+$sqlDetail = 'SELECT r.*, w.nama AS nama_wisata, w.harga, w.gmaps_ulasan FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.kode = ?';
 $tiket = isset($_GET['baru']) ? q1($sqlDetail, [strtoupper(trim($_GET['baru']))]) : null;
 $kodeCek = strtoupper(trim($_GET['cek'] ?? ($tiket['kode'] ?? '')));
 $hasilCek = $kodeCek !== '' && isset($_GET['cek']) ? q1($sqlDetail, [$kodeCek]) : null;
@@ -127,6 +151,11 @@ require __DIR__ . '/../inc/header.php';
       <div class="hint">Konfirmasi dari pengelola dikirim lewat WhatsApp.</div>
     </div>
     <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="<?= e($isi['email']) ?>" autocomplete="email" maxlength="150" placeholder="nama@gmail.com" required>
+      <div class="hint">Tiket, konfirmasi, dan setiap perubahan status dikirim ke email ini.</div>
+    </div>
+    <div class="field">
       <label for="catatan">Catatan (opsional)</label>
       <textarea id="catatan" name="catatan" rows="2" maxlength="255" placeholder="Contoh: rombongan sekolah, butuh pemandu"><?= e($isi['catatan']) ?></textarea>
     </div>
@@ -163,6 +192,11 @@ require __DIR__ . '/../inc/header.php';
           <dt>Bayar di lokasi</dt><dd><?= rupiah($tiket['harga'] * $tiket['jumlah']) ?></dd>
           <dt>Status</dt><dd><?= e($tiket['status']) ?></dd>
         </dl>
+        <p class="small" style="margin:14px 0 0;color:#C9D3C3">
+          <?= ($_GET['surel'] ?? '') === '1' ? 'Rincian tiket juga sudah dikirim ke ' . e($tiket['email']) . '. Cek folder Spam kalau belum masuk.' : 'Simpan kode ini. Email konfirmasi belum bisa dikirim, tapi reservasimu sudah tersimpan.' ?>
+        </p>
+        <div class="qr-box"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($tiket['kode'])) ?>"></div>
+          <span class="small">Tunjukkan kode QR ini ke petugas loket saat tiba.</span></div>
       </div>
     <?php endif; ?>
 
@@ -173,6 +207,9 @@ require __DIR__ . '/../inc/header.php';
         <button class="btn btn-dark" type="submit">Cek</button>
       </form>
 
+      <?php if ($errorUlasan !== '' && !($hasilCek && $hasilCek['status'] === 'Selesai' && !q1('SELECT id FROM ulasan WHERE reservasi_id = ?', [$hasilCek['id']]))): ?>
+        <div class="alert alert-err" role="alert" style="margin-top:14px"><?= e($errorUlasan) ?></div>
+      <?php endif; ?>
       <?php if (isset($_GET['cek']) && $kodeCek !== ''): ?>
         <?php if ($hasilCek):
           $urutan = ['Menunggu', 'Dikonfirmasi', 'Selesai'];
@@ -188,6 +225,40 @@ require __DIR__ . '/../inc/header.php';
               <?php endforeach; endif; ?>
             </ol>
             <span class="small"><?= e($keteranganStatus[$hasilCek['status']] ?? '') ?></span>
+
+            <?php if (in_array($hasilCek['status'], ['Menunggu', 'Dikonfirmasi'], true)): ?>
+              <div class="qr-box qr-terang"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($hasilCek['kode'])) ?>"></div>
+                <span class="small">Kode QR untuk check-in di loket.</span></div>
+            <?php endif; ?>
+
+            <?php if ($hasilCek['status'] === 'Selesai'):
+              $ulasanAda = q1('SELECT bintang, komentar FROM ulasan WHERE reservasi_id = ?', [$hasilCek['id']]); ?>
+              <div id="ulasan" class="etik-box">
+                <?php if (($_GET['ulasan'] ?? '') === 'terima'): ?><div class="alert alert-ok" role="status">Terima kasih, ulasanmu sudah tersimpan.</div><?php endif; ?>
+                <?php if ($ulasanAda): ?>
+                  <h3 style="font-size:1.05rem">Ulasanmu</h3>
+                  <p style="margin:0"><span class="bintang" aria-label="<?= (int) $ulasanAda['bintang'] ?> dari 5 bintang"><?= bintang($ulasanAda['bintang']) ?></span><br><?= e($ulasanAda['komentar']) ?></p>
+                <?php else: ?>
+                  <h3 style="font-size:1.05rem">Bagaimana kunjunganmu?</h3>
+                  <?php if ($errorUlasan): ?><div class="alert alert-err" role="alert"><?= e($errorUlasan) ?></div><?php endif; ?>
+                  <form method="post" action="/reservasi">
+                    <input type="hidden" name="aksi" value="ulasan">
+                    <input type="hidden" name="kode" value="<?= e($hasilCek['kode']) ?>">
+                    <fieldset class="pilih-bintang" style="border:0;padding:0;margin:0 0 12px">
+                      <legend class="small" style="margin-bottom:6px">Beri bintang</legend>
+                      <?php for ($b = 5; $b >= 1; $b--): ?>
+                        <input type="radio" id="b<?= $b ?>" name="bintang" value="<?= $b ?>" <?= (int) ($_POST['bintang'] ?? 0) === $b ? 'checked' : '' ?> required><label for="b<?= $b ?>" title="<?= $b ?> bintang">★</label>
+                      <?php endfor; ?>
+                    </fieldset>
+                    <div class="field"><label for="komentar">Ceritakan pengalamanmu</label><textarea id="komentar" name="komentar" rows="3" maxlength="1000" required><?= e($_POST['komentar'] ?? '') ?></textarea></div>
+                    <button class="btn btn-main btn-sm" type="submit">Kirim ulasan</button>
+                  </form>
+                <?php endif; ?>
+                <?php if ($hasilCek['gmaps_ulasan']): ?>
+                  <p class="small" style="margin:12px 0 0">Mau membantu lebih banyak orang? <a href="<?= e($hasilCek['gmaps_ulasan']) ?>" target="_blank" rel="noopener">Beri ulasan juga di Google Maps</a>.</p>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
           </div>
         <?php else: ?>
           <p class="err">Kode <?= e($kodeCek) ?> tidak ditemukan. Periksa lagi penulisannya.</p>
@@ -238,6 +309,17 @@ $scriptHalaman = <<<'JS'
   [pilih, tanggal, jumlah].forEach(el => el.addEventListener('input', perbarui));
   perbarui();
 })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+// Gambar kode QR untuk check-in. Kalau library gagal dimuat, kode reservasi tetap bisa dibacakan.
+document.querySelectorAll('[data-qr]').forEach(el => {
+  if (typeof qrcode === 'undefined') { el.closest('.qr-box').hidden = true; return; }
+  const qr = qrcode(0, 'M');
+  qr.addData(el.dataset.qr);
+  qr.make();
+  el.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+});
 </script>
 JS;
 require __DIR__ . '/../inc/footer.php';

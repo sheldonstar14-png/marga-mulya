@@ -13,6 +13,9 @@ if (!$w) {
 $fasilitas = array_filter(array_map('trim', explode(',', $w['fasilitas'])));
 $titik = [['lat' => (float) $w['lat'], 'lng' => (float) $w['lng'], 'nama' => $w['nama'], 'jenis' => 'pilih']];
 $aturan = kode_etik($w);
+$ringkasUlasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE wisata_id = ? AND tampil = 1', [$w['id']]);
+$daftarUlasan = q('SELECT nama, bintang, komentar, dibuat_pada FROM ulasan WHERE wisata_id = ? AND tampil = 1 ORDER BY id DESC LIMIT 6', [$w['id']]);
+$linkArah = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($w['lat'] . ',' . $w['lng']);
 
 // Kalender ketersediaan 14 hari mulai besok
 $hariKalender = array_map(fn($i) => date('Y-m-d', strtotime("+$i day")), range(1, 14));
@@ -33,7 +36,10 @@ require __DIR__ . '/../inc/header.php';
   <div class="split">
     <div>
       <div class="art" style="border-radius:var(--r-l);aspect-ratio:16/9"><img src="<?= e($w['foto'] ?: '/assets/img/sawah.svg') ?>" alt="<?= e($w['nama']) ?>"></div>
-      <h1 style="margin-top:24px"><?= e($w['nama']) ?></h1>
+      <h1 style="margin-top:24px;margin-bottom:6px"><?= e($w['nama']) ?></h1>
+      <?php if ($ringkasUlasan['n'] > 0): ?>
+        <p style="margin:0 0 14px"><a href="#ulasan-pengunjung" style="text-decoration:none;color:inherit"><span class="bintang" aria-hidden="true"><?= bintang((float) $ringkasUlasan['rata']) ?></span> <b><?= number_format((float) $ringkasUlasan['rata'], 1, ',', '.') ?></b> <span class="muted">dari <?= (int) $ringkasUlasan['n'] ?> ulasan pengunjung</span></a></p>
+      <?php endif; ?>
       <p><?= nl2br(e($w['deskripsi'])) ?></p>
       <div class="facts">
         <div class="fact"><span>Tiket per orang</span><b><?= rupiah($w['harga']) ?></b></div>
@@ -64,6 +70,21 @@ require __DIR__ . '/../inc/header.php';
       </div>
       <div class="legend-kal"><span style="--c:#DCEFD8">Masih longgar</span><span style="--c:#FCEFCF">Terisi lebih dari separuh</span><span style="--c:#F6DCD6">Penuh</span></div>
 
+      <h2 id="ulasan-pengunjung" style="margin-top:32px">Ulasan pengunjung</h2>
+      <?php if ($daftarUlasan): ?>
+        <div class="grid">
+          <?php foreach ($daftarUlasan as $u): ?>
+            <div class="panel" style="padding:16px 18px">
+              <span class="bintang" aria-label="<?= (int) $u['bintang'] ?> dari 5 bintang"><?= bintang($u['bintang']) ?></span>
+              <p style="margin:6px 0"><?= nl2br(e($u['komentar'])) ?></p>
+              <span class="small muted"><?= e(explode(' ', trim($u['nama']))[0]) ?>, <?= tgl(substr($u['dibuat_pada'], 0, 10)) ?></span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php else: ?>
+        <p class="muted">Belum ada ulasan. Pengunjung bisa memberi ulasan setelah berkunjung, lewat kode reservasinya.</p>
+      <?php endif; ?>
+
       <?php if ($aturan): ?>
         <div class="etik-box">
           <h3>Kode etik pengunjung</h3>
@@ -82,6 +103,8 @@ require __DIR__ . '/../inc/header.php';
         <p class="wx-note">Memuat prakiraan cuaca...</p>
       </div>
       <a class="btn btn-main" style="margin-top:14px;width:100%" id="tombolPesan" href="/reservasi?w=<?= e($w['slug']) ?>">Pesan kunjungan</a>
+      <a class="btn btn-ghost" style="margin-top:10px;width:100%" href="<?= e($linkArah) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
+      <?php if ($w['gmaps_ulasan']): ?><p class="small" style="text-align:center;margin:8px 0 0"><a href="<?= e($w['gmaps_ulasan']) ?>" target="_blank" rel="noopener">Lihat ulasan di Google Maps</a></p><?php endif; ?>
       <div class="peta peta-kecil" style="margin-top:18px" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Lokasi <?= e($w['nama']) ?>"></div>
     </aside>
   </div>

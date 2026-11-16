@@ -3,6 +3,10 @@
 // HALAMAN WISATA: daftar destinasi, peta potensi, budaya
 // =========================================================
 $wisata = q('SELECT id, slug, nama, jenis, harga, kuota, ringkas, foto, lat, lng FROM wisata WHERE aktif = 1 ORDER BY id');
+$rating = [];
+foreach (q('SELECT wisata_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE tampil = 1 GROUP BY wisata_id') as $r) {
+    $rating[$r['wisata_id']] = $r;
+}
 $umkm   = q('SELECT nama_usaha, lat, lng FROM umkm WHERE lat IS NOT NULL AND lng IS NOT NULL');
 $budaya = q('SELECT judul, waktu, isi FROM budaya ORDER BY id');
 
@@ -33,6 +37,7 @@ require __DIR__ . '/../inc/header.php';
         <div class="card-body">
           <span class="tag"><?= e($w['jenis']) ?></span>
           <h3 style="margin:4px 0 0"><?= e($w['nama']) ?></h3>
+          <?php if (isset($rating[$w['id']])): ?><span class="small"><span class="bintang" aria-hidden="true">★</span> <b><?= number_format((float) $rating[$w['id']]['rata'], 1, ',', '.') ?></b> <span class="muted">(<?= (int) $rating[$w['id']]['n'] ?> ulasan)</span></span><?php endif; ?>
           <p><?= e($w['ringkas']) ?></p>
           <div class="card-foot"><span class="price"><?= rupiah($w['harga']) ?></span><span class="small muted">Kuota <?= (int) $w['kuota'] ?>/hari</span></div>
         </div>

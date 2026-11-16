@@ -2,8 +2,13 @@
 // =========================================================
 // HALAMAN LOGIN CMS
 // =========================================================
+// Halaman tujuan setelah login (hanya halaman di dalam CMS)
+$lanjut = (string) ($_POST['lanjut'] ?? $_GET['lanjut'] ?? '');
+if (!preg_match('#^/admin/[a-z0-9\-]+(\?[^\s]*)?$#i', $lanjut)) {
+    $lanjut = '/admin/dashboard';
+}
 if (admin_login()) {
-    redirect('/admin/dashboard');
+    redirect($lanjut);
 }
 
 $error = '';
@@ -16,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // password_verify membandingkan dengan hash, password asli tidak pernah disimpan
     if ($akun && password_verify($password, $akun['password_hash'])) {
         mulai_login((int) $akun['id']);
-        redirect('/admin/dashboard');
+        redirect($lanjut);
     }
     sleep(1); // memperlambat orang yang mencoba menebak password berkali-kali
     $error = 'Nama pengguna atau kata sandi salah.';
@@ -38,6 +43,7 @@ header('Cache-Control: no-store');
 </head>
 <body style="background:#EEF1E6">
   <form class="login" method="post" action="/admin">
+    <input type="hidden" name="lanjut" value="<?= e($lanjut) ?>">
     <h2>Masuk ke CMS</h2>
     <p class="muted">Untuk perangkat desa yang mengelola isi website <?= e(setting('nama_desa')) ?>.</p>
     <?php if (!empty($_GET['ok'])): ?><div class="alert alert-ok" role="status"><?= e($_GET['ok']) ?></div><?php endif; ?>

@@ -25,12 +25,17 @@ $halamanAdmin = [
     'profil'      => 'pengaturan.php',
     'pengaturan'  => 'pengaturan.php',
     'upload-sign' => 'upload-sign.php',
+    'ulasan'      => 'ulasan.php',
+    'checkin'     => 'checkin.php',
+    'import-statistik' => 'import-statistik.php',
 ];
+// Halaman yang memakai hak akses menu lain
+$aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik'];
 
 // Cek hak akses menu ini (upload foto boleh bagi yang mengelola konten berfoto)
 $bolehBuka = $sub === 'upload-sign'
     ? (boleh($admin, 'wisata') || boleh($admin, 'umkm') || boleh($admin, 'berita') || boleh($admin, 'galeri'))
-    : boleh($admin, $sub);
+    : boleh($admin, $aksesDari[$sub] ?? $sub);
 if ((isset($halamanAdmin[$sub]) || isset($CRUD[$sub])) && !$bolehBuka) {
     http_response_code(403);
     if ($sub === 'upload-sign') {

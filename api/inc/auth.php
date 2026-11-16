@@ -77,7 +77,8 @@ function wajib_login(): array
 {
     $admin = admin_login();
     if (!$admin) {
-        redirect('/admin');
+        // Setelah login, kembalikan ke halaman yang tadi dibuka (misalnya dari scan QR)
+        redirect('/admin?lanjut=' . urlencode($_SERVER['REQUEST_URI'] ?? '/admin/dashboard'));
     }
     return $admin;
 }
@@ -95,6 +96,7 @@ function wajib_super_admin(array $admin): void
 const MENU_PETUGAS = [
     'reservasi' => 'Reservasi',
     'pesan'     => 'Pesan masuk',
+    'ulasan'    => 'Ulasan',
     'wisata'    => 'Wisata',
     'budaya'    => 'Budaya',
     'umkm'      => 'UMKM',

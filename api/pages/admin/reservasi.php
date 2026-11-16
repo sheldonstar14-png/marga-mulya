@@ -11,7 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kode = $_POST['kode'] ?? '';
     if (in_array($statusBaru, $daftarStatus, true) && q1('SELECT id FROM reservasi WHERE kode = ?', [$kode])) {
         q('UPDATE reservasi SET status = ? WHERE kode = ?', [$statusBaru, $kode]);
-        redirect('/admin/reservasi?' . http_build_query(['status' => $_POST['saring'] ?? '', 'cari' => $_POST['cari'] ?? '', 'ok' => "$kode sekarang berstatus $statusBaru."]));
+        // Kabari pengunjung lewat email setiap status berubah
+        require_once __DIR__ . '/../../inc/email.php';
+        $hasilEmail = email_reservasi($kode);
+        $pesan = "$kode sekarang berstatus $statusBaru. " . ($hasilEmail === true ? 'Email pemberitahuan terkirim.' : "Email belum terkirim: $hasilEmail.");
+        redirect('/admin/reservasi?' . http_build_query(['status' => $_POST['saring'] ?? '', 'cari' => $_POST['cari'] ?? '', 'ok' => $pesan]));
     }
     redirect('/admin/reservasi?gagal=' . urlencode('Status tidak valid.'));
 }
@@ -32,9 +36,9 @@ if (isset($_GET['export'])) {
     header('Content-Disposition: attachment; filename="reservasi-' . date('Y-m-d') . '.csv"');
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF"); // supaya huruf tampil benar di Excel
-    fputcsv($out, ['Kode', 'Nama', 'WhatsApp', 'Destinasi', 'Tanggal kunjungan', 'Jumlah orang', 'Status', 'Catatan', 'Dibuat']);
+    fputcsv($out, ['Kode', 'Nama', 'WhatsApp', 'Email', 'Destinasi', 'Tanggal kunjungan', 'Jumlah orang', 'Status', 'Catatan', 'Dibuat']);
     foreach ($daftar as $r) {
-        fputcsv($out, [$r['kode'], $r['nama'], $r['wa'], $r['wisata'], $r['tanggal'], $r['jumlah'], $r['status'], $r['catatan'], $r['dibuat_pada']]);
+        fputcsv($out, [$r['kode'], $r['nama'], $r['wa'], $r['email'], $r['wisata'], $r['tanggal'], $r['jumlah'], $r['status'], $r['catatan'], $r['dibuat_pada']]);
     }
     fclose($out);
     return;
@@ -79,7 +83,7 @@ require __DIR__ . '/../../inc/admin-header.php';
           . '<button class="btn ' . $kelas . ' btn-sm" type="submit">' . $label . '</button></form>'; ?>
       <tr>
         <td data-l="Kode"><b><?= e($r['kode']) ?></b></td>
-        <td data-l="Pemesan"><?= e($r['nama']) ?><br><span class="small muted"><?= e($r['wa']) ?><?= $r['catatan'] ? '<br>Catatan: ' . e($r['catatan']) : '' ?></span></td>
+        <td data-l="Pemesan"><?= e($r['nama']) ?><br><span class="small muted"><?= e($r['wa']) ?><?= $r['email'] ? '<br>' . e($r['email']) : '' ?><?= $r['catatan'] ? '<br>Catatan: ' . e($r['catatan']) : '' ?></span></td>
         <td data-l="Destinasi"><?= e($r['wisata']) ?></td>
         <td data-l="Tanggal"><?= tgl($r['tanggal'], 'pendek') ?></td>
         <td data-l="Orang" class="num"><?= (int) $r['jumlah'] ?></td>

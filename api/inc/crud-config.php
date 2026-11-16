@@ -28,6 +28,7 @@ $CRUD = [
             ['tips', 'Tips untuk pengunjung', 'text', ['maks' => 255]],
             ['kode_etik', 'Kode etik khusus destinasi ini (satu baris satu aturan, opsional)', 'textarea', ['contoh' => 'Dilarang memakai sabun di kolam']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
+            ['gmaps_ulasan', 'Link ulasan Google Maps (opsional, kalau destinasi sudah terdaftar di Google Maps)', 'text', ['maks' => 255, 'contoh' => 'https://g.page/r/.../review']],
             ['foto', 'Foto utama', 'foto', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
@@ -43,6 +44,8 @@ $CRUD = [
                 $data['slug'] = $slug;
             }
         },
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => ($data['gmaps_ulasan'] ?? '') !== '' && !str_starts_with($data['gmaps_ulasan'], 'https://')
+            ? 'Link ulasan Google Maps harus diawali https://.' : null,
         'cekHapus' => fn(array $baris, array $admin) => q1('SELECT id FROM reservasi WHERE wisata_id = ?', [$baris['id']])
             ? 'Destinasi ini sudah punya data reservasi, jadi tidak bisa dihapus. Hilangkan centang "Tampilkan di website" lewat Edit untuk menyembunyikannya.'
             : null,
@@ -118,6 +121,7 @@ $CRUD = [
     'statistik' => [
         'judul' => 'Statistik desa', 'satu' => 'angka statistik', 'tabel' => 'statistik', 'urut' => 'kategori, urutan, id',
         'saring' => 'kategori', // tampilkan tombol pilihan per kategori
+        'tombolTambahan' => ['/admin/import-statistik', 'Import atau export CSV'],
         'catatan' => 'Semua angka di halaman Data Desa dan Profil diambil dari sini. Untuk persentase, isi satuan dengan %.',
         'kolom' => ['kategori' => 'Kategori', 'label' => 'Label', 'nilai' => 'Nilai', 'satuan' => 'Satuan', 'urutan' => 'Urutan'],
         'format' => ['nilai' => 'angka'],
