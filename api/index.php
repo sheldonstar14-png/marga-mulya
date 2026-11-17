@@ -12,6 +12,12 @@ $path  = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $parts = $path === '' ? [] : explode('/', $path);
 $depan = $parts[0] ?? '';
 
+// ---------- Gerbang privat: semua halaman wajib password selama SITE_PASSWORD diisi ----------
+require __DIR__ . '/inc/gerbang.php';
+if (gerbang_periksa($path)) {
+    return;
+}
+
 // ---------- Aplikasi web (PWA): service worker dan manifest, bukan halaman ----------
 if ($path === 'sw.js') {
     header('Content-Type: application/javascript; charset=utf-8');
@@ -63,21 +69,6 @@ if ($depan === 'admin') {
     $halaman = $rute[$depan];
 } else {
     $halaman = '404';
-}
-
-// ---------- Mode tutup sementara ----------
-// Nyalakan dengan Environment Variable TUTUP_SEMENTARA=1 di Vercel (lalu Redeploy). Matikan dengan menghapusnya.
-// Pengunjung umum melihat halaman "Segera hadir"; tim yang sudah login CMS tetap bisa melihat website seperti biasa.
-// CMS (/admin), cron laporan, dan file assets tetap jalan.
-if (getenv('TUTUP_SEMENTARA') === '1' && $depan !== 'admin' && $halaman !== 'laporan-otomatis') {
-    require_once __DIR__ . '/inc/auth.php';
-    if (!admin_login()) {
-        http_response_code(503);
-        header('Retry-After: 86400');
-        header('X-Robots-Tag: noindex');
-        require __DIR__ . '/pages/tutup.php';
-        exit;
-    }
 }
 
 $file = __DIR__ . '/pages/' . $halaman . '.php';

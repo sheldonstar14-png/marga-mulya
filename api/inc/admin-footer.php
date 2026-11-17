@@ -14,5 +14,8 @@ document.querySelectorAll('[data-qr]').forEach(el => {
 </script>
 <?php endif; ?>
 <script src="/assets/js/admin.js"></script>
+<?php if (function_exists('gerbang_aktif') && gerbang_aktif()): ?>
+<form method="post" action="/keluar-situs" class="gerbang-keluar"><button type="submit">Mode privat aktif. Keluar</button></form>
+<?php endif; ?>
 </body>
 </html>

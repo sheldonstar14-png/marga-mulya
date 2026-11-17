@@ -58,5 +58,8 @@
 <script src="/assets/js/cuaca.js"></script>
 <?php endif; ?>
 <?= $scriptHalaman ?? '' ?>
+<?php if (function_exists('gerbang_aktif') && gerbang_aktif()): ?>
+<form method="post" action="/keluar-situs" class="gerbang-keluar"><button type="submit">Mode privat aktif. Keluar</button></form>
+<?php endif; ?>
 </body>
 </html>

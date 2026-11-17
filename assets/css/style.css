@@ -745,3 +745,7 @@ footer{background-image:url(/assets/img/pola-kontur.svg);background-blend-mode:s
 body:has(.keranjang-bar:not([hidden])) .asisten-btn{bottom:90px}
 .pilihan-pil input:checked + *,.pilihan-pil label:has(input:checked){background:var(--soft);border-color:var(--leaf-d)}
 @media (max-width:560px){.keranjang-baris{grid-template-columns:1fr auto}.keranjang-baris > span:first-child{grid-column:1/-1}}
+/* Tombol keluar gerbang privat (hanya tampil selama SITE_PASSWORD diisi) */
+.gerbang-keluar{position:fixed;left:12px;bottom:12px;z-index:80;margin:0}
+.gerbang-keluar button{min-height:44px;padding:0 16px;border-radius:999px;border:0;background:#131A13;color:#fff;font:700 .82rem var(--head,sans-serif);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5)}
+.gerbang-keluar button:focus-visible{outline:3px solid #C4F536;outline-offset:2px}

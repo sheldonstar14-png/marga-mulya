@@ -29,6 +29,7 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <?php if (function_exists('gerbang_aktif') && gerbang_aktif()): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <link rel="icon" href="/assets/img/favicon.png" type="image/png">

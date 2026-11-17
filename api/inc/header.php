@@ -20,6 +20,7 @@ $daftarMenu = [
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <?php if (function_exists('gerbang_aktif') && gerbang_aktif()): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($judul) ?></title>
   <meta name="description" content="<?= e(setting('hero_teks')) ?>">
