@@ -120,6 +120,7 @@
   document.querySelectorAll('[data-siaga]').forEach(el => {
     ambilCuaca(el.dataset.lat, el.dataset.lng).then(data => {
       const daftar = siagaCuaca(data.hari);
+      document.dispatchEvent(new CustomEvent('siaga-cuaca', { detail: daftar })); // peta desa ikut menyorot zona rawan
       el.hidden = false;
       if (!daftar.length) {
         el.className = 'siaga aman';
@@ -130,7 +131,7 @@
       el.className = 'siaga ' + (awas ? 'awas' : 'waspada');
       el.setAttribute('role', 'alert');
       el.innerHTML = '<b>Siaga cuaca:</b> ' + daftar.map(d => tglPanjang(d.tgl) + ' berpotensi ' + d.teks).join('; ') +
-        '. Hindari curug dan lereng saat hujan deras. <a href="/kontak#darurat">Lihat nomor darurat</a>.';
+        '. Hindari curug dan lereng saat hujan deras. <a href="/profil#peta-desa">Lihat zona rawan</a> atau <a href="/kontak#darurat">nomor darurat</a>.';
     }).catch(() => { el.hidden = true; });
   });
 })();

@@ -100,6 +100,8 @@ const MENU_PETUGAS = [
     'aspirasi'  => 'Aspirasi warga',
     'privasi'   => 'Permintaan data pribadi',
     'layanan'   => 'Layanan surat',
+    'surat'     => 'Pengajuan surat & antrean',
+    'bansos'    => 'Penerima bansos',
     'faq'       => 'Asisten desa (FAQ)',
     'laporan'   => 'Laporan bulanan',
     'wisata'    => 'Wisata',
@@ -117,6 +119,7 @@ const MENU_PETUGAS = [
     'sampah'    => 'Bank sampah',
     'fasilitas' => 'Fasilitas umum',
     'darurat'   => 'Nomor darurat',
+    'zona'      => 'Zona rawan bencana',
 ];
 
 // Daftar menu yang boleh dibuka seorang admin

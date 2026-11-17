@@ -41,6 +41,18 @@ function data_laporan(string $bulan): array
     $aspirasiLama = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima' AND dibuat_pada < ?", [date('Y-m-d H:i:s', strtotime('-3 days'))])['n'];
     $pesan = (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibuat_pada BETWEEN ? AND ?', $rentang)['n'];
     $permintaanData = (int) q1('SELECT COUNT(*) AS n FROM permintaan_data WHERE dibuat_pada BETWEEN ? AND ?', $rentang)['n'];
+    // Fase 12: surat online, antrean, bansos (angka saja, tanpa nama)
+    $surat = q('SELECT layanan_nama, COUNT(*) AS n FROM surat WHERE dibuat_pada BETWEEN ? AND ? GROUP BY layanan_nama ORDER BY n DESC', $rentang);
+    $suratBelum = (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status IN ('Diterima', 'Diproses')")['n'];
+    $antrean = q1("SELECT COUNT(*) AS n, COUNT(DISTINCT tanggal) AS hari FROM antrean WHERE tanggal BETWEEN ? AND ?", [$awal, $akhir]);
+    $bansos = [];
+    foreach (q('SELECT * FROM bantuan WHERE aktif = 1 ORDER BY id') as $b) {
+        $rb = ringkas_bansos($b);
+        if ($rb['total'] === 0) continue;
+        $bansos[] = ['nama' => $b['nama'], 'kuota' => (int) $b['kuota'], 'total' => $rb['total'], 'tahap' => $rb['tahap'],
+            'bulan_ini' => (int) q1('SELECT COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? AND terakhir_salur BETWEEN ? AND ?', [$b['id'], $awal, $akhir])['n']];
+    }
+    $aduBansos = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE kategori LIKE 'Bansos%' AND dibuat_pada BETWEEN ? AND ?", $rentang)['n'];
 
     // Lingkungan dan pembangunan
     $sampah = q('SELECT jenis, SUM(berat_kg) AS kg, SUM(nilai_rupiah) AS rp FROM sampah WHERE bulan BETWEEN ? AND ? GROUP BY jenis ORDER BY kg DESC', [$awal, $akhir]);
@@ -49,7 +61,7 @@ function data_laporan(string $bulan): array
     $apb = $tahunApb ? q("SELECT jenis, COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? GROUP BY jenis", [$tahunApb]) : [];
 
     return compact('bulan', 'awal', 'akhir', 'perWisata', 'kunjungan', 'orangLalu', 'batal', 'menunggu', 'kupon', 'ulasan',
-        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'sampah', 'proyek', 'tahunApb', 'apb');
+        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'sampah', 'proyek', 'tahunApb', 'apb');
 }
 
 // Hal yang perlu diperhatikan kepala desa, disusun otomatis dari angka
@@ -63,6 +75,12 @@ function catatan_laporan(array $d): array
     }
     if ($d['aspirasiLama'] > 0) $c[] = "Ada {$d['aspirasiLama']} aspirasi warga yang lebih dari 3 hari belum ditanggapi.";
     if ($d['menunggu'] > 0) $c[] = "Ada {$d['menunggu']} reservasi yang masih menunggu konfirmasi petugas.";
+    if (($d['suratBelum'] ?? 0) > 0) $c[] = "Ada {$d['suratBelum']} pengajuan surat online yang belum siap.";
+    if (($d['aduBansos'] ?? 0) > 0) $c[] = "Ada {$d['aduBansos']} laporan atau usulan warga soal penerima bansos. Bahas di musyawarah desa berikutnya.";
+    foreach ($d['bansos'] ?? [] as $b) {
+        $akhirTahap = (int) end($b['tahap']);
+        if ($akhirTahap < $b['total'] && $akhirTahap > 0) $c[] = 'Bansos ' . $b['nama'] . ': ' . ($b['total'] - $akhirTahap) . ' penerima belum menerima tahap terakhir.';
+    }
     $tercatat = (int) $d['kunjungan']['tercatat'];
     if ($tercatat > 0) {
         $p = persen((float) $d['kunjungan']['orang_hijau'], (float) $tercatat);
@@ -77,10 +95,10 @@ function catatan_laporan(array $d): array
 // Susun laporan sebagai HTML dengan gaya tertulis langsung (inline), supaya rapi di email dan saat dicetak
 function html_laporan(array $d): string
 {
-    $th = 'style="text-align:left;padding:6px 8px;border-bottom:2px solid #2B5A28;font-size:13px"';
+    $th = 'style="text-align:left;padding:6px 8px;border-bottom:2px solid #1E4D2B;font-size:13px"';
     $td = 'style="padding:6px 8px;border-bottom:1px solid #E1E6D8;font-size:13px"';
     $tdr = 'style="padding:6px 8px;border-bottom:1px solid #E1E6D8;font-size:13px;text-align:right;white-space:nowrap"';
-    $h3 = 'style="font-size:16px;margin:22px 0 8px;color:#2B5A28"';
+    $h3 = 'style="font-size:16px;margin:22px 0 8px;color:#1E4D2B"';
     $tabel = function (array $kepala, array $baris, array $kanan = []) use ($th, $td, $tdr) {
         $h = '<table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>';
         foreach ($kepala as $i => $k) $h .= '<th ' . (in_array($i, $kanan, true) ? str_replace('text-align:left', 'text-align:right', $th) : $th) . '>' . e($k) . '</th>';
@@ -93,8 +111,8 @@ function html_laporan(array $d): string
         return $h . '</table>';
     };
     $kotak = fn(string $label, string $nilai, string $ket = '') => '<td style="width:25%;padding:10px;background:#F2F5EC;border:4px solid #fff;vertical-align:top">'
-        . '<div style="font-size:12px;color:#56635A">' . e($label) . '</div><div style="font-size:20px;font-weight:bold;margin:2px 0">' . e($nilai) . '</div>'
-        . ($ket ? '<div style="font-size:11px;color:#56635A">' . e($ket) . '</div>' : '') . '</td>';
+        . '<div style="font-size:12px;color:#4C594C">' . e($label) . '</div><div style="font-size:20px;font-weight:bold;margin:2px 0">' . e($nilai) . '</div>'
+        . ($ket ? '<div style="font-size:11px;color:#4C594C">' . e($ket) . '</div>' : '') . '</td>';
 
     $k = $d['kunjungan'];
     $orang = (int) $k['orang'];
@@ -103,10 +121,10 @@ function html_laporan(array $d): string
     $jumlahAspirasi = array_sum(array_column($d['aspirasiMasuk'], 'n'));
     $judulBulan = tgl($d['awal'], 'bulantahun');
 
-    $h = '<div style="font-family:Arial,sans-serif;color:#1E2B22;line-height:1.5">';
-    $h .= '<p style="margin:0 0 4px;font-size:13px;color:#56635A">Laporan bulanan ' . e(setting('nama_desa')) . ', ' . e(setting('kecamatan')) . ', ' . e(setting('kabupaten')) . '</p>';
+    $h = '<div style="font-family:Arial,sans-serif;color:#131A13;line-height:1.5">';
+    $h .= '<p style="margin:0 0 4px;font-size:13px;color:#4C594C">Laporan bulanan ' . e(setting('nama_desa')) . ', ' . e(setting('kecamatan')) . ', ' . e(setting('kabupaten')) . '</p>';
     $h .= '<h2 style="margin:0 0 4px;font-size:22px">' . e($judulBulan) . '</h2>';
-    $h .= '<p style="margin:0 0 14px;font-size:12px;color:#56635A">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
+    $h .= '<p style="margin:0 0 14px;font-size:12px;color:#4C594C">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
 
     $h .= '<table style="width:100%;border-collapse:collapse"><tr>'
         . $kotak('Pengunjung', angka($orang) . ' orang', (int) $k['rombongan'] . ' reservasi')
@@ -122,7 +140,7 @@ function html_laporan(array $d): string
     $h .= '<h3 ' . $h3 . '>1. Wisata</h3>';
     $h .= $tabel(['Destinasi', 'Reservasi', 'Pengunjung', 'Perkiraan pendapatan'],
         array_map(fn($w) => [$w['nama'], $w['rombongan'], angka($w['orang']), rupiah($w['pendapatan'])], $d['perWisata']), [1, 2, 3]);
-    $h .= '<p style="font-size:12px;color:#56635A;margin:4px 0 0">Bulan sebelumnya: ' . angka($d['orangLalu']) . ' pengunjung. Dibatalkan bulan ini: ' . $d['batal'] . ' reservasi.'
+    $h .= '<p style="font-size:12px;color:#4C594C;margin:4px 0 0">Bulan sebelumnya: ' . angka($d['orangLalu']) . ' pengunjung. Dibatalkan bulan ini: ' . $d['batal'] . ' reservasi.'
         . ((int) $d['ulasan']['n'] ? ' Ulasan baru: ' . (int) $d['ulasan']['n'] . ', rata-rata ' . number_format((float) $d['ulasan']['rata'], 1, ',', '.') . ' dari 5.' : '') . '</p>';
 
     $h .= '<h3 ' . $h3 . '>2. Lingkungan</h3>';
@@ -136,7 +154,7 @@ function html_laporan(array $d): string
         $h .= $tabel(['Bank sampah: jenis', 'Berat', 'Nilai tabungan warga'],
             array_map(fn($s) => [$s['jenis'], angka(round((float) $s['kg'])) . ' kg', rupiah((int) $s['rp'])], $d['sampah']), [1, 2]);
     } else {
-        $h .= '<p style="font-size:13px;color:#56635A">Data bank sampah bulan ini belum diisi.</p>';
+        $h .= '<p style="font-size:13px;color:#4C594C">Data bank sampah bulan ini belum diisi.</p>';
     }
 
     $h .= '<h3 ' . $h3 . '>3. Layanan warga</h3>';
@@ -148,10 +166,22 @@ function html_laporan(array $d): string
         ['Permintaan data pribadi', $d['permintaanData']],
     ], [1]);
     if ($d['aspirasiMasuk']) {
-        $h .= '<p style="font-size:12px;color:#56635A;margin:4px 0 0">Kategori aspirasi: ' . e(implode(', ', array_map(fn($a) => $a['kategori'] . ' (' . $a['n'] . ')', $d['aspirasiMasuk']))) . '.</p>';
+        $h .= '<p style="font-size:12px;color:#4C594C;margin:4px 0 0">Kategori aspirasi: ' . e(implode(', ', array_map(fn($a) => $a['kategori'] . ' (' . $a['n'] . ')', $d['aspirasiMasuk']))) . '.</p>';
     }
 
-    $h .= '<h3 ' . $h3 . '>4. Pembangunan dan anggaran</h3>';
+    $h .= '<h3 ' . $h3 . '>4. Surat, antrean, dan bansos</h3>';
+    $h .= $tabel(['Layanan', 'Jumlah'], array_merge(
+        array_map(fn($x) => ['Pengajuan ' . $x['layanan_nama'], (int) $x['n']], $d['surat']),
+        [['Pengajuan surat yang belum siap (semua bulan)', $d['suratBelum']],
+         ['Nomor antrean diambil di kantor desa', (int) $d['antrean']['n'] . ' dalam ' . (int) $d['antrean']['hari'] . ' hari layanan'],
+         ['Laporan atau usulan soal penerima bansos', $d['aduBansos']]]
+    ), [1]);
+    if ($d['bansos']) {
+        $h .= $tabel(['Program bansos', 'Penerima', 'Tersalur per tahap', 'Disalurkan bulan ini'],
+            array_map(fn($b) => [$b['nama'], $b['total'] . ($b['kuota'] ? ' / kuota ' . $b['kuota'] : ''), implode(', ', array_map(fn($t, $n) => "T$t: $n", array_keys($b['tahap']), $b['tahap'])), $b['bulan_ini']], $d['bansos']), [1, 3]);
+    }
+
+    $h .= '<h3 ' . $h3 . '>5. Pembangunan dan anggaran</h3>';
     if ($d['proyek']) {
         $h .= $tabel(['Proyek', 'Status', 'Progres', 'Anggaran'], array_map(fn($p) => [$p['nama'], $p['status'], (int) $p['progres'] . '%', rupiah($p['anggaran'])], $d['proyek']), [2, 3]);
     }
@@ -160,7 +190,7 @@ function html_laporan(array $d): string
             array_map(fn($a) => [$a['jenis'], rupiah($a['a']), rupiah($a['r']), persen_id((float) $a['r'], (float) $a['a']) . '%'], $d['apb']), [1, 2, 3]);
     }
 
-    $h .= '<p style="font-size:12px;color:#56635A;margin-top:22px">Detail lengkap ada di CMS website. Laporan ini bisa dicetak atau disimpan sebagai PDF dari halaman CMS > Laporan bulanan.</p></div>';
+    $h .= '<p style="font-size:12px;color:#4C594C;margin-top:22px">Detail lengkap ada di CMS website. Laporan ini bisa dicetak atau disimpan sebagai PDF dari halaman CMS > Laporan bulanan.</p></div>';
     return $h;
 }
 

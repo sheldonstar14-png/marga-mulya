@@ -1,6 +1,18 @@
   </main>
 </div>
 <?php if (!empty($pakaiPeta)): ?><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><?php endif; ?>
+<?php if (!empty($pakaiQr)): ?>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+document.querySelectorAll('[data-qr]').forEach(el => {
+  if (typeof qrcode === 'undefined') { el.innerHTML = '<p class="small">QR gagal dimuat. Alamat: ' + el.dataset.qr.replace(/</g, '') + '</p>'; return; }
+  const qr = qrcode(0, 'M');
+  qr.addData(el.dataset.qr);
+  qr.make();
+  el.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+});
+</script>
+<?php endif; ?>
 <script src="/assets/js/admin.js"></script>
 </body>
 </html>

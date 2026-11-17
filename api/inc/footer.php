@@ -7,11 +7,12 @@
     </div>
     <div>
       <h3>Jelajahi</h3>
-      <p><a href="/wisata">Wisata</a><br><a href="/reservasi">Reservasi dan cek status</a><br><a href="/data-desa?grup=Layanan+surat">Syarat layanan surat</a><br><a href="/kontak#privasi">Privasi dan data pribadi</a></p>
+      <p><a href="/wisata">Wisata</a><br><a href="/reservasi">Reservasi dan cek status</a><br><a href="/data-desa?grup=Layanan+surat">Layanan surat dan antrean</a><br><a href="/data-desa?grup=Pantau+bansos">Pantau bansos</a><br><a href="/kontak#privasi">Privasi dan data pribadi</a></p>
     </div>
     <div>
       <h3>Hubungi kami</h3>
       <p><?= e(setting('jam_layanan')) ?><br><?= e(setting('email')) ?><br>WhatsApp +<?= e(setting('wa')) ?></p>
+      <button type="button" class="btn btn-sm pasang-btn" id="pasangBtn" hidden>Pasang di HP (bisa dibuka tanpa sinyal)</button>
     </div>
   </div>
   <?php if (setting('kredit_foto') !== ''): ?>

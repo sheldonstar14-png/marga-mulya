@@ -7,10 +7,12 @@
 //     GET /kontak?adu=ADU-XXXXXX#aspirasi  -> cek perkembangan
 // =========================================================
 $topikValid = ['Pertanyaan umum', 'Wisata', 'Layanan administrasi'];
-$kategoriAspirasi = ['Infrastruktur', 'Kebersihan dan lingkungan', 'Pelayanan administrasi', 'Kesehatan', 'Keamanan dan ketertiban', 'Usulan program', 'Permohonan informasi publik', 'Lainnya'];
+$kategoriAspirasi = ['Infrastruktur', 'Kebersihan dan lingkungan', 'Pelayanan administrasi', 'Kesehatan', 'Keamanan dan ketertiban', 'Usulan program', 'Bansos (salah sasaran atau usulan penerima)', 'Permohonan informasi publik', 'Lainnya'];
 $jenisPermintaan = ['Salinan data', 'Perbaikan data', 'Penghapusan data', 'Tarik persetujuan'];
 $isi = ['nama' => '', 'kontak' => '', 'topik' => $topikValid[0], 'isi' => ''];
 $adu = ['nama' => '', 'wa' => '', 'email' => '', 'kategori' => $kategoriAspirasi[0], 'lokasi' => '', 'isi' => ''];
+// Tombol dari tab Pantau bansos membawa ?kategori=Bansos supaya kategorinya langsung terpilih
+if (($_GET['kategori'] ?? '') === 'Bansos') $adu['kategori'] = 'Bansos (salah sasaran atau usulan penerima)';
 $errors = [];
 $errorAdu = [];
 $minta = ['jenis' => $jenisPermintaan[0], 'nama' => '', 'kontak' => '', 'kode_terkait' => '', 'rincian' => ''];

@@ -31,9 +31,12 @@ $halamanAdmin = [
     'aspirasi'    => 'aspirasi.php',
     'privasi'     => 'privasi.php',
     'laporan'     => 'laporan.php',
+    'surat'       => 'surat.php',
+    'antrean'     => 'antrean.php',
+    'bansos'      => 'bansos.php',
 ];
 // Halaman yang memakai hak akses menu lain
-$aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik'];
+$aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik', 'antrean' => 'surat'];
 
 // Cek hak akses menu ini (upload foto boleh bagi yang mengelola konten berfoto)
 $bolehBuka = $sub === 'upload-sign'

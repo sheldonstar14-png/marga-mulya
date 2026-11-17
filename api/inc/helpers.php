@@ -265,7 +265,13 @@ function bersihkan_data_lama(): int
     $n = $jalankan("UPDATE reservasi SET nama = '(dihapus)', wa = '', email = '', catatan = '' WHERE tanggal < ? AND status IN ('Selesai', 'Dibatalkan') AND nama <> '(dihapus)'");
     $n += $jalankan("UPDATE aspirasi SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
     $n += $jalankan("UPDATE pesan SET nama = '(dihapus)', kontak = '' WHERE dibuat_pada < ? AND dibaca = 1 AND nama <> '(dihapus)'");
-    return $n;
+    // Fase 12: surat yang sudah selesai/ditolak, dan antrean yang sudah lewat
+    $n += $jalankan("UPDATE surat SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
+    $n += $jalankan("DELETE FROM antrean WHERE tanggal < ?");
+    // Nama penerima bansos dihapus 30 hari setelah program ditandai selesai (angka per RT tetap ada di laporan)
+    $st = db()->prepare('DELETE FROM bansos_penerima WHERE bantuan_id IN (SELECT id FROM bantuan WHERE selesai IS NOT NULL AND selesai < ?)');
+    $st->execute([date('Y-m-d', strtotime('-30 days'))]);
+    return $n + $st->rowCount();
 }
 
 // Jam dari teks "08.00 sampai 11.00" -> ['0800', '1100'], atau null kalau tidak terbaca
@@ -347,4 +353,52 @@ function ringkasan_dampak(): array
 function persen_id(float $bagian, float $total): string
 {
     return str_replace('.', ',', (string) persen($bagian, $total));
+}
+
+// ---------- Tambahan Fase 12 ----------
+
+// Samarkan nama untuk tampilan publik: "Asep Saepudin" -> "As** Sa******"
+function samarkan_nama(string $nama): string
+{
+    return implode(' ', array_map(fn($k) => mb_substr($k, 0, 2) . str_repeat('*', max(1, mb_strlen($k) - 2)), preg_split('/\s+/', trim($nama))));
+}
+
+// Bentuk nama untuk dicocokkan: huruf kecil, spasi rapi
+function nama_baku(string $nama): string
+{
+    return mb_strtolower(trim(preg_replace('/\s+/', ' ', $nama)));
+}
+
+// RT/RW selalu dua digit: "3" -> "03"
+function rt_baku(string $rt): string
+{
+    $rt = preg_replace('/\D/', '', $rt);
+    return $rt === '' ? '' : str_pad(substr($rt, -3), 2, '0', STR_PAD_LEFT);
+}
+
+// Kode rahasia di QR antrean. Dibuat sekali, bisa diganti petugas di CMS > Surat & antrean.
+function kode_antrean(bool $buatBaru = false): string
+{
+    $kode = setting('antrean_kode');
+    if ($kode === '' || $buatBaru) {
+        $kode = substr(bin2hex(random_bytes(6)), 0, 10);
+        if (q1("SELECT kunci FROM pengaturan WHERE kunci = 'antrean_kode'")) {
+            q("UPDATE pengaturan SET nilai = ? WHERE kunci = 'antrean_kode'", [$kode]);
+        } else {
+            q("INSERT INTO pengaturan (kunci, nilai) VALUES ('antrean_kode', ?)", [$kode]);
+        }
+    }
+    return $kode;
+}
+
+// Ringkasan penyaluran satu program bansos: penerima terdaftar dan jumlah tersalur per tahap
+function ringkas_bansos(array $b): array
+{
+    $total = (int) q1('SELECT COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ?', [$b['id']])['n'];
+    $tahap = [];
+    for ($t = 1; $t <= max(1, (int) $b['jumlah_tahap']); $t++) {
+        $tahap[$t] = (int) q1('SELECT COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? AND tahap_tersalur >= ?', [$b['id'], $t])['n'];
+    }
+    $perRt = q('SELECT rt, COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? GROUP BY rt ORDER BY rt', [$b['id']]);
+    return ['total' => $total, 'tahap' => $tahap, 'per_rt' => $perRt];
 }

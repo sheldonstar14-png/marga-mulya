@@ -7,12 +7,13 @@ $jumlahMenunggu = boleh($admin, 'reservasi') ? (int) q1("SELECT COUNT(*) AS n FR
 $jumlahPesanBaru = boleh($admin, 'pesan') ? (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibaca = 0')['n'] : 0;
 $jumlahPrivasiBaru = boleh($admin, 'privasi') ? (int) q1("SELECT COUNT(*) AS n FROM permintaan_data WHERE status = 'Diterima'")['n'] : 0;
 $jumlahAspirasiBaru = boleh($admin, 'aspirasi') ? (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima'")['n'] : 0;
+$jumlahSuratBaru = boleh($admin, 'surat') ? (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status = 'Diterima'")['n'] : 0;
 $grupMenu = [
-    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'layanan' => 'Layanan surat', 'faq' => 'Asisten desa (FAQ)', 'ulasan' => 'Ulasan'],
+    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'surat' => 'Pengajuan surat & antrean', 'layanan' => 'Jenis surat & syarat', 'faq' => 'Asisten desa (FAQ)', 'ulasan' => 'Ulasan'],
     'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
-    'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'darurat' => 'Nomor darurat'],
+    'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
     'Laporan' => ['laporan' => 'Laporan bulanan'],
-    'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'sampah' => 'Bank sampah'],
+    'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'bansos' => 'Penerima bansos', 'sampah' => 'Bank sampah'],
 ];
 $grupMenu['Sistem'] = ['akun' => 'Akun admin', 'pengaturan' => 'Pengaturan'];
 // Sembunyikan menu yang tidak boleh dibuka akun ini
@@ -20,7 +21,7 @@ foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
     $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
     if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
-$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru];
+$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru, 'surat' => $jumlahSuratBaru];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -36,7 +37,7 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
   <?php if (!empty($pakaiPeta)): ?><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""><?php endif; ?>
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body>
+<body class="cms">
 <div class="admin">
   <nav class="side" aria-label="Menu CMS">
     <h3>CMS <?= e(setting('nama_desa')) ?></h3>

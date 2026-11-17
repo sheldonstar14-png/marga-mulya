@@ -10,19 +10,32 @@ $batas = [
     'Barat'   => setting('batas_barat'),
 ];
 
-// Fasilitas umum untuk peta (warna berbeda per kategori)
-$fasilitas = q('SELECT nama, kategori, alamat, keterangan, lat, lng FROM fasilitas ORDER BY kategori, nama');
-$kategoriFasilitas = array_values(array_unique(array_column($fasilitas, 'kategori')));
-$paletFasilitas = ['#2B5A28', '#B3402E', '#2F6E95', '#E2A529', '#7A4E9C', '#3F7D3A', '#8A6A2F', '#1E2B22'];
-$warnaKategori = [];
-foreach ($kategoriFasilitas as $i => $k) $warnaKategori[$k] = $paletFasilitas[$i % count($paletFasilitas)];
-$titikFasilitas = [];
-foreach ($fasilitas as $f) {
-    if ($f['lat'] === null || $f['lng'] === null) continue;
-    $titikFasilitas[] = ['lat' => (float) $f['lat'], 'lng' => (float) $f['lng'], 'nama' => $f['nama'], 'kat' => $f['kategori'],
-        'warna' => $warnaKategori[$f['kategori']], 'ket' => trim($f['kategori'] . ($f['keterangan'] ? '. ' . $f['keterangan'] : ''))];
-}
-$pakaiPeta = (bool) $titikFasilitas;
+// ---------- Peta desa berlapis (Fase 12) ----------
+// Lima lapisan bisa dinyalakan atau dimatikan: wisata, UMKM, fasilitas, pembangunan, rawan bencana.
+$LAPISAN = [
+    'wisata'      => ['Wisata', '#E8641E'],
+    'umkm'        => ['UMKM', '#2E6B3A'],
+    'fasilitas'   => ['Fasilitas umum', '#1F6F8B'],
+    'pembangunan' => ['Pembangunan', '#6B4FA0'],
+    'rawan'       => ['Rawan bencana', '#B3261E'],
+];
+$titikPeta = [];
+$daftarPeta = [];
+$tambah = function (string $lapis, array $r, string $nama, string $ket, string $url = '', int $radius = 0) use (&$titikPeta, &$daftarPeta, $LAPISAN) {
+    if ($r['lat'] === null || $r['lng'] === null) return;
+    $t = ['lat' => (float) $r['lat'], 'lng' => (float) $r['lng'], 'nama' => $nama, 'kat' => $lapis, 'warna' => $LAPISAN[$lapis][1], 'ket' => $ket];
+    if ($url) $t['url'] = $url;
+    if ($radius) $t['radius'] = $radius;
+    $titikPeta[] = $t;
+    $daftarPeta[$lapis][] = ['nama' => $nama, 'ket' => $ket, 'url' => $url];
+};
+foreach (q('SELECT slug, nama, jenis, lat, lng FROM wisata WHERE aktif = 1 ORDER BY id') as $r) $tambah('wisata', $r, $r['nama'], $r['jenis'], '/wisata/' . $r['slug']);
+foreach (q('SELECT nama_usaha, produk, lat, lng FROM umkm ORDER BY id') as $r) $tambah('umkm', $r, $r['nama_usaha'], $r['produk'], '/umkm');
+foreach (q('SELECT nama, kategori, keterangan, lat, lng FROM fasilitas ORDER BY kategori, nama') as $r) $tambah('fasilitas', $r, $r['nama'], trim($r['kategori'] . ($r['keterangan'] ? '. ' . $r['keterangan'] : '')));
+foreach (q('SELECT nama, status, progres, lat, lng FROM pembangunan ORDER BY tahun DESC, id DESC') as $r) $tambah('pembangunan', $r, $r['nama'], $r['status'] . ', progres ' . (int) $r['progres'] . '%', '/data-desa?grup=Pembangunan');
+foreach (q('SELECT nama, jenis, keterangan, radius_m, lat, lng FROM zona_rawan ORDER BY jenis, nama') as $r) $tambah('rawan', $r, $r['nama'], 'Rawan ' . strtolower($r['jenis']) . '. ' . $r['keterangan'], '', (int) $r['radius_m']);
+$pakaiPeta = (bool) $titikPeta;
+$pakaiCuaca = !empty($daftarPeta['rawan']); // siaga cuaca menyorot zona rawan
 
 $judul = 'Profil - ' . setting('nama_desa');
 $menu  = 'profil';
@@ -78,26 +91,30 @@ require __DIR__ . '/../inc/header.php';
     <div class="bars"><?= bar_list(statistik('Pemerintahan')) ?></div>
   </div>
 </div>
-<?php if ($fasilitas): ?>
-<div class="sec tint" id="fasilitas"><div class="wrap">
-  <h2>Peta fasilitas umum</h2>
-  <p class="muted">Kantor desa, layanan kesehatan, sekolah, dan fasilitas lingkungan di <?= e(setting('nama_desa')) ?>. Pilih kategori untuk menyaring.</p>
-  <div class="chips saring-peta" data-peta="peta-fasilitas" role="group" aria-label="Saring kategori fasilitas">
-    <button type="button" class="chip on" data-kat="" aria-pressed="true">Semua</button>
-    <?php foreach ($kategoriFasilitas as $k): ?>
-      <button type="button" class="chip" data-kat="<?= e($k) ?>" aria-pressed="false"><span class="titik-warna" style="background:<?= $warnaKategori[$k] ?>"></span><?= e($k) ?></button>
+<?php if ($titikPeta): ?>
+<div class="sec tint" id="peta-desa"><div class="wrap">
+  <h2 id="fasilitas">Peta desa</h2>
+  <p class="muted" style="max-width:70ch">Nyalakan lapisan yang kamu perlukan. Lingkaran merah adalah zona rawan longsor atau banjir; saat ada siaga cuaca, zona ini disorot dan sebaiknya dihindari.</p>
+  <div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div>
+  <div class="chips lapisan-peta" data-peta="peta-desa-isi" role="group" aria-label="Lapisan peta">
+    <?php foreach ($LAPISAN as $k => [$label, $warna]): if (empty($daftarPeta[$k])) continue; ?>
+      <button type="button" class="chip on" data-lapis="<?= $k ?>" aria-pressed="true"><span class="titik-warna" style="background:<?= $warna ?>"></span><?= $label ?> <span class="small">(<?= count($daftarPeta[$k]) ?>)</span></button>
     <?php endforeach; ?>
   </div>
-  <div class="split" style="margin-top:14px">
-    <?php if ($titikFasilitas): ?><div class="peta peta-fasilitas" id="peta-fasilitas" data-titik="<?= titik_peta($titikFasilitas) ?>" role="region" aria-label="Peta fasilitas umum"></div><?php endif; ?>
-    <ul class="daftar-fasilitas">
-      <?php foreach ($fasilitas as $f): ?>
-        <li data-kat-item="<?= e($f['kategori']) ?>">
-          <span class="titik-warna" style="background:<?= $warnaKategori[$f['kategori']] ?>"></span>
-          <div><b><?= e($f['nama']) ?></b><br><span class="small muted"><?= e(implode(', ', array_filter([$f['kategori'], $f['alamat'], $f['keterangan']]))) ?></span></div>
-        </li>
+  <div class="split peta-split" style="margin-top:14px">
+    <div class="peta peta-fasilitas" id="peta-desa-isi" data-titik="<?= titik_peta($titikPeta) ?>" role="region" aria-label="Peta desa berlapis"></div>
+    <div class="daftar-peta">
+      <?php foreach ($LAPISAN as $k => [$label, $warna]): if (empty($daftarPeta[$k])) continue; ?>
+        <section data-lapis-item="<?= $k ?>">
+          <h3 class="small"><span class="titik-warna" style="background:<?= $warna ?>"></span><?= $label ?></h3>
+          <ul class="daftar-fasilitas">
+            <?php foreach ($daftarPeta[$k] as $t): ?>
+              <li><div><?= $t['url'] ? '<a href="' . e($t['url']) . '"><b>' . e($t['nama']) . '</b></a>' : '<b>' . e($t['nama']) . '</b>' ?><br><span class="small muted"><?= e($t['ket']) ?></span></div></li>
+            <?php endforeach; ?>
+          </ul>
+        </section>
       <?php endforeach; ?>
-    </ul>
+    </div>
   </div>
 </div></div>
 <?php endif; ?>

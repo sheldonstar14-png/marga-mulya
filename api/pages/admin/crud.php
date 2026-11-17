@@ -46,6 +46,7 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 $data[$nama] = $angka;
                 break;
             case 'date':
+                if ($nilai === '' && !$wajib) { $data[$nama] = null; break; } // tanggal opsional boleh kosong
                 $t = DateTime::createFromFormat('Y-m-d', $nilai);
                 if (!$t || $t->format('Y-m-d') !== $nilai) { $errors[] = "\"$label\" tidak valid."; break; }
                 $data[$nama] = $nilai;
@@ -67,7 +68,7 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
             case 'peta':
                 $lat = trim((string) ($_POST['lat'] ?? ''));
                 $lng = trim((string) ($_POST['lng'] ?? ''));
-                if ($lat === '' && $lng === '' && $c['tabel'] !== 'wisata') { $data['lat'] = null; $data['lng'] = null; break; }
+                if ($lat === '' && $lng === '' && !in_array($c['tabel'], ['wisata', 'zona_rawan'], true)) { $data['lat'] = null; $data['lng'] = null; break; }
                 if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) { $errors[] = 'Pilih lokasi dengan klik peta, atau isi lintang dan bujur dengan benar.'; break; }
                 $data['lat'] = round((float) $lat, 6);
                 $data['lng'] = round((float) $lng, 6);
@@ -184,8 +185,8 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <legend style="font-weight:700;margin-bottom:8px"><?= e($label) ?></legend>
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
-              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,sampah,fasilitas,laporan">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,faq,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,bansos,sampah,fasilitas,zona,laporan">Paket pengelola data</button>
+              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,surat,bansos,faq,darurat">Paket layanan warga</button>
               <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>

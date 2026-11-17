@@ -30,11 +30,14 @@ if ($pesan === '') {
 }
 
 // ---------- Kode reservasi, aspirasi, atau kupon (tanpa menampilkan data pribadi) ----------
-if (preg_match('/\b(MM|ADU|HIJAU)-[A-Z0-9]{3,8}\b/i', $pesan, $m)) {
+if (preg_match('/\b(MM|ADU|HIJAU|SRT)-[A-Z0-9]{3,8}\b/i', $pesan, $m)) {
     $kode = strtoupper($m[0]);
     if (str_starts_with($kode, 'MM-')) {
         $r = q1('SELECT r.status, r.tanggal, r.jumlah, w.nama FROM reservasi r JOIN wisata w ON w.id = r.wisata_id WHERE r.kode = ?', [$kode]);
         if ($r) $jawab("Reservasi $kode ke {$r['nama']} untuk " . tgl($r['tanggal'], 'hari') . " ({$r['jumlah']} orang) berstatus {$r['status']}.", [['label' => 'Buka tiket dan detail', 'url' => '/reservasi?cek=' . urlencode($kode)]]);
+    } elseif (str_starts_with($kode, 'SRT-')) {
+        $s = q1('SELECT status, layanan_nama FROM surat WHERE kode = ?', [$kode]);
+        if ($s) $jawab("Pengajuan $kode ({$s['layanan_nama']}) berstatus {$s['status']}." . ($s['status'] === 'Siap diambil' ? ' Ambil di kantor desa dengan membawa KTP dan KK asli.' : ''), [['label' => 'Lihat catatan petugas', 'url' => '/data-desa?grup=Layanan+surat&srt=' . urlencode($kode) . '#surat']]);
     } elseif (str_starts_with($kode, 'ADU-')) {
         $a = q1('SELECT status, kategori FROM aspirasi WHERE kode = ?', [$kode]);
         if ($a) $jawab("Aspirasi $kode (kategori {$a['kategori']}) berstatus {$a['status']}.", [['label' => 'Lihat tanggapan petugas', 'url' => '/kontak?adu=' . urlencode($kode) . '#aspirasi']]);
@@ -70,7 +73,8 @@ $maksud = [
     'agenda'    => ['agenda', 'acara', 'kegiatan', 'posyandu', 'imunisasi', 'jadwal', 'festival', 'merti'],
     'sampah'    => ['sampah', 'bank sampah', 'daur ulang', 'kompos', 'jelantah'],
     'anggaran'  => ['anggaran', 'apbdes', 'dana desa', 'keuangan', 'pembangunan', 'proyek', 'transparansi'],
-    'bantuan'   => ['bantuan', 'blt', 'bansos', 'subsidi', 'modal usaha'],
+    'bantuan'   => ['bantuan', 'blt', 'bansos', 'subsidi', 'modal usaha', 'penerima', 'salah sasaran', 'pkh', 'sembako'],
+    'antrean'   => ['antre', 'antri', 'nomor antrean', 'nomor antrian', 'giliran', 'loket'],
     'aspirasi'  => ['aspirasi', 'lapor', 'pengaduan', 'keluhan', 'usul', 'saran', 'informasi publik'],
     'privasi'   => ['privasi', 'data pribadi', 'hapus data', 'data saya'],
     'salam'     => ['halo', 'hai', 'hi ', 'pagi', 'siang', 'sore', 'malam', 'assalamualaikum', 'permisi', 'terima kasih', 'makasih'],
@@ -142,16 +146,16 @@ switch ($utama) {
             [['label' => 'Lihat semua destinasi', 'url' => '/wisata']], array_map(fn($w) => 'Info ' . $w['nama'], array_slice($semua, 0, 4)));
 
     case 'surat':
-        $layanan = q('SELECT nama, syarat, lama_proses, biaya FROM layanan WHERE aktif = 1 ORDER BY urutan, id');
+        $layanan = q('SELECT id, nama, syarat, lama_proses, biaya FROM layanan WHERE aktif = 1 ORDER BY urutan, id');
         foreach ($layanan as $l) {
             $kunci = array_filter(preg_split('/[\s()]+/', mb_strtolower($l['nama'])), fn($k) => mb_strlen($k) > 3 && !in_array($k, ['surat', 'keterangan', 'pengantar'], true));
             if (array_filter($kunci, fn($k) => str_contains($kecil, $k))) {
                 $jawab("Syarat {$l['nama']}:\n" . implode("\n", array_map(fn($s) => "- $s", per_baris($l['syarat']))) . "\nLama proses {$l['lama_proses']}, biaya {$l['biaya']}. Jam layanan: " . setting('jam_layanan') . '.',
-                    [['label' => 'Buka daftar syarat yang bisa dicentang', 'url' => '/data-desa?grup=Layanan+surat']], ['Lokasi kantor desa', 'Kontak desa']);
+                    [['label' => 'Ajukan surat ini online', 'url' => '/data-desa?grup=Layanan+surat&l=' . (int) ($l['id'] ?? 0) . '#surat'], ['label' => 'Daftar syarat yang bisa dicentang', 'url' => '/data-desa?grup=Layanan+surat']], ['Lokasi kantor desa', 'Antrean kantor desa']);
             }
         }
-        $jawab("Layanan surat yang tersedia:\n" . implode("\n", array_map(fn($l) => "- {$l['nama']} ({$l['lama_proses']}, {$l['biaya']})", $layanan)) . "\nSebut nama suratnya untuk melihat syaratnya.",
-            [['label' => 'Pemandu layanan surat', 'url' => '/data-desa?grup=Layanan+surat']], array_map(fn($l) => 'Syarat ' . $l['nama'], array_slice($layanan, 0, 3)));
+        $jawab("Layanan surat yang tersedia:\n" . implode("\n", array_map(fn($l) => "- {$l['nama']} ({$l['lama_proses']}, {$l['biaya']})", $layanan)) . "\nSurat bisa diajukan online dulu, lalu diambil saat siap. Sebut nama suratnya untuk melihat syaratnya.",
+            [['label' => 'Ajukan surat online', 'url' => '/data-desa?grup=Layanan+surat#surat'], ['label' => 'Pemandu layanan surat', 'url' => '/data-desa?grup=Layanan+surat']], array_map(fn($l) => 'Syarat ' . $l['nama'], array_slice($layanan, 0, 3)));
 
     case 'lokasi':
         $jawab('Kantor desa ada di ' . setting('alamat') . ', ' . setting('kecamatan') . ', ' . setting('kabupaten') . '. Jam layanan: ' . setting('jam_layanan') . '.',
@@ -185,8 +189,18 @@ switch ($utama) {
 
     case 'bantuan':
         $program = q('SELECT nama, jadwal FROM bantuan WHERE aktif = 1 ORDER BY id');
-        $jawab("Program bantuan yang sedang dibuka:\n" . implode("\n", array_map(fn($b) => "- {$b['nama']} ({$b['jadwal']})", $program)) . "\nSyarat dan cara daftar ada di halaman Informasi Desa.",
-            [['label' => 'Lihat syarat program bantuan', 'url' => '/data-desa?grup=Program+bantuan']]);
+        if ($ada(['salah sasaran', 'tidak layak', 'tidak tepat'])) {
+            $jawab('Kalau ada penerima bantuan yang tidak layak, atau keluarga layak yang belum terdaftar, laporkan lewat form aspirasi kategori Bansos. Boleh tanpa nama, dan kamu mendapat kode ADU- untuk melacak tindak lanjutnya.',
+                [['label' => 'Laporkan salah sasaran', 'url' => '/kontak?kategori=Bansos#aspirasi']]);
+        }
+        $jawab("Program bantuan di desa:\n" . implode("\n", array_map(fn($b) => "- {$b['nama']} ({$b['jadwal']})", $program)) . "\nDi Pantau bansos kamu bisa melihat penyaluran per tahap dan mengecek status dengan nama lengkap dan RT, tanpa NIK.",
+            [['label' => 'Cek status penerima', 'url' => '/data-desa?grup=Pantau+bansos#cek-bansos'], ['label' => 'Penyaluran per tahap', 'url' => '/data-desa?grup=Pantau+bansos']], ['Laporkan salah sasaran', 'Syarat mengurus surat']);
+
+    case 'antrean':
+        $kini = q1("SELECT nomor FROM antrean WHERE tanggal = ? AND status = 'Dipanggil' ORDER BY dipanggil_pada DESC LIMIT 1", [date('Y-m-d')]);
+        $tunggu = (int) q1("SELECT COUNT(*) AS n FROM antrean WHERE tanggal = ? AND status = 'Menunggu'", [date('Y-m-d')])['n'];
+        $jawab('Ambil nomor antrean dengan memindai QR di meja layanan kantor desa. ' . ($kini ? 'Saat ini nomor ' . sprintf('%03d', $kini['nomor']) . " sedang dilayani, $tunggu orang menunggu." : 'Hari ini belum ada antrean yang dipanggil.') . ' Jam layanan: ' . setting('jam_layanan') . '.',
+            [['label' => 'Lihat antrean', 'url' => '/data-desa?grup=Layanan+surat#antrean']], ['Syarat mengurus surat', 'Lokasi kantor desa']);
 
     case 'aspirasi':
         $jawab('Sampaikan aspirasi, pengaduan, atau permohonan informasi publik lewat form di halaman Kontak. Kamu mendapat kode ADU- untuk melacak tanggapannya, dan boleh mengirim tanpa nama.',

@@ -23,14 +23,13 @@ $daftarMenu = [
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($judul) ?></title>
   <meta name="description" content="<?= e(setting('hero_teks')) ?>">
-  <meta name="theme-color" content="#2B5A28">
+  <meta name="theme-color" content="#1E4D2B">
   <meta property="og:type" content="website">
   <meta property="og:title" content="<?= e($judul) ?>">
   <meta property="og:description" content="<?= e(setting('hero_teks')) ?>">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <script>try{['besar','kontras'].forEach(function(m){if(localStorage.getItem('mm-'+m)==='1')document.documentElement.classList.add('mode-'+m)})}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -44,20 +43,12 @@ $daftarMenu = [
 <header class="top">
   <div class="top-in">
     <a class="brand" href="/">
-      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="10" fill="#2B5A28"/><path d="M6 28c6-3 20-3 26 0M6 22c6-3 20-3 26 0M8 16c5-2.6 17-2.6 22 0" stroke="#C9DC6B" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="27" cy="10" r="3.4" fill="#E2A529"/></svg>
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="19" fill="#1E4D2B"/><path d="M7 27c6-3 18-3 24 0M7 21.5c6-3 18-3 24 0M9 16c5-2.5 15-2.5 20 0" stroke="#C4F536" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="27" cy="10" r="3.4" fill="#E8641E"/></svg>
       <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?></small></span>
     </a>
     <div class="top-aksi">
-      <button class="akses-btn" id="aksesBtn" aria-expanded="false" aria-controls="aksesPanel" title="Mode mudah: huruf besar, kontras, dan suara">
-        <span aria-hidden="true">Aa</span><span class="akses-teks">Mode mudah</span>
-      </button>
+      <a class="btn-header" href="/reservasi"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Pesan kunjungan</span></a>
       <button class="menu-btn" aria-expanded="false" aria-controls="nav" id="menuBtn">Menu</button>
-    </div>
-    <div class="akses-panel" id="aksesPanel" hidden role="group" aria-label="Pengaturan tampilan dan suara">
-      <button type="button" data-mode="besar" aria-pressed="false">Huruf besar</button>
-      <button type="button" data-mode="kontras" aria-pressed="false">Kontras tinggi</button>
-      <button type="button" id="dengarBtn" aria-pressed="false">Dengarkan halaman ini</button>
-      <button type="button" id="pasangBtn" hidden>Pasang di HP (bisa dibuka tanpa sinyal)</button>
     </div>
     <nav class="nav" id="nav" aria-label="Menu utama">
       <?php foreach ($daftarMenu as $alamatMenu => $labelMenu): ?>

@@ -219,6 +219,7 @@ $CRUD += [
             ['deskripsi', 'Keterangan', 'textarea', ['wajib' => true]],
             ['foto', 'Foto sebelum (opsional)', 'foto', []],
             ['foto_sesudah', 'Foto sesudah atau terkini (opsional)', 'foto', []],
+            ['peta', 'Titik lokasi di peta desa (opsional)', 'peta', []],
         ],
         'baru' => ['tahun' => (int) date('Y'), 'anggaran' => 0, 'progres' => 0, 'status' => 'Perencanaan', 'sumber_dana' => 'Dana Desa'],
         'cekSimpan' => fn(array $data, ?int $id, array $admin) => ($data['status'] ?? '') === 'Selesai' && (int) ($data['progres'] ?? 0) < 100
@@ -227,7 +228,7 @@ $CRUD += [
 
     'bantuan' => [
         'judul' => 'Program bantuan', 'satu' => 'program', 'tabel' => 'bantuan', 'urut' => 'aktif DESC, id',
-        'catatan' => 'Cukup tulis jenis program, syarat, dan cara daftar. Jangan menampilkan nama atau NIK penerima di website.',
+        'catatan' => 'Isi jenis program, syarat, kuota, dan jumlah tahap. Nama penerima diisi di menu Penerima bansos; di website nama selalu disamarkan dan NIK tidak pernah diminta.',
         'kolom' => ['nama' => 'Program', 'penyelenggara' => 'Penyelenggara', 'jadwal' => 'Jadwal', 'aktif' => 'Tampil'],
         'format' => ['aktif' => 'yatidak'],
         'field' => [
@@ -237,9 +238,13 @@ $CRUD += [
             ['syarat', 'Syarat (satu baris satu syarat)', 'textarea', ['wajib' => true]],
             ['jadwal', 'Jadwal', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Pendaftaran Januari sampai Februari']],
             ['cara_daftar', 'Cara mendaftar', 'textarea', ['wajib' => true]],
+            ['kuota', 'Kuota penerima di desa', 'number', ['min' => 0, 'max' => 100000]],
+            ['jumlah_tahap', 'Jumlah tahap penyaluran', 'number', ['min' => 1, 'max' => 12]],
+            ['selesai', 'Tanggal program selesai (kosongkan kalau masih berjalan)', 'date', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
-        'baru' => ['aktif' => 1],
+        'baru' => ['aktif' => 1, 'kuota' => 0, 'jumlah_tahap' => 1],
+        'tombolTambahan' => ['/admin/bansos', 'Kelola penerima bansos'],
     ],
 
     'sampah' => [
@@ -272,6 +277,21 @@ $CRUD += [
             ['peta', 'Lokasi (klik peta, opsional)', 'peta', []],
         ],
         'baru' => ['kategori' => 'Kesehatan'],
+    ],
+
+    'zona' => [
+        'judul' => 'Zona rawan bencana', 'satu' => 'zona', 'tabel' => 'zona_rawan', 'urut' => 'jenis, nama',
+        'catatan' => 'Tampil sebagai lingkaran di peta desa (halaman Profil, lapisan Rawan bencana). Saat siaga cuaca aktif, zona ini ikut disorot. Isi berdasarkan kajian BPBD atau musyawarah warga.',
+        'kolom' => ['nama' => 'Nama zona', 'jenis' => 'Jenis', 'radius_m' => 'Radius (m)'],
+        'format' => ['radius_m' => 'angka'],
+        'field' => [
+            ['nama', 'Nama zona', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Lereng menuju Curug Cikaso']],
+            ['jenis', 'Jenis bahaya', 'select', ['pilihan' => ['Longsor', 'Banjir', 'Angin kencang', 'Kebakaran lahan'], 'bisaTambah' => true]],
+            ['radius_m', 'Radius area (meter)', 'number', ['min' => 30, 'max' => 2000]],
+            ['keterangan', 'Apa yang perlu diwaspadai warga', 'text', ['maks' => 255, 'wajib' => true]],
+            ['peta', 'Titik tengah zona (klik peta)', 'peta', []],
+        ],
+        'baru' => ['jenis' => 'Longsor', 'radius_m' => 150],
     ],
 
     'darurat' => [
