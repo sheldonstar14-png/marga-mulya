@@ -27,7 +27,7 @@ $daftarMenu = [
   <meta property="og:type" content="website">
   <meta property="og:title" content="<?= e($judul) ?>">
   <meta property="og:description" content="<?= e(setting('hero_teks')) ?>">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +43,7 @@ $daftarMenu = [
 <header class="top">
   <div class="top-in">
     <a class="brand" href="/">
-      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="19" fill="#1E4D2B"/><path d="M7 27c6-3 18-3 24 0M7 21.5c6-3 18-3 24 0M9 16c5-2.5 15-2.5 20 0" stroke="#C4F536" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="27" cy="10" r="3.4" fill="#E8641E"/></svg>
+      <img class="brand-logo" src="/assets/img/logo-mark.png" alt="" width="68" height="38">
       <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?></small></span>
     </a>
     <div class="top-aksi">

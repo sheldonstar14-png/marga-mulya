@@ -664,3 +664,24 @@ footer{margin-top:0}
 .dialog-surel ol{padding-left:20px;margin:10px 0 16px}
 .dialog-surel li{margin-bottom:6px}
 .dialog-ikon{width:56px;height:56px;border-radius:50%;background:var(--shoot);display:grid;place-items:center;color:var(--leaf-d)}
+
+/* Fase 12c: hiasan latar dari motif logo (kontur terasering, daun, titik). Hanya dekorasi: aria-hidden, tidak mengurangi kontras. */
+body{background-color:var(--paper);background-image:url(/assets/img/pola-kontur.svg);background-size:600px 400px;background-attachment:scroll}
+.brand-logo{width:auto;height:38px;display:block}
+.cms-logo{display:inline-grid;place-items:center;background:#F6F0E4;border-radius:10px;padding:4px 6px;margin-right:8px;vertical-align:middle}
+.cms-logo img{height:26px;width:auto;display:block}
+.hero-fusi{position:relative;overflow:hidden}
+.hero-fusi .wrap{position:relative;z-index:1}
+.hiasan{position:absolute;pointer-events:none;z-index:0}
+.hiasan-daun{width:44px;height:44px;background:url(/assets/img/daun.svg) center/contain no-repeat}
+.hiasan-titik{width:14px;height:14px;border-radius:50%}
+.h1{top:28px;left:46%;transform:rotate(-20deg)}
+.h2{top:120px;right:3%;width:30px;height:30px;transform:rotate(30deg)}
+.h3{bottom:60px;left:2%;width:34px;height:34px;transform:scaleX(-1) rotate(10deg)}
+.t1{top:70px;left:40%;background:var(--turmeric)}
+.t2{top:46px;right:12%;background:var(--shoot);width:12px;height:12px}
+.t3{bottom:120px;left:44%;background:var(--leaf-d);width:10px;height:10px}
+.t4{top:24px;left:22%;background:var(--shoot);width:10px;height:10px}
+.sec-head h2::after,.head-row h2::after{content:"";display:block;width:56px;height:6px;border-radius:999px;margin-top:10px;background:linear-gradient(90deg,var(--shoot) 0 60%,var(--turmeric) 60% 100%)}
+footer{background-image:url(/assets/img/pola-kontur.svg);background-blend-mode:soft-light}
+@media (max-width:960px){.h1,.t1,.t3{display:none}}

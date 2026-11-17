@@ -30,7 +30,7 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png">
   <title><?= e($judulAdmin ?? 'CMS') ?> - CMS <?= e(setting('nama_desa')) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,7 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
 <body class="cms">
 <div class="admin">
   <nav class="side" aria-label="Menu CMS">
-    <h3>CMS <?= e(setting('nama_desa')) ?></h3>
+    <h3><span class="cms-logo"><img src="/assets/img/logo-mark.png" alt="" width="54" height="30"></span>CMS <?= e(setting('nama_desa')) ?></h3>
     <?php foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu): ?>
       <h4><?= e($namaGrupMenu) ?></h4>
       <?php foreach ($isiGrupMenu as $alamatMenu => $labelMenu): ?>

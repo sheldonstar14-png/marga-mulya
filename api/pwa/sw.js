@@ -5,8 +5,8 @@
 // - Halaman CMS (/admin) dan form tidak pernah disimpan.
 // Naikkan angka VERSI kalau CSS atau JS berubah besar.
 // =========================================================
-const VERSI = 'mm-v9-1';
-const WAJIB = ['/', '/kontak', '/assets/css/style.css', '/assets/js/akses.js', '/assets/img/favicon.svg', '/assets/img/ikon-192.png'];
+const VERSI = 'mm-v12-2';
+const WAJIB = ['/', '/kontak', '/assets/css/style.css', '/assets/js/akses.js', '/assets/img/favicon.png', '/assets/img/ikon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSI).then(c => Promise.allSettled(WAJIB.map(u => c.add(u)))).then(() => self.skipWaiting()));

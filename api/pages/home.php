@@ -36,7 +36,10 @@ $menu  = '';
 $pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 ?>
-<section class="hero-fusi" aria-labelledby="judul-hero"><div class="wrap">
+<section class="hero-fusi" aria-labelledby="judul-hero">
+  <span class="hiasan hiasan-daun h1" aria-hidden="true"></span><span class="hiasan hiasan-daun h2" aria-hidden="true"></span><span class="hiasan hiasan-daun h3" aria-hidden="true"></span>
+  <span class="hiasan hiasan-titik t1" aria-hidden="true"></span><span class="hiasan hiasan-titik t2" aria-hidden="true"></span><span class="hiasan hiasan-titik t3" aria-hidden="true"></span><span class="hiasan hiasan-titik t4" aria-hidden="true"></span>
+  <div class="wrap">
   <div class="hero-split">
     <div>
       <span class="hero-sapa"><?= e(setting('nama_desa')) ?>, <?= e(setting('kecamatan')) ?></span>
