@@ -3,7 +3,10 @@
 // GERBANG PRIVAT (mode pengembangan)
 // Fungsinya sama dengan middleware Next.js: setiap permintaan diperiksa dulu sebelum halaman tampil.
 //
-// - Aktif hanya kalau Environment Variable SITE_PASSWORD diisi. Kalau dihapus, website terbuka untuk umum.
+// Dua cara menyalakan (cukup salah satu):
+//   1. CMS > Pengaturan > Mode privat = 1   -> pengunjung harus login dengan akun CMS tim (tanpa redeploy)
+//   2. Environment Variable SITE_PASSWORD   -> pengunjung harus memasukkan satu password tim
+// Kalau keduanya mati, website terbuka untuk umum.
 // - Password TIDAK disimpan di kode. Yang disimpan di cookie hanya tanda tangan HMAC (bukan password),
 //   dengan kunci turunan SITE_PASSWORD + APP_SECRET. Kalau password diganti, semua yang sudah masuk otomatis keluar.
 // - Selama aktif, semua halaman (termasuk CMS) diberi noindex,nofollow dan robots.txt menolak semua mesin pencari.
@@ -12,9 +15,28 @@
 const GERBANG_COOKIE = 'mm_gerbang';
 const GERBANG_HARI = 7; // lama masuk sebelum harus memasukkan password lagi
 
+function gerbang_mode(): string
+{
+    static $mode = null;
+    if ($mode !== null) return $mode;
+    if ((string) getenv('SITE_PASSWORD') !== '') return $mode = 'password';
+    try {
+        return $mode = setting('mode_privat') === '1' ? 'cms' : '';
+    } catch (Throwable $e) {
+        return $mode = ''; // database belum siap: halaman error biasa yang tampil
+    }
+}
+
 function gerbang_aktif(): bool
 {
-    return (string) getenv('SITE_PASSWORD') !== '';
+    return gerbang_mode() !== '';
+}
+
+function gerbang_lolos(): bool
+{
+    if (gerbang_mode() === 'password') return gerbang_sudah_masuk();
+    require_once __DIR__ . '/auth.php';
+    return admin_login() !== null;
 }
 
 function gerbang_kunci(): string
@@ -65,11 +87,16 @@ function gerbang_periksa(string $path): bool
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: private, no-store');
 
-    // Jalur yang tetap boleh tanpa password: cron laporan (dilindungi CRON_SECRET sendiri) dan berkas PWA
+    // Jalur yang tetap boleh tanpa password: cron laporan (dilindungi CRON_SECRET sendiri) dan berkas PWA.
+    // Di mode CMS, halaman /admin punya login sendiri, jadi dibiarkan.
     if (in_array($path, ['laporan-otomatis', 'sw.js', 'manifest.webmanifest'], true)) return false;
+    if (gerbang_mode() === 'cms' && ($path === 'admin' || str_starts_with($path, 'admin/'))) return false;
 
     if ($path === 'keluar-situs') {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') gerbang_pasang_cookie(0);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            gerbang_pasang_cookie(0);
+            if (gerbang_mode() === 'cms') { require_once __DIR__ . '/auth.php'; akhiri_login(); }
+        }
         header('Location: /masuk-situs');
         http_response_code(303);
         return true;
@@ -80,16 +107,25 @@ function gerbang_periksa(string $path): bool
     if ($path === 'masuk-situs') {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $kirim = (string) ($_POST['password'] ?? '');
-            if ($kirim !== '' && hash_equals(hash('sha256', (string) getenv('SITE_PASSWORD')), hash('sha256', $kirim))) {
-                gerbang_pasang_cookie(time() + GERBANG_HARI * 86400);
+            $berhasil = false;
+            if (gerbang_mode() === 'password') {
+                $berhasil = $kirim !== '' && hash_equals(hash('sha256', (string) getenv('SITE_PASSWORD')), hash('sha256', $kirim));
+                if ($berhasil) gerbang_pasang_cookie(time() + GERBANG_HARI * 86400);
+            } else {
+                require_once __DIR__ . '/auth.php';
+                $akun = q1('SELECT id, password_hash FROM admin WHERE username = ?', [trim((string) ($_POST['username'] ?? ''))]);
+                $berhasil = $akun && password_verify($kirim, $akun['password_hash']);
+                if ($berhasil) mulai_login((int) $akun['id']);
+            }
+            if ($berhasil) {
                 header('Location: ' . $tujuan);
                 http_response_code(303);
                 return true;
             }
             sleep(2); // perlambat tebakan password
-            $error = 'Password salah. Coba lagi.';
+            $error = gerbang_mode() === 'password' ? 'Password salah. Coba lagi.' : 'Nama pengguna atau kata sandi salah.';
             http_response_code(401);
-        } elseif (gerbang_sudah_masuk()) {
+        } elseif (gerbang_lolos()) {
             header('Location: ' . $tujuan);
             http_response_code(303);
             return true;
@@ -98,7 +134,7 @@ function gerbang_periksa(string $path): bool
         return true;
     }
 
-    if (gerbang_sudah_masuk()) return false;
+    if (gerbang_lolos()) return false;
 
     // Belum masuk: arahkan ke halaman login, bawa alamat asal supaya bisa kembali
     $asal = $_SERVER['REQUEST_METHOD'] === 'GET' ? (string) ($_SERVER['REQUEST_URI'] ?? '/') : '/';

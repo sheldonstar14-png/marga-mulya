@@ -92,7 +92,7 @@ UPDATE admin SET akses = CONCAT(akses, ',ulasanumkm') WHERE akses LIKE '%umkm%' 
 
 -- ---------- Tambahan 12d: catatan data, sambutan kepala desa, keranjang UMKM ----------
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
-('catatan_data', 'Data statistik pada halaman ini disusun mengikuti struktur Data EcoQuest IIT Challenge 2026 dan berfungsi sebagai data contoh. Pemerintah desa dapat memperbarui seluruh angka melalui CMS sesuai data resmi terbaru.'),
+('catatan_data', 'Angka pada halaman ini adalah data simulasi yang mengacu pada format Data Desa Marga Mulya dari panitia IIT Challenge 2026. Perangkat desa dapat menggantinya dengan data resmi kapan saja melalui CMS.'),
 ('sambutan_kades', 'Selamat datang di website resmi Desa Marga Mulya. Melalui website ini, kami ingin pelayanan desa terasa lebih dekat, cepat, dan terbuka bagi seluruh warga, mulai dari pengurusan surat, informasi bantuan, sampai laporan anggaran desa.\n\nKepada para wisatawan, kami mengundang Bapak dan Ibu menikmati terasering, curug, kebun jeruk, dan karya warga kami. Mari bersama membangun Marga Mulya yang maju, hijau, dan sejahtera.'),
 ('foto_kades', '');
 
@@ -122,6 +122,12 @@ CREATE TABLE IF NOT EXISTS pesanan_umkm_item (
   jumlah INT NOT NULL
 );
 UPDATE admin SET akses = CONCAT(akses, ',pesananumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%pesananumkm%';
+
+-- Kalimat catatan data diperbarui (12f). Hanya mengganti kalimat lama, tidak menimpa kalimat yang sudah diubah sendiri lewat CMS.
+UPDATE pengaturan SET nilai = 'Angka pada halaman ini adalah data simulasi yang mengacu pada format Data Desa Marga Mulya dari panitia IIT Challenge 2026. Perangkat desa dapat menggantinya dengan data resmi kapan saja melalui CMS.' WHERE kunci = 'catatan_data' AND nilai LIKE 'Data statistik pada halaman ini disusun mengikuti struktur%';
+
+-- Mode privat: 1 = website hanya untuk tim yang login CMS (masa pengembangan). Ubah ke 0 di CMS > Pengaturan sebelum submit.
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('mode_privat', '1');
 
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;

@@ -717,7 +717,7 @@ CREATE TABLE IF NOT EXISTS ulasan_umkm (
 
 -- ---------- Tambahan 12d: catatan data, sambutan kepala desa, keranjang UMKM ----------
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
-('catatan_data', 'Data statistik pada halaman ini disusun mengikuti struktur Data EcoQuest IIT Challenge 2026 dan berfungsi sebagai data contoh. Pemerintah desa dapat memperbarui seluruh angka melalui CMS sesuai data resmi terbaru.'),
+('catatan_data', 'Angka pada halaman ini adalah data simulasi yang mengacu pada format Data Desa Marga Mulya dari panitia IIT Challenge 2026. Perangkat desa dapat menggantinya dengan data resmi kapan saja melalui CMS.'),
 ('sambutan_kades', 'Selamat datang di website resmi Desa Marga Mulya. Melalui website ini, kami ingin pelayanan desa terasa lebih dekat, cepat, dan terbuka bagi seluruh warga, mulai dari pengurusan surat, informasi bantuan, sampai laporan anggaran desa.\n\nKepada para wisatawan, kami mengundang Bapak dan Ibu menikmati terasering, curug, kebun jeruk, dan karya warga kami. Mari bersama membangun Marga Mulya yang maju, hijau, dan sejahtera.'),
 ('foto_kades', '');
 
@@ -746,6 +746,8 @@ CREATE TABLE IF NOT EXISTS pesanan_umkm_item (
   satuan VARCHAR(40) NOT NULL DEFAULT '',
   jumlah INT NOT NULL
 );
+
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('mode_privat', '0');
 
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;

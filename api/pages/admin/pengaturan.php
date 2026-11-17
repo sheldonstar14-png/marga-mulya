@@ -24,6 +24,7 @@ $grup = [
         'judul' => 'Pengaturan',
         'catatan' => 'Teks umum yang tampil di seluruh website. Perubahan langsung terlihat setelah disimpan.',
         'kunci' => [
+            'mode_privat' => ['Mode privat: isi 1 supaya website hanya bisa dibuka tim yang login (masa pengembangan), isi 0 untuk membuka ke publik. WAJIB 0 sebelum dikirim ke panitia', 'text'],
             'nama_desa'   => ['Nama desa', 'text'],
             'kecamatan'   => ['Kecamatan', 'text'],
             'kabupaten'   => ['Kabupaten', 'text'],
@@ -69,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
     if (!empty($baru['foto_kades']) && !preg_match('#^(https://|/assets/)#', $baru['foto_kades'])) $errors[] = 'Alamat foto kepala desa harus diawali https:// atau /assets/.';
     if (!empty($baru['foto_hero']) && !preg_match('#^(https://|/assets/)#', $baru['foto_hero'])) $errors[] = 'Alamat foto beranda harus diawali https:// atau /assets/.';
+    if (isset($baru['mode_privat']) && !in_array($baru['mode_privat'], ['0', '1'], true)) $errors[] = 'Mode privat diisi 0 atau 1.';
     if (isset($baru['simpan_data_hari']) && (!ctype_digit($baru['simpan_data_hari']) || (int) $baru['simpan_data_hari'] < 30)) $errors[] = 'Lama penyimpanan data pribadi berupa angka hari, minimal 30.';
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
 
