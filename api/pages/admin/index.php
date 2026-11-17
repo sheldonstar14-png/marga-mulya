@@ -2,7 +2,7 @@
 // =========================================================
 // ROUTER CMS: /admin, /admin/dashboard, /admin/wisata, dst.
 // =========================================================
-require __DIR__ . '/../../inc/auth.php';
+require_once __DIR__ . '/../../inc/auth.php';
 require __DIR__ . '/../../inc/crud-config.php';
 
 $sub = $parts[1] ?? '';

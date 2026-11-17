@@ -65,6 +65,21 @@ if ($depan === 'admin') {
     $halaman = '404';
 }
 
+// ---------- Mode tutup sementara ----------
+// Nyalakan dengan Environment Variable TUTUP_SEMENTARA=1 di Vercel (lalu Redeploy). Matikan dengan menghapusnya.
+// Pengunjung umum melihat halaman "Segera hadir"; tim yang sudah login CMS tetap bisa melihat website seperti biasa.
+// CMS (/admin), cron laporan, dan file assets tetap jalan.
+if (getenv('TUTUP_SEMENTARA') === '1' && $depan !== 'admin' && $halaman !== 'laporan-otomatis') {
+    require_once __DIR__ . '/inc/auth.php';
+    if (!admin_login()) {
+        http_response_code(503);
+        header('Retry-After: 86400');
+        header('X-Robots-Tag: noindex');
+        require __DIR__ . '/pages/tutup.php';
+        exit;
+    }
+}
+
 $file = __DIR__ . '/pages/' . $halaman . '.php';
 if (!is_file($file)) {
     $file = __DIR__ . '/pages/404.php';
