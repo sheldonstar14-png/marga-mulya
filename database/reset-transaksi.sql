@@ -1,6 +1,7 @@
 -- =========================================================
 -- BERSIHKAN DATA UJI COBA (jalankan sehari sebelum submit)
--- Menghapus SEMUA reservasi dan pesan, lalu mengisi ulang contoh
+-- Menghapus SEMUA reservasi, aspirasi, pesan, surat, antrean, pesanan UMKM, dan permintaan data
+-- (termasuk data asli yang sempat dipakai untuk uji coba), lalu mengisi ulang contoh
 -- dengan tanggal yang segar.
 -- Ulasan dan aspirasi contoh juga diisi ulang. TIDAK menyentuh konten (wisata, UMKM, berita, galeri, foto, statistik,
 -- pengaturan) dan TIDAK mengubah akun atau kata sandi admin.
@@ -82,6 +83,44 @@ UPDATE reservasi SET kupon = 'HIJAU-0322', kupon_dipakai_pada = CURRENT_TIMESTAM
 UPDATE reservasi SET kupon = 'HIJAU-0350', kupon_dipakai_pada = CURRENT_TIMESTAMP, kupon_umkm = 'Anyaman Rukun' WHERE kode = 'MM-0350' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0377' WHERE kode = 'MM-0377' AND kupon IS NULL;
 UPDATE reservasi SET kupon = 'HIJAU-0429' WHERE kode = 'MM-0429' AND kupon IS NULL;
+
+-- ---------- Tambahan contoh (12i): semua nama dan nomor di bawah KARANGAN ----------
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0201', id, DATE_SUB(CURDATE(), INTERVAL 12 DAY), 4, 'Keluarga Santoso', '081200000031', '', '', 'Selesai', 'Mobil pribadi', 35 FROM wisata WHERE slug = 'terasering';
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0202', id, DATE_SUB(CURDATE(), INTERVAL 9 DAY), 22, 'Pramuka SMPN 1 Sukamaju', '081200000032', '', 'Didampingi 2 pembina', 'Selesai', 'Bus atau elf rombongan', 12 FROM wisata WHERE slug = 'anyaman';
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0203', id, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 2, 'Anisa Putri', '081200000033', '', '', 'Selesai', 'Sepeda motor', 20 FROM wisata WHERE slug = 'curug';
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0204', id, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 5, 'Arisan RT 02 Sukamaju', '081200000034', '', '', 'Selesai', 'Angkutan umum', 15 FROM wisata WHERE slug = 'jeruk';
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0432', id, DATE_ADD(CURDATE(), INTERVAL 9 DAY), 12, 'Komunitas Fotografi Harapan', '081200000035', '', 'Ingin memotret matahari terbit', 'Dikonfirmasi', 'Mobil pribadi', 45 FROM wisata WHERE slug = 'terasering';
+INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
+SELECT 'MM-0433', id, DATE_ADD(CURDATE(), INTERVAL 11 DAY), 3, 'Dewi Lestari', '081200000036', '', 'Membawa lansia, mohon info jalur', 'Menunggu', 'Angkutan umum', 25 FROM wisata WHERE slug = 'jeruk';
+
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, 'Keluarga Santoso', 5, 'Kami berangkat jam enam pagi sesuai saran website, kabutnya turun di antara petak sawah. Pemandu menjelaskan cara pengairan tradisional dengan sabar.' FROM reservasi WHERE kode = 'MM-0201';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, 'Kak Bima, pembina pramuka', 5, 'Hujan turun sejak siang tapi kelas anyaman tetap jalan di dalam ruangan. Setiap anak pulang membawa tatakan buatan sendiri.' FROM reservasi WHERE kode = 'MM-0202';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, 'Anisa', 4, 'Curugnya indah dan jalannya sudah bagus. Jalur setapak terakhir agak licin, pakai sandal gunung.' FROM reservasi WHERE kode = 'MM-0203';
+INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
+SELECT id, wisata_id, 'Bu Wati', 5, 'Petik jeruk sambil ngobrol dengan petaninya. Kami naik angkot dan dapat kupon Tiket Hijau untuk beli sirup jeruk.' FROM reservasi WHERE kode = 'MM-0204';
+
+INSERT INTO aspirasi (kode, nama, wa, email, kategori, lokasi, isi, status, tanggapan, publik, diperbarui_pada) VALUES
+('ADU-P4LN7D', '', '', '', 'Infrastruktur', 'Gang RT 05 dekat musala', 'Lampu jalan mati sejak dua minggu, gang jadi gelap saat warga pulang dari sawah.', 'Diproses', 'Petugas sudah mengecek, lampu baru dipasang pekan ini bersama Linmas.', 1, CURRENT_TIMESTAMP),
+('ADU-Q8VB2E', 'Warga RT 07', '', '', 'Kesehatan', 'Posyandu Melati', 'Mohon jadwal posyandu ditempel juga di grup WhatsApp RT, banyak ibu yang lupa tanggalnya.', 'Selesai', 'Jadwal posyandu sekarang dibagikan setiap awal bulan ke semua grup RT dan bisa disimpan ke kalender HP dari website.', 1, CURRENT_TIMESTAMP),
+('ADU-S2KM9F', '', '', '', 'Bansos (salah sasaran atau usulan penerima)', 'RT 10', 'Ada lansia hidup sendiri di RT 10 yang belum menerima bantuan, padahal kondisinya sangat membutuhkan.', 'Diproses', 'Sudah dicatat untuk dibahas di musyawarah desa penetapan penerima berikutnya.', 0, CURRENT_TIMESTAMP),
+('ADU-T6HC3G', 'Warga RW 01', '', '', 'Pelayanan administrasi', 'Kantor desa', 'Antrean di kantor desa sering panjang di hari Senin pagi.', 'Selesai', 'Kini tersedia nomor antrean lewat QR di meja layanan dan pengajuan surat online, sehingga warga cukup datang saat surat siap.', 1, CURRENT_TIMESTAMP),
+('ADU-W5ZR8H', '', '', '', 'Kebersihan dan lingkungan', 'Parkiran Curug Cikaso', 'Tempat sampah di parkiran curug penuh setiap akhir pekan.', 'Menunggu', NULL, 0, CURRENT_TIMESTAMP),
+('ADU-X9DF4J', 'Pemuda Karang Taruna', '', '', 'Usulan program', 'Lapangan desa', 'Usul lomba foto terasering untuk promosi wisata desa di media sosial.', 'Menunggu', NULL, 0, CURRENT_TIMESTAMP);
+
+INSERT INTO pesan (nama, kontak, topik, isi, dibaca)
+SELECT 'Rombongan TK Pelangi', '081200000041', 'Wisata', 'Apakah kelas anyaman bisa untuk anak usia 5 tahun? Kami berencana datang 20 orang.', 0 FROM DUAL WHERE EXISTS (SELECT 1 FROM wisata);
+
+INSERT INTO pesanan_umkm (kode, usaha, wa_penjual, nama, wa, pengambilan, alamat, catatan, ringkasan, total, status) VALUES
+('UMK-8RT3KD', 'Keripik Singkong Bu Darmi', '6280000000101', 'Fajar', '081200000051', 'Ambil sendiri', '', 'Level pedas sedang', 'Keripik singkong pedas manis x3', 45000, 'Selesai'),
+('UMK-9MW2QE', 'Sirup Jeruk Mulya', '6280000000103', 'Laras', '081200000052', 'Diantar', 'Perum Harapan Indah Blok C2', '', 'Sirup jeruk murni tanpa pengawet x2', 56000, 'Baru');
 
 INSERT IGNORE INTO surat (id, kode, layanan_id, layanan_nama, nama, wa, email, keperluan, status, catatan) VALUES
 (1, 'SRT-4KX9PQ', 1, 'Surat keterangan domisili', 'Rina Marlina', '081200000021', '', 'Melamar kerja di pabrik', 'Siap diambil', 'Surat sudah ditandatangani. Bawa KTP asli saat mengambil.'),

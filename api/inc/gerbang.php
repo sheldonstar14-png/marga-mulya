@@ -95,6 +95,7 @@ function gerbang_periksa(string $path): bool
     if ($path === 'keluar-situs') {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gerbang_pasang_cookie(0);
+            header('Clear-Site-Data: "cache"'); // hapus salinan halaman di browser ini saat keluar
             if (gerbang_mode() === 'cms') { require_once __DIR__ . '/auth.php'; akhiri_login(); }
         }
         header('Location: /masuk-situs');

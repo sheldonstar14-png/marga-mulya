@@ -5,7 +5,7 @@
 // - Halaman CMS (/admin) dan form tidak pernah disimpan.
 // Naikkan angka VERSI kalau CSS atau JS berubah besar.
 // =========================================================
-const VERSI = 'mm-v12-2';
+const VERSI = 'mm-v12-3';
 const WAJIB = ['/', '/kontak', '/assets/css/style.css', '/assets/js/akses.js', '/assets/img/favicon.png', '/assets/img/ikon-192.png'];
 
 self.addEventListener('install', e => {
@@ -26,7 +26,8 @@ self.addEventListener('fetch', e => {
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req).then(res => {
-        if (res.ok) { const salin = res.clone(); caches.open(VERSI).then(c => c.put(req, salin)); }
+        // Saat mode privat aktif (header noindex), halaman tidak disimpan di HP
+        if (res.ok && !(res.headers.get('X-Robots-Tag') || '').includes('noindex')) { const salin = res.clone(); caches.open(VERSI).then(c => c.put(req, salin)); }
         return res;
       }).catch(() => caches.match(req).then(r => r || caches.match('/kontak')).then(r => r || new Response(
         '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Sedang offline</title>' +

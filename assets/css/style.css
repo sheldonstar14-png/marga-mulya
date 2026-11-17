@@ -749,3 +749,14 @@ body:has(.keranjang-bar:not([hidden])) .asisten-btn{bottom:90px}
 .gerbang-keluar{position:fixed;left:12px;bottom:12px;z-index:80;margin:0}
 .gerbang-keluar button{min-height:44px;padding:0 16px;border-radius:999px;border:0;background:#131A13;color:#fff;font:700 .82rem var(--head,sans-serif);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5)}
 .gerbang-keluar button:focus-visible{outline:3px solid #C4F536;outline-offset:2px}
+/* Header HP: tombol Pesan jadi ikon, nama desa boleh terpotong rapi, semua muat tanpa zoom */
+@media (max-width:640px){
+  .top-in{gap:8px;padding:8px 12px}
+  .brand{flex:1 1 auto;min-width:0;overflow:hidden;font-size:.98rem;gap:8px}
+  .brand > span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .brand-logo{height:34px}
+  .top-aksi{gap:6px;flex:none}
+  .btn-header{width:48px;height:48px;padding:0;justify-content:center}
+  .btn-header span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .menu-btn{padding:8px 14px}
+}
