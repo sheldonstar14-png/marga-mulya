@@ -28,6 +28,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tukar')
         redirect('/umkm?kupon=' . urlencode($kodeKupon) . '&ditukar=1#kupon');
     }
 }
+// ---------- Ulasan produk UMKM ----------
+// Siapa pun boleh menulis ulasan, tapi baru tampil setelah disetujui petugas (CMS > Ulasan UMKM).
+$errorUlasan = []; $ulasanUntuk = 0;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ulasan') {
+    $ulasanUntuk = (int) ($_POST['umkm'] ?? 0);
+    $u = q1('SELECT id, nama_usaha FROM umkm WHERE id = ?', [$ulasanUntuk]);
+    $namaU = mb_substr(trim((string) ($_POST['nama'] ?? '')), 0, 60);
+    $bintangU = (int) ($_POST['bintang'] ?? 0);
+    $komentarU = trim((string) ($_POST['komentar'] ?? ''));
+    if (!empty($_POST['website']) || !$u) $errorUlasan[] = 'Ulasan tidak dapat diproses.';
+    if (mb_strlen($namaU) < 2) $errorUlasan[] = 'Isi nama (boleh nama panggilan).';
+    if ($bintangU < 1 || $bintangU > 5) $errorUlasan[] = 'Pilih jumlah bintang.';
+    if (mb_strlen($komentarU) < 10 || mb_strlen($komentarU) > 500) $errorUlasan[] = 'Tulis ulasan 10 sampai 500 huruf.';
+    if (preg_match('/\d{9,}/', preg_replace('/[\s.-]/', '', $komentarU))) $errorUlasan[] = 'Jangan menulis nomor HP atau nomor identitas di ulasan.';
+    if (!$errorUlasan) {
+        q('INSERT INTO ulasan_umkm (umkm_id, usaha, nama, bintang, komentar) VALUES (?, ?, ?, ?, ?)', [$u['id'], $u['nama_usaha'], $namaU, $bintangU, $komentarU]);
+        redirect('/umkm?ulasan=terkirim#umkm-' . $u['id']);
+    }
+}
+$nilaiUmkm = [];
+foreach (q('SELECT umkm_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan_umkm WHERE tampil = 1 GROUP BY umkm_id') as $r) $nilaiUmkm[(int) $r['umkm_id']] = $r;
+$ulasanTerbaru = [];
+foreach (q('SELECT umkm_id, nama, bintang, komentar FROM ulasan_umkm WHERE tampil = 1 ORDER BY id DESC') as $r) $ulasanTerbaru[(int) $r['umkm_id']][] = $r;
+
 $umkmPenukar = q('SELECT id, nama_usaha FROM umkm WHERE pin_hash IS NOT NULL ORDER BY nama_usaha');
 
 $judul = 'Produk UMKM - ' . setting('nama_desa');
@@ -66,6 +90,7 @@ require __DIR__ . '/../inc/header.php';
   <?php endif; ?>
 </div>
 <div class="wrap sec" style="padding-top:16px">
+  <?php if (($_GET['ulasan'] ?? '') === 'terkirim'): ?><div class="alert alert-ok" role="status">Terima kasih. Ulasanmu akan tampil setelah diperiksa petugas desa.</div><?php endif; ?>
   <nav class="chips" aria-label="Kategori produk">
     <?php foreach (array_merge(['Semua'], $daftarKategori) as $k): ?>
       <a class="chip <?= $k === $kategoriAktif ? 'on' : '' ?>" href="/umkm<?= $k === 'Semua' ? '' : '?kategori=' . urlencode($k) ?>"><?= e($k) ?></a>
@@ -74,16 +99,37 @@ require __DIR__ . '/../inc/header.php';
   <div class="grid g3">
     <?php foreach ($umkm as $u):
       $pesan = 'Halo ' . $u['nama_usaha'] . ', saya lihat di website ' . setting('nama_desa') . '. Saya ingin pesan ' . $u['produk'] . '.'; ?>
-      <div class="card">
+      <div class="card" id="umkm-<?= (int) $u['id'] ?>">
         <div class="art"><img src="<?= e($u['foto'] ?: '/assets/img/kirab.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"></div>
         <div class="card-body">
           <span class="tag"><?= e($u['kategori']) ?></span><?php if (!empty($u['pin_hash']) && setting('tiket_hijau_aktif') === '1'): ?> <span class="tag tag-hijau" title="Menerima kupon Tiket Hijau">Terima Tiket Hijau</span><?php endif; ?>
           <h3 style="margin:4px 0 0"><?= e($u['produk']) ?></h3>
-          <p><?= e($u['nama_usaha']) ?>, <?= e($u['pemilik']) ?></p>
+          <p style="margin-bottom:6px"><?= e($u['nama_usaha']) ?>, <?= e($u['pemilik']) ?></p>
+          <?php $nu = $nilaiUmkm[(int) $u['id']] ?? null; ?>
+          <p class="small" style="margin:0 0 8px"><?php if ($nu): ?><span class="bintang" aria-hidden="true"><?= bintang((int) round($nu['rata'])) ?></span> <b><?= str_replace('.', ',', (string) round((float) $nu['rata'], 1)) ?></b> <span class="muted">dari <?= (int) $nu['n'] ?> ulasan</span><span class="sr-only">Nilai <?= round((float) $nu['rata'], 1) ?> dari 5</span><?php else: ?><span class="muted">Belum ada ulasan</span><?php endif; ?></p>
+          <?php if (!empty($u['deskripsi'])): ?><p class="small"><?= e($u['deskripsi']) ?></p><?php endif; ?>
+          <?php foreach (array_slice($ulasanTerbaru[(int) $u['id']] ?? [], 0, 2) as $ul): ?>
+            <blockquote class="ulasan-mini"><span class="bintang" aria-label="<?= (int) $ul['bintang'] ?> bintang"><?= bintang((int) $ul['bintang']) ?></span> <?= e($ul['komentar']) ?> <cite><?= e($ul['nama']) ?></cite></blockquote>
+          <?php endforeach; ?>
           <div class="card-foot">
             <span class="price"><?= rupiah($u['harga']) ?> <span class="small muted">/ <?= e($u['satuan']) ?></span></span>
             <a class="btn btn-wa btn-sm" href="<?= e(wa_link($u['wa'], $pesan)) ?>" target="_blank" rel="noopener">Pesan via WhatsApp</a>
           </div>
+          <details class="beri-ulasan" <?= $ulasanUntuk === (int) $u['id'] && $errorUlasan ? 'open' : '' ?>>
+            <summary>Sudah pernah beli? Beri ulasan</summary>
+            <form method="post" action="/umkm#umkm-<?= (int) $u['id'] ?>">
+              <input type="hidden" name="aksi" value="ulasan"><input type="hidden" name="umkm" value="<?= (int) $u['id'] ?>">
+              <?php if ($ulasanUntuk === (int) $u['id'] && $errorUlasan): ?><div class="alert alert-err" role="alert"><?= implode('<br>', array_map('e', $errorUlasan)) ?></div><?php endif; ?>
+              <div class="field"><label for="un-<?= (int) $u['id'] ?>">Nama panggilan</label><input id="un-<?= (int) $u['id'] ?>" name="nama" maxlength="60" required></div>
+              <fieldset class="pilih-bintang"><legend>Bintang</legend>
+                <?php for ($b = 5; $b >= 1; $b--): ?><label><input type="radio" name="bintang" value="<?= $b ?>" <?= $b === 5 ? 'checked' : '' ?>> <?= $b ?></label><?php endfor; ?>
+              </fieldset>
+              <div class="field"><label for="uk-<?= (int) $u['id'] ?>">Ulasan</label><textarea id="uk-<?= (int) $u['id'] ?>" name="komentar" rows="3" maxlength="500" required placeholder="Rasa, kualitas, atau pelayanannya bagaimana?"></textarea></div>
+              <div class="hp" aria-hidden="true"><label>Jangan diisi<input name="website" tabindex="-1" autocomplete="off"></label></div>
+              <button class="btn btn-dark btn-sm" type="submit">Kirim ulasan</button>
+              <p class="hint">Ulasan diperiksa petugas sebelum tampil.</p>
+            </form>
+          </details>
         </div>
       </div>
     <?php endforeach; ?>

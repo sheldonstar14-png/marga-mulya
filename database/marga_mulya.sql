@@ -6,6 +6,7 @@
 -- jadi semua data akan kembali ke data contoh.
 -- =========================================================
 
+DROP TABLE IF EXISTS ulasan_umkm;
 DROP TABLE IF EXISTS bansos_penerima;
 DROP TABLE IF EXISTS surat;
 DROP TABLE IF EXISTS antrean;
@@ -429,7 +430,7 @@ INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 -- Akun demo. Kata sandi semuanya: desa123 (ganti sebelum website dipakai sungguhan)
 INSERT INTO admin (nama, username, password_hash, peran, akses) VALUES
 ('Hj. Siti Rahmawati', 'admin', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Super admin', NULL),
-('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,ulasan,aspirasi,privasi,layanan,faq,laporan,bansos,surat,zona,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat,apbdes,pembangunan,bantuan,darurat,fasilitas,sampah'),
+('Yusuf Maulana', 'operator1', '$2y$10$oDepwP6RccgOG1ORMWFG5.wkuxKKwL.yBOaKPZAL.fKWqual9rNNS', 'Petugas', 'reservasi,pesan,ulasan,aspirasi,privasi,layanan,faq,laporan,bansos,surat,zona,ulasanumkm,wisata,budaya,umkm,agenda,berita,galeri,statistik,profil,aparat,apbdes,pembangunan,bantuan,darurat,fasilitas,sampah'),
 ('Jurnalis Desa', 'sayajurnalis', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'berita,galeri'),
 ('Pengelola Data Desa', 'datapublik', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'statistik,profil,aparat,apbdes,pembangunan,bantuan,bansos,sampah,fasilitas,laporan,zona'),
 ('Pengelola Wisata', 'pengelolawisata', '$2y$10$el.XhXia.Tq4QrpQfvK9A.gwfzMhG2vYqInBDsiieBi7NT2kBttUC', 'Petugas', 'reservasi,pesan,ulasan,wisata,budaya,umkm');
@@ -694,6 +695,23 @@ ALTER TABLE pembangunan ADD COLUMN IF NOT EXISTS lng DECIMAL(9,6) NULL;
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
 ('antrean_kode', ''),
 ('foto_hero', '');
+
+-- ---------- Tambahan 12b: saran cuaca, deskripsi dan ulasan UMKM ----------
+ALTER TABLE wisata ADD COLUMN IF NOT EXISTS saat_hujan TINYINT NOT NULL DEFAULT 0;
+UPDATE wisata SET saat_hujan = 1 WHERE slug = 'anyaman';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS deskripsi TEXT NULL;
+
+-- Ulasan produk UMKM. Siapa pun boleh menulis, tapi baru tampil setelah disetujui petugas.
+CREATE TABLE IF NOT EXISTS ulasan_umkm (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  umkm_id INT NOT NULL,
+  usaha VARCHAR(150) NOT NULL DEFAULT '',
+  nama VARCHAR(60) NOT NULL,
+  bintang TINYINT NOT NULL,
+  komentar VARCHAR(500) NOT NULL,
+  tampil TINYINT NOT NULL DEFAULT 0,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;

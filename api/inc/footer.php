@@ -51,7 +51,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/assets/js/peta.js"></script>
 <?php endif; ?>
-<?php if (!empty($pakaiCuaca)): ?>
+<?php if (!empty($pakaiCuaca)):
+  // Destinasi yang tetap nyaman saat hujan, dipakai saran cuaca (centang di CMS > Wisata)
+  $wisataHujan = array_map(fn($w) => ['nama' => $w['nama'], 'url' => '/wisata/' . $w['slug']], q('SELECT nama, slug FROM wisata WHERE aktif = 1 AND saat_hujan = 1 ORDER BY id')); ?>
+<script>window.WISATA_HUJAN = <?= json_encode($wisataHujan, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="/assets/js/cuaca.js"></script>
 <?php endif; ?>
 <?= $scriptHalaman ?? '' ?>

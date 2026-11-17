@@ -163,6 +163,15 @@ function url_dasar(): string
 }
 
 // Bintang rating, contoh bintang(4) -> ★★★★☆
+// Potong teks panjang di batas kata (untuk ringkasan berita)
+function ringkas_teks(string $teks, int $maks = 170): string
+{
+    $teks = trim(preg_replace('/\s+/', ' ', $teks));
+    if (mb_strlen($teks) <= $maks) return $teks;
+    $potong = mb_substr($teks, 0, $maks);
+    return rtrim(mb_substr($potong, 0, (int) mb_strrpos($potong, ' ')), ' ,.;:') . '...';
+}
+
 function bintang(float $nilai): string
 {
     $penuh = (int) round($nilai);

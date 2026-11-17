@@ -44,22 +44,42 @@
 
   window.ikonCuaca = function (jenis) {
     const g = {
-      cerah: '<circle cx="16" cy="16" r="7" fill="#E2A529"/><g stroke="#E2A529" stroke-width="2.4" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l3 3M23 23l3 3M26 6l-3 3M9 23l-3 3"/></g>',
-      awan: '<circle cx="11" cy="12" r="5" fill="#E2A529"/><path d="M9 25h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#9AA9A0"/>',
+      cerah: '<circle cx="16" cy="16" r="7" fill="#E8641E"/><g stroke="#E8641E" stroke-width="2.4" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l3 3M23 23l3 3M26 6l-3 3M9 23l-3 3"/></g>',
+      awan: '<circle cx="11" cy="12" r="5" fill="#E8641E"/><path d="M9 25h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#9AA9A0"/>',
       kabut: '<g stroke="#9AA9A0" stroke-width="2.6" stroke-linecap="round"><path d="M5 11h22M8 16h18M5 21h22M10 26h14"/></g>',
-      hujan: '<path d="M8 19h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#7F938A"/><g stroke="#2F6E95" stroke-width="2.4" stroke-linecap="round"><path d="M11 23l-2 5M17 23l-2 5M23 23l-2 5"/></g>',
-      badai: '<path d="M8 17h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#5E6E66"/><path d="M17 18l-4 7h4l-2 6 7-9h-4l2-4z" fill="#E2A529"/>'
+      hujan: '<path d="M8 19h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#7F938A"/><g stroke="#1F6F8B" stroke-width="2.4" stroke-linecap="round"><path d="M11 23l-2 5M17 23l-2 5M23 23l-2 5"/></g>',
+      badai: '<path d="M8 17h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#5E6E66"/><path d="M17 18l-4 7h4l-2 6 7-9h-4l2-4z" fill="#E8641E"/>'
     };
     return '<svg class="ic" viewBox="0 0 32 32" aria-hidden="true">' + g[jenis] + '</svg>';
   };
 
-  // Saran sesuai peluang hujan dan jenis destinasi
-  window.saranCuaca = function (hujan, jenis, nama) {
+  // ---------- Saran sesuai cuaca ----------
+  // window.WISATA_HUJAN diisi footer dari CMS: destinasi yang dicentang "Tetap nyaman saat hujan".
+  const tempatHujan = () => window.WISATA_HUJAN || [];
+  const tautanHujan = kecuali => {
+    const daftar = tempatHujan().filter(w => w.nama !== kecuali)
+      .map(w => '<a href="' + w.url + '">' + w.nama.replace(/</g, '') + '</a>');
+    daftar.push('<a href="/umkm">belanja oleh-oleh di UMKM</a>');
+    return daftar.join(', ');
+  };
+  // Tingkat hujan sehari: 0 aman, 1 gerimis/ringan, 2 hujan, 3 lebat atau petir
+  window.tingkatHujan = h => {
+    if (h.kode >= 95 || h.mm >= 20) return 3;
+    if (h.hujan >= 60 && h.mm >= 5) return 2;
+    if (h.hujan >= 30) return 1;
+    return 0;
+  };
+  // h = satu hari dari ambilCuaca(); jenis dan nama = destinasi (kosong untuk panel desa)
+  window.saranCuaca = function (h, jenis, nama) {
+    const t = tingkatHujan(h);
     const air = /curug|air terjun/i.test(nama || '');
-    if (hujan < 30) return air ? 'Cuaca bersahabat, jalur curug aman dilalui.' : 'Cocok untuk jalan kaki dan berfoto di luar ruangan.';
-    if (hujan < 60) return 'Ada kemungkinan hujan siang atau sore. Datang pagi dan bawa jas hujan.';
-    if (jenis === 'Budaya') return 'Peluang hujan tinggi, tapi kegiatan berlangsung di dalam ruangan.';
-    return air ? 'Peluang hujan tinggi. Jalur curug bisa ditutup, sebaiknya pilih tanggal lain.' : 'Peluang hujan tinggi. Bawa jas hujan atau pilih tanggal lain.';
+    const dalamRuang = tempatHujan().some(w => w.nama === nama) || jenis === 'Budaya';
+    if (dalamRuang) return t >= 2 ? 'Hujan diperkirakan turun, tapi kegiatan di sini berlangsung di dalam ruangan. Tetap bisa berkunjung.' : 'Cuaca mendukung. Kegiatan berlangsung di dalam ruangan.';
+    if (t === 0) return air ? 'Cuaca bersahabat, jalur curug aman dilalui.' : 'Cocok untuk jalan kaki dan berfoto di luar ruangan.';
+    if (t === 1) return 'Mungkin gerimis, biasanya siang atau sore. Datang pagi dan bawa payung' + (air ? ', pakai alas kaki anti licin.' : '.');
+    const pilihan = 'Pilihan yang tetap nyaman saat hujan: ' + tautanHujan(nama) + '.';
+    if (t === 3) return (air ? 'Hujan lebat diperkirakan turun. Jalur curug biasanya ditutup demi keselamatan. ' : 'Hujan lebat atau petir diperkirakan turun. Hindari sawah terbuka, curug, dan lereng. ') + pilihan;
+    return 'Hujan diperkirakan turun, biasanya mulai siang. ' + (air ? 'Jalur curug bisa ditutup kalau hujan deras, jadi cek kabar di WhatsApp desa sebelum berangkat. ' : 'Kalau tetap ke luar ruangan, datang pagi. ') + pilihan;
   };
 
   const namaHari = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -69,7 +89,11 @@
   window.tglPanjang = s => { const d = keTanggal(s); return hariPanjang[d.getDay()] + ', ' + d.getDate() + ' ' + namaBulan[d.getMonth()]; };
 
   // Hari dengan peluang hujan terkecil dalam 7 hari (mulai besok)
-  window.hariTerbaik = hari => hari.slice(1, 8).reduce((a, b) => (b.hujan < a.hujan ? b : a));
+  // (tingkat hujan paling rendah; kalau sama, curah hujan paling sedikit)
+  window.hariTerbaik = hari => hari.slice(1, 7).reduce((a, b) => {
+    const ta = tingkatHujan(a), tb = tingkatHujan(b);
+    return tb < ta || (tb === ta && (b.mm < a.mm || (b.mm === a.mm && b.hujan < a.hujan))) ? b : a;
+  });
 
   // Panel 7 hari: <div data-cuaca data-lat data-lng data-jenis data-nama data-tombol="idTombol">
   function isiPanel(el) {
@@ -79,8 +103,8 @@
       const kotak = data.hari.slice(0, 7).map((d, i) => {
         const [nama, jenis] = infoCuaca(d.kode);
         const label = i === 0 ? 'Hari ini' : namaHari[keTanggal(d.tgl).getDay()];
-        return '<div class="wx-day' + (d.tgl === terbaik.tgl ? ' best' : '') + '" title="' + nama + ', ' + d.min + '-' + d.maks + '°C, peluang hujan ' + d.hujan + '%">' +
-          '<b>' + label + '</b>' + ikonCuaca(jenis) + d.maks + '°<span class="rain">' + d.hujan + '%</span></div>';
+        return '<div class="wx-day' + (d.tgl === terbaik.tgl ? ' best' : '') + '" title="' + nama + ', ' + d.min + '-' + d.maks + '°C, peluang hujan ' + d.hujan + '%, ' + Math.round(d.mm) + ' mm">' +
+          '<b>' + label + '</b>' + ikonCuaca(jenis) + d.maks + '°<span class="rain"><span class="sr-only">peluang hujan </span>' + d.hujan + '%</span></div>';
       }).join('');
       const [namaKini, jenisKini] = infoCuaca(data.sekarang.kode);
       el.innerHTML =
@@ -88,9 +112,9 @@
         '<span class="small muted">' + (el.dataset.sub || '') + '</span></div>' +
         '<div class="wx-now">' + ikonCuaca(jenisKini) + '<div><b>' + data.sekarang.suhu + '°</b><div class="small">' + namaKini + '</div></div></div></div>' +
         '<div class="wx-days">' + kotak + '</div>' +
-        '<p class="wx-note">Hari terbaik berkunjung: <b>' + tglPanjang(terbaik.tgl) + '</b>, peluang hujan ' + terbaik.hujan + '%. ' +
-        saranCuaca(terbaik.hujan, el.dataset.jenis, el.dataset.nama) + '</p>' +
-        '<div class="wx-src">Sumber: Open-Meteo. Kotak hijau menandai hari terbaik.</div>';
+        '<p class="wx-note">' + (tingkatHujan(terbaik) >= 2 ? 'Minggu ini hujan hampir setiap hari. Hari paling ringan: <b>' : 'Hari terbaik berkunjung: <b>') + tglPanjang(terbaik.tgl) + '</b> (peluang hujan ' + terbaik.hujan + '%, sekitar ' + Math.round(terbaik.mm) + ' mm). ' +
+        saranCuaca(terbaik, el.dataset.jenis, el.dataset.nama) + '</p>' +
+        '<div class="wx-src">Angka biru = peluang hujan. Kotak hijau = hari paling cocok. Sumber: Open-Meteo.</div>';
       // Tombol "Pesan" ikut diarahkan ke tanggal terbaik
       const tombol = el.dataset.tombol && document.getElementById(el.dataset.tombol);
       if (tombol) {

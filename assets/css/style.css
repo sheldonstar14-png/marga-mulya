@@ -640,3 +640,27 @@ footer{margin-top:56px}
 .darurat-mini a:hover{background:rgba(255,255,255,.16)}
 .chip .titik-warna{box-shadow:0 0 0 2px #fff}
 footer{margin-top:0}
+
+/* Fase 12b: kata pengunjung, ulasan UMKM, berita */
+.bintang{color:#B5470F}
+.kolom-kiri{display:grid;gap:22px}
+.kata-pengunjung h2{font-size:1.4rem;margin:0}
+.kata-item{margin:12px 0 0;background:#fff;border-radius:var(--r-m);padding:16px 18px;box-shadow:var(--shadow);border-left:6px solid var(--shoot)}
+.kata-item blockquote{margin:0 0 8px;font-size:1rem}
+.kata-item figcaption{font-size:.9rem;color:var(--muted)}
+.ulasan-mini{margin:0 0 8px;padding:8px 12px;background:var(--soft);border-radius:12px;font-size:.9rem}
+.ulasan-mini cite{display:block;font-style:normal;color:var(--muted);font-size:.85rem;margin-top:2px}
+.beri-ulasan{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.beri-ulasan summary,.berita-lanjut summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;color:var(--leaf-d)}
+.pilih-bintang{border:0;padding:0;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px}
+.pilih-bintang legend{font-weight:700;margin-bottom:6px;padding:0}
+.pilih-bintang label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:1.5px solid var(--line);border-radius:999px;font-weight:700}
+.pilih-bintang input{width:auto;min-height:0}
+/* Pop-up setelah reservasi */
+.dialog-surel{border:0;border-radius:var(--r-l);padding:0;max-width:min(480px,92vw);box-shadow:0 30px 80px -20px rgba(19,26,19,.5)}
+.dialog-surel::backdrop{background:rgba(19,26,19,.55)}
+.dialog-surel .isi{padding:26px 26px 22px}
+.dialog-surel h2{font-size:1.4rem;margin:12px 0 8px}
+.dialog-surel ol{padding-left:20px;margin:10px 0 16px}
+.dialog-surel li{margin-bottom:6px}
+.dialog-ikon{width:56px;height:56px;border-radius:50%;background:var(--shoot);display:grid;place-items:center;color:var(--leaf-d)}

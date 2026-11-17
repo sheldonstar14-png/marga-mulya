@@ -61,12 +61,18 @@ require __DIR__ . '/../inc/header.php';
     <h2>Berita dan pengumuman</h2>
     <div class="grid">
       <?php foreach ($berita as $b): ?>
-        <article class="card">
+        <article class="card" id="berita-<?= (int) $b['id'] ?>">
           <?php if ($b['foto']): ?><div class="art"><img src="<?= e($b['foto']) ?>" alt="" loading="lazy"></div><?php endif; ?>
           <div class="card-body">
             <span class="small muted"><?= tgl($b['tanggal']) ?></span>
             <h3 style="margin:2px 0 4px"><?= e($b['judul']) ?></h3>
-            <p><?= nl2br(e($b['isi'])) ?></p>
+            <?php $paragraf = preg_split('/\n\s*\n/', trim($b['isi'])); ?>
+            <p><?= nl2br(e($paragraf[0])) ?></p>
+            <?php if (count($paragraf) > 1): ?>
+              <details class="berita-lanjut"><summary>Baca selengkapnya<span class="sr-only">: <?= e($b['judul']) ?></span></summary>
+                <?php foreach (array_slice($paragraf, 1) as $pr): ?><p><?= nl2br(e($pr)) ?></p><?php endforeach; ?>
+              </details>
+            <?php endif; ?>
           </div>
         </article>
       <?php endforeach; ?>

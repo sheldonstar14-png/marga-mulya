@@ -35,6 +35,7 @@ $CRUD = [
             ['catatan_akses', 'Catatan aksesibilitas (jalur, tangga, jarak dari parkir)', 'text', ['maks' => 255]],
             ['gmaps_ulasan', 'Link ulasan Google Maps (opsional, kalau destinasi sudah terdaftar di Google Maps)', 'text', ['maks' => 255, 'contoh' => 'https://g.page/r/.../review']],
             ['foto', 'Foto utama', 'foto', []],
+            ['saat_hujan', 'Tetap nyaman saat hujan (kegiatan di dalam ruangan). Disarankan otomatis saat prakiraan hujan', 'check', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
         'baru' => ['jenis' => 'Alam', 'harga' => 10000, 'kuota' => 50, 'aktif' => 1, 'tingkat_jalur' => 'Mudah', 'ada_toilet' => 1],
@@ -74,6 +75,7 @@ $CRUD = [
             ['nama_usaha', 'Nama usaha', 'text', ['wajib' => true, 'maks' => 150]],
             ['kategori', 'Kategori', 'select', ['pilihan' => ['Makanan', 'Kerajinan', 'Olahan tani', 'Jasa'], 'bisaTambah' => true]],
             ['produk', 'Nama produk', 'text', ['wajib' => true, 'maks' => 150]],
+            ['deskripsi', 'Cerita singkat usaha dan produk (opsional, tampil di kartu UMKM)', 'textarea', ['maks' => 600]],
             ['harga', 'Harga (Rp)', 'number', ['min' => 0]],
             ['satuan', 'Satuan', 'text', ['wajib' => true, 'maks' => 40, 'contoh' => '250 g, buah, botol']],
             ['pemilik', 'Pemilik dan alamat singkat', 'text', ['wajib' => true, 'maks' => 150]],
@@ -86,6 +88,20 @@ $CRUD = [
         'sebelumSimpan' => function (array &$data, ?int $id): void {
             $data['wa'] = nomor_wa($data['wa']); // simpan dalam format 62...
         },
+    ],
+
+    'ulasanumkm' => [
+        'judul' => 'Ulasan UMKM', 'satu' => 'ulasan', 'tabel' => 'ulasan_umkm', 'urut' => 'tampil, id DESC',
+        'catatan' => 'Ulasan dari pembeli produk UMKM. Ulasan baru belum tampil sampai dicentang "Tampilkan". Periksa apakah isinya wajar, tidak kasar, dan tidak berisi nomor HP atau alamat.',
+        'kolom' => ['usaha' => 'Usaha', 'nama' => 'Nama', 'bintang' => 'Bintang', 'komentar' => 'Ulasan', 'tampil' => 'Tampil'],
+        'format' => ['tampil' => 'yatidak'],
+        'field' => [
+            ['nama', 'Nama penulis', 'text', ['wajib' => true, 'maks' => 60]],
+            ['bintang', 'Bintang (1 sampai 5)', 'number', ['min' => 1, 'max' => 5]],
+            ['komentar', 'Ulasan', 'textarea', ['wajib' => true, 'maks' => 500]],
+            ['tampil', 'Tampilkan di website', 'check', []],
+        ],
+        'tanpaTambah' => true,
     ],
 
     'agenda' => [

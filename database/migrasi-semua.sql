@@ -417,6 +417,24 @@ UPDATE admin SET akses = CONCAT(akses, ',surat') WHERE akses LIKE '%aspirasi%' A
 UPDATE admin SET akses = CONCAT(akses, ',bansos') WHERE akses LIKE '%bantuan%' AND akses NOT LIKE '%bansos%';
 UPDATE admin SET akses = CONCAT(akses, ',zona') WHERE akses LIKE '%fasilitas%' AND akses NOT LIKE '%zona%';
 
+-- ---------- Tambahan 12b: saran cuaca, deskripsi dan ulasan UMKM ----------
+ALTER TABLE wisata ADD COLUMN IF NOT EXISTS saat_hujan TINYINT NOT NULL DEFAULT 0;
+UPDATE wisata SET saat_hujan = 1 WHERE slug = 'anyaman';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS deskripsi TEXT NULL;
+
+-- Ulasan produk UMKM. Siapa pun boleh menulis, tapi baru tampil setelah disetujui petugas.
+CREATE TABLE IF NOT EXISTS ulasan_umkm (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  umkm_id INT NOT NULL,
+  usaha VARCHAR(150) NOT NULL DEFAULT '',
+  nama VARCHAR(60) NOT NULL,
+  bintang TINYINT NOT NULL,
+  komentar VARCHAR(500) NOT NULL,
+  tampil TINYINT NOT NULL DEFAULT 0,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+UPDATE admin SET akses = CONCAT(akses, ',ulasanumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%ulasanumkm%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

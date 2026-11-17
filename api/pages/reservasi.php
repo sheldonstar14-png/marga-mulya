@@ -257,6 +257,31 @@ require __DIR__ . '/../inc/header.php';
         <div class="qr-box"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($tiket['kode'])) ?>"></div>
           <span class="small">Tunjukkan kode QR ini ke petugas loket saat tiba.</span></div>
       </div>
+      <?php if (isset($_GET['surel'])): $pengirim = (string) getenv('GMAIL_USER'); ?>
+      <dialog class="dialog-surel" id="dialogSurel" aria-labelledby="judulSurel">
+        <div class="isi">
+          <span class="dialog-ikon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+          <?php if ($_GET['surel'] === '1'): ?>
+            <h2 id="judulSurel">Reservasi terkirim ke email</h2>
+            <p>Rincian tiket <b><?= e($tiket['kode']) ?></b> sudah dikirim ke <b><?= e($tiket['email']) ?></b>.</p>
+            <p style="margin-bottom:4px"><b>Belum masuk dalam 5 menit?</b></p>
+            <ol class="small">
+              <li>Buka folder <b>Spam</b> atau tab <b>Promosi</b> di Gmail.</li>
+              <li>Kalau ketemu, tekan <b>Bukan spam</b> supaya email berikutnya masuk ke Kotak Masuk.</li>
+              <?php if ($pengirim !== ''): ?><li>Simpan <b><?= e($pengirim) ?></b> ke kontak.</li><?php endif; ?>
+            </ol>
+          <?php else: ?>
+            <h2 id="judulSurel">Reservasi tersimpan</h2>
+            <p>Email konfirmasi belum bisa dikirim, tapi reservasimu sudah tercatat. Simpan kode <b><?= e($tiket['kode']) ?></b> atau foto layar ini.</p>
+          <?php endif; ?>
+          <p class="small muted">Status bisa dicek kapan saja di halaman ini dengan kode reservasi.</p>
+          <div class="actions">
+            <button type="button" class="btn btn-main" data-tutup>Mengerti</button>
+            <button type="button" class="btn btn-ghost" data-salin="<?= e($tiket['kode']) ?>">Salin kode</button>
+          </div>
+        </div>
+      </dialog>
+      <?php endif; ?>
     <?php endif; ?>
 
     <div class="panel" style="margin-top:20px">
@@ -333,6 +358,20 @@ require __DIR__ . '/../inc/header.php';
 // JavaScript halaman ini: cuaca di tanggal terpilih, sisa kuota, dan total harga
 $scriptHalaman = <<<'JS'
 <script>
+// Pop-up setelah reservasi: kabar email terkirim dan cara cek folder Spam
+(function () {
+  const d = document.getElementById('dialogSurel');
+  if (!d || typeof d.showModal !== 'function') return;
+  d.showModal();
+  d.querySelector('[data-tutup]').addEventListener('click', () => d.close());
+  const salin = d.querySelector('[data-salin]');
+  salin.addEventListener('click', () => {
+    navigator.clipboard && navigator.clipboard.writeText(salin.dataset.salin).then(() => { salin.textContent = 'Kode disalin'; });
+  });
+  d.addEventListener('click', e => { if (e.target === d) d.close(); });
+})();
+</script>
+<script>
 (function () {
   const pilih = document.getElementById('wisata'), tanggal = document.getElementById('tanggal'), jumlah = document.getElementById('jumlah');
   const infoCuacaEl = document.getElementById('infoCuaca'), infoKuota = document.getElementById('infoKuota'), total = document.getElementById('total');
@@ -358,7 +397,7 @@ $scriptHalaman = <<<'JS'
       const h = data.hari.find(x => x.tgl === tanggal.value);
       if (!h) { infoCuacaEl.innerHTML = '<div class="fdate">Prakiraan cuaca untuk tanggal ini baru tersedia paling cepat 16 hari sebelumnya.</div>'; return; }
       const [nama, jenis] = infoCuaca(h.kode);
-      infoCuacaEl.innerHTML = '<div class="fdate">' + ikonCuaca(jenis) + '<div><b>' + nama + ', ' + h.min + '-' + h.maks + '°C, peluang hujan ' + h.hujan + '%</b><br><span class="small">' + saranCuaca(h.hujan, opsi.dataset.jenis, opsi.dataset.nama) + '</span></div></div>';
+      infoCuacaEl.innerHTML = '<div class="fdate">' + ikonCuaca(jenis) + '<div><b>' + nama + ', ' + h.min + '-' + h.maks + '°C, peluang hujan ' + h.hujan + '%</b><br><span class="small">' + saranCuaca(h, opsi.dataset.jenis, opsi.dataset.nama) + '</span></div></div>';
     }).catch(() => { infoCuacaEl.innerHTML = ''; });
   }
 

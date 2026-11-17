@@ -102,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     cek_csrf();
     $aksi = $_POST['aksi'] ?? '';
     $id = isset($_POST['id']) && $_POST['id'] !== '' ? (int) $_POST['id'] : null;
+    if ($id === null && !empty($c['tanpaTambah'])) redirect($alamat . '?gagal=' . urlencode('Data ini tidak ditambah dari CMS.'));
 
     if ($aksi === 'hapus' && $id) {
         $baris = q1("SELECT * FROM $tabel WHERE id = ?", [$id]);
@@ -143,6 +144,7 @@ $menuAdmin = $kunciCrud;
 require __DIR__ . '/../../inc/admin-header.php';
 
 // ======================= FORM TAMBAH / EDIT =======================
+if ($aksi === 'tambah' && !empty($c['tanpaTambah'])) $aksi = '';
 if (in_array($aksi, ['tambah', 'edit'], true)):
     $id = $aksi === 'edit' ? (int) ($_GET['id'] ?? 0) : null;
     $baris = $id ? q1("SELECT * FROM $tabel WHERE id = ?", [$id]) : ($c['baru'] ?? []);
@@ -246,7 +248,7 @@ else:
     <div class="head-row"><h2><?= e($c['judul']) ?></h2>
       <div class="actions">
         <?php if (!empty($c['tombolTambahan'])): ?><a class="btn btn-ghost btn-sm" href="<?= e($c['tombolTambahan'][0]) ?>"><?= e($c['tombolTambahan'][1]) ?></a><?php endif; ?>
-        <a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah">Tambah <?= e($c['satu']) ?></a>
+        <?php if (empty($c['tanpaTambah'])): ?><a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah">Tambah <?= e($c['satu']) ?></a><?php endif; ?>
       </div>
     </div>
     <?php if (!empty($c['catatan'])): ?><p class="muted"><?= e($c['catatan']) ?></p><?php endif; ?>

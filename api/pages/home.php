@@ -5,7 +5,7 @@
 $wisata = q('SELECT slug, nama, jenis, harga, kuota, ringkas, foto FROM wisata WHERE aktif = 1 ORDER BY id');
 $agenda = q('SELECT judul, tanggal, jam, tempat, isi FROM agenda WHERE tanggal >= ? ORDER BY tanggal LIMIT 3', [date('Y-m-d')]);
 $umkm   = q('SELECT nama_usaha, produk, harga, satuan, foto FROM umkm ORDER BY id LIMIT 3');
-$berita = q('SELECT judul, tanggal, isi, foto FROM berita ORDER BY tanggal DESC, id DESC LIMIT 3');
+$berita = q('SELECT id, judul, tanggal, isi, foto FROM berita ORDER BY tanggal DESC, id DESC LIMIT 3');
 
 // Ringkasan keterbukaan desa (Fase 8)
 $tahunApb = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
@@ -24,6 +24,12 @@ $jumlahUmkm = (int) q1('SELECT COUNT(*) AS n FROM umkm')['n'];
 $fotoHero = setting('foto_hero') ?: (array_values(array_filter(array_column($wisata, 'foto')))[0] ?? '/assets/img/sawah.svg');
 $darurat = q('SELECT nama, nomor, keterangan FROM darurat ORDER BY urutan, id LIMIT 4');
 $agendaDekat = $agenda[0] ?? null;
+// Kata pengunjung: ulasan terbaru wisata dan UMKM yang sudah tampil
+$kataPengunjung = q("SELECT * FROM (
+    SELECT u.nama, u.bintang, u.komentar, w.nama AS tempat, CONCAT('/wisata/', w.slug) AS url, u.dibuat_pada FROM ulasan u JOIN wisata w ON w.id = u.wisata_id WHERE u.tampil = 1
+    UNION ALL
+    SELECT nama, bintang, komentar, usaha AS tempat, '/umkm' AS url, dibuat_pada FROM ulasan_umkm WHERE tampil = 1
+) x ORDER BY dibuat_pada DESC LIMIT 3");
 
 $judul = setting('nama_desa');
 $menu  = '';
@@ -134,10 +140,23 @@ require __DIR__ . '/../inc/header.php';
 </div></div>
 
 <div class="sec tint"><div class="wrap cols-2">
+  <div class="kolom-kiri">
   <aside class="wx" aria-live="polite" data-cuaca data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" data-sub="Pusat desa">
     <h3>Prakiraan 7 hari</h3>
     <p class="wx-note">Memuat prakiraan cuaca...</p>
   </aside>
+  <?php if ($kataPengunjung): ?>
+  <section class="kata-pengunjung" aria-labelledby="judul-kata">
+    <div class="head-row"><h2 id="judul-kata">Kata pengunjung</h2><a href="/wisata">Lihat destinasi</a></div>
+    <?php foreach ($kataPengunjung as $k): ?>
+      <figure class="kata-item">
+        <blockquote><?= e(ringkas_teks($k['komentar'], 160)) ?></blockquote>
+        <figcaption><span class="bintang" aria-hidden="true"><?= bintang((int) $k['bintang']) ?></span><span class="sr-only"><?= (int) $k['bintang'] ?> bintang, </span> <b><?= e($k['nama']) ?></b> tentang <a href="<?= e($k['url']) ?>"><?= e($k['tempat']) ?></a></figcaption>
+      </figure>
+    <?php endforeach; ?>
+  </section>
+  <?php endif; ?>
+  </div>
   <div>
     <div class="head-row"><h2>Agenda terdekat</h2><a href="/agenda">Semua agenda</a></div>
     <div class="agenda">
@@ -198,7 +217,8 @@ require __DIR__ . '/../inc/header.php';
         <div class="card-body">
           <span class="small muted"><?= tgl($b['tanggal']) ?></span>
           <h3 style="margin:2px 0 4px"><?= e($b['judul']) ?></h3>
-          <p><?= e($b['isi']) ?></p>
+          <p><?= e(ringkas_teks($b['isi'])) ?></p>
+          <a class="small" href="/agenda#berita-<?= (int) $b['id'] ?>">Baca selengkapnya<span class="sr-only">: <?= e($b['judul']) ?></span></a>
         </div>
       </article>
     <?php endforeach; ?>
