@@ -27,6 +27,7 @@ $grup = [
             'kabupaten'   => ['Kabupaten', 'text'],
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
+            'foto_hero'   => ['Foto lingkaran di beranda (opsional). Pakai foto landscape desa asli; bagian tengah foto yang tampil di lingkaran', 'foto'],
             'alamat'      => ['Alamat kantor desa', 'text'],
             'jam_layanan' => ['Jam layanan', 'text'],
             'email'       => ['Email desa', 'text'],
@@ -59,10 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
+    if (!empty($baru['foto_hero']) && !preg_match('#^(https://|/assets/)#', $baru['foto_hero'])) $errors[] = 'Alamat foto beranda harus diawali https:// atau /assets/.';
     if (isset($baru['simpan_data_hari']) && (!ctype_digit($baru['simpan_data_hari']) || (int) $baru['simpan_data_hari'] < 30)) $errors[] = 'Lama penyimpanan data pribadi berupa angka hari, minimal 30.';
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
 
@@ -94,7 +96,12 @@ require __DIR__ . '/../../inc/admin-header.php';
     $nilai = $_POST[$kunci] ?? str_replace('\n', "\n", setting($kunci)); ?>
     <div class="field">
       <label for="k-<?= $kunci ?>"><?= e($label) ?></label>
-      <?php if ($jenis === 'area'): ?>
+      <?php if ($jenis === 'foto'): ?>
+        <div class="img-prev" id="prev-<?= $kunci ?>"><?php if ($nilai): ?><img src="<?= e($nilai) ?>" alt="Foto saat ini"><?php endif; ?></div>
+        <input type="file" accept="image/jpeg,image/png,image/webp" class="unggah-foto" data-target="k-<?= $kunci ?>" data-preview="prev-<?= $kunci ?>" style="margin-top:10px" aria-label="Pilih file foto">
+        <div class="hint unggah-status" id="status-k-<?= $kunci ?>">Format JPG, PNG, atau WebP, maksimal 5 MB. Kosongkan untuk memakai foto destinasi wisata pertama.</div>
+        <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>" placeholder="Atau tempel alamat gambar (https://...)" style="margin-top:8px">
+      <?php elseif ($jenis === 'area'): ?>
         <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
       <?php else: ?>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>">
