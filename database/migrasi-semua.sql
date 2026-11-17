@@ -435,6 +435,39 @@ CREATE TABLE IF NOT EXISTS ulasan_umkm (
 );
 UPDATE admin SET akses = CONCAT(akses, ',ulasanumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%ulasanumkm%';
 
+-- ---------- Tambahan 12d: catatan data, sambutan kepala desa, keranjang UMKM ----------
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('catatan_data', 'Data statistik pada halaman ini disusun mengikuti struktur Data EcoQuest IIT Challenge 2026 dan berfungsi sebagai data contoh. Pemerintah desa dapat memperbarui seluruh angka melalui CMS sesuai data resmi terbaru.'),
+('sambutan_kades', 'Selamat datang di website resmi Desa Marga Mulya. Melalui website ini, kami ingin pelayanan desa terasa lebih dekat, cepat, dan terbuka bagi seluruh warga, mulai dari pengurusan surat, informasi bantuan, sampai laporan anggaran desa.\n\nKepada para wisatawan, kami mengundang Bapak dan Ibu menikmati terasering, curug, kebun jeruk, dan karya warga kami. Mari bersama membangun Marga Mulya yang maju, hijau, dan sejahtera.'),
+('foto_kades', '');
+
+-- Pesanan dari keranjang UMKM. Satu pesanan untuk satu penjual; pembeli lalu mengirim ringkasannya ke WhatsApp penjual.
+CREATE TABLE IF NOT EXISTS pesanan_umkm (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  kode VARCHAR(12) NOT NULL UNIQUE,
+  usaha VARCHAR(150) NOT NULL,
+  wa_penjual VARCHAR(20) NOT NULL,
+  nama VARCHAR(100) NOT NULL,
+  wa VARCHAR(20) NOT NULL,
+  pengambilan VARCHAR(20) NOT NULL DEFAULT 'Ambil sendiri',
+  alamat VARCHAR(255) NOT NULL DEFAULT '',
+  catatan VARCHAR(255) NOT NULL DEFAULT '',
+  ringkasan VARCHAR(600) NOT NULL DEFAULT '',
+  total INT NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'Baru',
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS pesanan_umkm_item (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pesanan_id INT NOT NULL,
+  umkm_id INT NOT NULL,
+  produk VARCHAR(150) NOT NULL,
+  harga INT NOT NULL,
+  satuan VARCHAR(40) NOT NULL DEFAULT '',
+  jumlah INT NOT NULL
+);
+UPDATE admin SET akses = CONCAT(akses, ',pesananumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%pesananumkm%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

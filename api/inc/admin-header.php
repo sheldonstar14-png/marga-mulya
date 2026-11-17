@@ -8,10 +8,11 @@ $jumlahPesanBaru = boleh($admin, 'pesan') ? (int) q1('SELECT COUNT(*) AS n FROM 
 $jumlahPrivasiBaru = boleh($admin, 'privasi') ? (int) q1("SELECT COUNT(*) AS n FROM permintaan_data WHERE status = 'Diterima'")['n'] : 0;
 $jumlahAspirasiBaru = boleh($admin, 'aspirasi') ? (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima'")['n'] : 0;
 $jumlahUlasanUmkm = boleh($admin, 'ulasanumkm') ? (int) q1('SELECT COUNT(*) AS n FROM ulasan_umkm WHERE tampil = 0')['n'] : 0;
+$jumlahPesananUmkm = boleh($admin, 'pesananumkm') ? (int) q1("SELECT COUNT(*) AS n FROM pesanan_umkm WHERE status = 'Baru'")['n'] : 0;
 $jumlahSuratBaru = boleh($admin, 'surat') ? (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status = 'Diterima'")['n'] : 0;
 $grupMenu = [
     'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'surat' => 'Pengajuan surat & antrean', 'layanan' => 'Jenis surat & syarat', 'faq' => 'Asisten desa (FAQ)', 'ulasan' => 'Ulasan'],
-    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
+    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'pesananumkm' => 'Pesanan UMKM', 'agenda' => 'Agenda', 'berita' => 'Berita', 'galeri' => 'Galeri'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
     'Laporan' => ['laporan' => 'Laporan bulanan'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'bansos' => 'Penerima bansos', 'sampah' => 'Bank sampah'],
@@ -22,7 +23,7 @@ foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
     $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
     if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
-$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm];
+$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm, 'pesananumkm' => $jumlahPesananUmkm];
 ?>
 <!DOCTYPE html>
 <html lang="id">

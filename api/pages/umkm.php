@@ -47,6 +47,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ulasan'
         redirect('/umkm?ulasan=terkirim#umkm-' . $u['id']);
     }
 }
+// ---------- Keranjang UMKM ----------
+// Isi keranjang disimpan di browser. Saat dikirim, pesanan dicatat (satu pesanan per penjual),
+// lalu pembeli menekan tombol untuk mengirim ringkasan yang sama ke WhatsApp penjual.
+$errorPesan = [];
+$isiPesan = ['nama' => '', 'wa' => '', 'pengambilan' => 'Ambil sendiri', 'alamat' => '', 'catatan' => ''];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'pesan') {
+    foreach ($isiPesan as $k => $_) $isiPesan[$k] = trim((string) ($_POST[$k] ?? ''));
+    $waPembeli = preg_replace('/\D/', '', $isiPesan['wa']);
+    $keranjang = json_decode((string) ($_POST['keranjang'] ?? ''), true);
+    $item = [];
+    if (is_array($keranjang)) {
+        foreach (array_slice($keranjang, 0, 30, true) as $id => $jml) {
+            $jml = (int) $jml;
+            $u = q1('SELECT id, nama_usaha, produk, harga, satuan, wa FROM umkm WHERE id = ?', [(int) $id]);
+            if ($u && $jml >= 1 && $jml <= 99) $item[] = $u + ['jumlah' => $jml];
+        }
+    }
+    if (!empty($_POST['website'])) $errorPesan[] = 'Pesanan tidak dapat diproses.';
+    if (!$item) $errorPesan[] = 'Keranjang masih kosong.';
+    if (mb_strlen($isiPesan['nama']) < 2 || mb_strlen($isiPesan['nama']) > 100) $errorPesan[] = 'Isi nama pemesan.';
+    if (strlen($waPembeli) < 10 || strlen($waPembeli) > 15) $errorPesan[] = 'Isi nomor WhatsApp 10 sampai 15 digit supaya penjual bisa membalas.';
+    if (!in_array($isiPesan['pengambilan'], ['Ambil sendiri', 'Diantar'], true)) $isiPesan['pengambilan'] = 'Ambil sendiri';
+    if ($isiPesan['pengambilan'] === 'Diantar' && mb_strlen($isiPesan['alamat']) < 5) $errorPesan[] = 'Tulis alamat pengantaran.';
+    if (mb_strlen($isiPesan['alamat']) > 255 || mb_strlen($isiPesan['catatan']) > 255) $errorPesan[] = 'Alamat dan catatan maksimal 255 huruf.';
+    if (empty($_POST['setuju_data'])) $errorPesan[] = 'Centang persetujuan penggunaan data.';
+    if (!$errorPesan) {
+        $perPenjual = [];
+        foreach ($item as $it) $perPenjual[$it['wa'] . '|' . $it['nama_usaha']][] = $it;
+        $kode = [];
+        foreach ($perPenjual as $daftar) {
+            $k = kode_unik('UMK', 'pesanan_umkm');
+            $total = array_sum(array_map(fn($it) => $it['harga'] * $it['jumlah'], $daftar));
+            $ringkas = mb_substr(implode(', ', array_map(fn($it) => $it['produk'] . ' x' . $it['jumlah'], $daftar)), 0, 600);
+            q('INSERT INTO pesanan_umkm (kode, usaha, wa_penjual, nama, wa, pengambilan, alamat, catatan, ringkasan, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [$k, $daftar[0]['nama_usaha'], $daftar[0]['wa'], $isiPesan['nama'], $waPembeli, $isiPesan['pengambilan'], $isiPesan['alamat'], $isiPesan['catatan'], $ringkas, $total]);
+            $pid = (int) q1('SELECT id FROM pesanan_umkm WHERE kode = ?', [$k])['id'];
+            foreach ($daftar as $it) q('INSERT INTO pesanan_umkm_item (pesanan_id, umkm_id, produk, harga, satuan, jumlah) VALUES (?, ?, ?, ?, ?, ?)', [$pid, $it['id'], $it['produk'], $it['harga'], $it['satuan'], $it['jumlah']]);
+            $kode[] = $k;
+        }
+        // Hanya browser pembeli ini yang bisa membuka ringkasan pesanannya (berisi nama dan nomor WA)
+        setcookie('mm_pesan', implode(',', $kode), ['expires' => time() + 86400, 'path' => '/umkm', 'samesite' => 'Lax', 'httponly' => true, 'secure' => !empty($_SERVER['HTTPS'])]);
+        redirect('/umkm?pesanan=' . urlencode(implode(',', $kode)) . '#pesanan');
+    }
+}
+$pesananBaru = [];
+if (isset($_GET['pesanan'])) {
+    $milik = explode(',', (string) ($_COOKIE['mm_pesan'] ?? ''));
+    foreach (array_slice(explode(',', (string) $_GET['pesanan']), 0, 10) as $k) {
+        if (!in_array($k, $milik, true)) continue;
+        $ps = q1('SELECT * FROM pesanan_umkm WHERE kode = ?', [$k]);
+        if (!$ps) continue;
+        $ps['item'] = q('SELECT produk, harga, satuan, jumlah FROM pesanan_umkm_item WHERE pesanan_id = ? ORDER BY id', [$ps['id']]);
+        $teks = "Halo {$ps['usaha']}, saya pesan lewat website " . setting('nama_desa') . ".\nKode pesanan: {$ps['kode']}\n\n";
+        foreach ($ps['item'] as $it) $teks .= "- {$it['produk']} x{$it['jumlah']} = " . rupiah($it['harga'] * $it['jumlah']) . "\n";
+        $teks .= "\nTotal: " . rupiah((int) $ps['total']) . "\nNama: {$ps['nama']}\n" . ($ps['pengambilan'] === 'Diantar' ? "Diantar ke: {$ps['alamat']}" : 'Ambil sendiri') . ($ps['catatan'] ? "\nCatatan: {$ps['catatan']}" : '') . "\n\nMohon konfirmasi ketersediaan dan cara pembayarannya. Terima kasih.";
+        $ps['wa_link'] = wa_link($ps['wa_penjual'], $teks);
+        $pesananBaru[] = $ps;
+    }
+}
+
 $nilaiUmkm = [];
 foreach (q('SELECT umkm_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan_umkm WHERE tampil = 1 GROUP BY umkm_id') as $r) $nilaiUmkm[(int) $r['umkm_id']] = $r;
 $ulasanTerbaru = [];
@@ -90,6 +150,20 @@ require __DIR__ . '/../inc/header.php';
   <?php endif; ?>
 </div>
 <div class="wrap sec" style="padding-top:16px">
+  <?php if ($pesananBaru): ?>
+    <div class="panel pesanan-ok" id="pesanan" role="status">
+      <h2 style="font-size:1.4rem;margin:0 0 6px">Pesanan tercatat. Satu langkah lagi</h2>
+      <p style="margin:0 0 14px">Tekan tombol hijau untuk mengirim pesanan ke WhatsApp penjual. Pesanannya sudah tersusun, kamu tinggal menekan kirim. Pembayaran langsung ke penjual.</p>
+      <?php foreach ($pesananBaru as $ps): ?>
+        <div class="pesanan-kartu">
+          <div><b><?= e($ps['usaha']) ?></b> <span class="tag"><?= e($ps['kode']) ?></span>
+            <ul class="small"><?php foreach ($ps['item'] as $it): ?><li><?= e($it['produk']) ?> x<?= (int) $it['jumlah'] ?> = <?= rupiah($it['harga'] * $it['jumlah']) ?></li><?php endforeach; ?></ul>
+            <b>Total <?= rupiah((int) $ps['total']) ?></b></div>
+          <a class="btn btn-wa" href="<?= e($ps['wa_link']) ?>" target="_blank" rel="noopener" data-kirim-wa>Kirim ke WhatsApp penjual</a>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
   <?php if (($_GET['ulasan'] ?? '') === 'terkirim'): ?><div class="alert alert-ok" role="status">Terima kasih. Ulasanmu akan tampil setelah diperiksa petugas desa.</div><?php endif; ?>
   <nav class="chips" aria-label="Kategori produk">
     <?php foreach (array_merge(['Semua'], $daftarKategori) as $k): ?>
@@ -99,7 +173,7 @@ require __DIR__ . '/../inc/header.php';
   <div class="grid g3">
     <?php foreach ($umkm as $u):
       $pesan = 'Halo ' . $u['nama_usaha'] . ', saya lihat di website ' . setting('nama_desa') . '. Saya ingin pesan ' . $u['produk'] . '.'; ?>
-      <div class="card" id="umkm-<?= (int) $u['id'] ?>">
+      <div class="card" id="umkm-<?= (int) $u['id'] ?>" data-produk='<?= e(json_encode(['id' => (int) $u['id'], 'produk' => $u['produk'], 'usaha' => $u['nama_usaha'], 'harga' => (int) $u['harga'], 'satuan' => $u['satuan']], JSON_UNESCAPED_UNICODE)) ?>'>
         <div class="art"><img src="<?= e($u['foto'] ?: '/assets/img/kirab.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"></div>
         <div class="card-body">
           <span class="tag"><?= e($u['kategori']) ?></span><?php if (!empty($u['pin_hash']) && setting('tiket_hijau_aktif') === '1'): ?> <span class="tag tag-hijau" title="Menerima kupon Tiket Hijau">Terima Tiket Hijau</span><?php endif; ?>
@@ -113,7 +187,10 @@ require __DIR__ . '/../inc/header.php';
           <?php endforeach; ?>
           <div class="card-foot">
             <span class="price"><?= rupiah($u['harga']) ?> <span class="small muted">/ <?= e($u['satuan']) ?></span></span>
-            <a class="btn btn-wa btn-sm" href="<?= e(wa_link($u['wa'], $pesan)) ?>" target="_blank" rel="noopener">Pesan via WhatsApp</a>
+            <button type="button" class="btn btn-main btn-sm" data-tambah="<?= (int) $u['id'] ?>">Tambah ke keranjang</button>
+          </div>
+          <a class="small tanya-wa" href="<?= e(wa_link($u['wa'], $pesan)) ?>" target="_blank" rel="noopener">Tanya dulu lewat WhatsApp<span class="sr-only"> ke <?= e($u['nama_usaha']) ?></span></a>
+          <div>
           </div>
           <details class="beri-ulasan" <?= $ulasanUntuk === (int) $u['id'] && $errorUlasan ? 'open' : '' ?>>
             <summary>Sudah pernah beli? Beri ulasan</summary>
@@ -121,7 +198,7 @@ require __DIR__ . '/../inc/header.php';
               <input type="hidden" name="aksi" value="ulasan"><input type="hidden" name="umkm" value="<?= (int) $u['id'] ?>">
               <?php if ($ulasanUntuk === (int) $u['id'] && $errorUlasan): ?><div class="alert alert-err" role="alert"><?= implode('<br>', array_map('e', $errorUlasan)) ?></div><?php endif; ?>
               <div class="field"><label for="un-<?= (int) $u['id'] ?>">Nama panggilan</label><input id="un-<?= (int) $u['id'] ?>" name="nama" maxlength="60" required></div>
-              <fieldset class="pilih-bintang"><legend>Bintang</legend>
+              <fieldset class="pilihan-pil"><legend>Bintang</legend>
                 <?php for ($b = 5; $b >= 1; $b--): ?><label><input type="radio" name="bintang" value="<?= $b ?>" <?= $b === 5 ? 'checked' : '' ?>> <?= $b ?></label><?php endfor; ?>
               </fieldset>
               <div class="field"><label for="uk-<?= (int) $u['id'] ?>">Ulasan</label><textarea id="uk-<?= (int) $u['id'] ?>" name="komentar" rows="3" maxlength="500" required placeholder="Rasa, kualitas, atau pelayanannya bagaimana?"></textarea></div>
@@ -136,4 +213,34 @@ require __DIR__ . '/../inc/header.php';
   </div>
   <?php if (!$umkm): ?><p class="muted">Belum ada produk di kategori ini.</p><?php endif; ?>
 </div>
-<?php require __DIR__ . '/../inc/footer.php'; ?>
+<!-- Keranjang -->
+<button type="button" class="keranjang-bar" id="keranjangBar" hidden aria-haspopup="dialog">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16l-1.5 13h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+  <span id="keranjangRingkas">Keranjang</span><b>Lihat</b>
+</button>
+<dialog class="keranjang-dialog" id="keranjangDialog" aria-labelledby="judulKeranjang">
+  <form method="post" action="/umkm#pesanan" class="keranjang-isi" id="formPesan">
+    <div class="head-row" style="margin:0"><h2 id="judulKeranjang" style="font-size:1.4rem;margin:0">Keranjang</h2><button type="button" class="btn btn-ghost btn-sm" data-tutup>Tutup</button></div>
+    <div id="daftarKeranjang"></div>
+    <input type="hidden" name="aksi" value="pesan"><input type="hidden" name="keranjang" id="inputKeranjang">
+    <?php if ($errorPesan): ?><div class="alert alert-err" role="alert"><?= implode('<br>', array_map('e', $errorPesan)) ?></div><?php endif; ?>
+    <div class="grid g2" style="gap:12px">
+      <div class="field"><label for="p-nama">Nama pemesan</label><input id="p-nama" name="nama" value="<?= e($isiPesan['nama']) ?>" maxlength="100" required autocomplete="name"></div>
+      <div class="field"><label for="p-wa">WhatsApp</label><input id="p-wa" name="wa" value="<?= e($isiPesan['wa']) ?>" inputmode="tel" required placeholder="08xxxxxxxxxx"></div>
+    </div>
+    <fieldset class="pilihan-pil"><legend>Pengambilan</legend>
+      <label><input type="radio" name="pengambilan" value="Ambil sendiri" <?= $isiPesan['pengambilan'] !== 'Diantar' ? 'checked' : '' ?>> Ambil sendiri</label>
+      <label><input type="radio" name="pengambilan" value="Diantar" <?= $isiPesan['pengambilan'] === 'Diantar' ? 'checked' : '' ?>> Diantar (ongkir sesuai penjual)</label>
+    </fieldset>
+    <div class="field"><label for="p-alamat">Alamat (kalau diantar)</label><input id="p-alamat" name="alamat" value="<?= e($isiPesan['alamat']) ?>" maxlength="255"></div>
+    <div class="field"><label for="p-catatan">Catatan untuk penjual (opsional)</label><input id="p-catatan" name="catatan" value="<?= e($isiPesan['catatan']) ?>" maxlength="255" placeholder="Contoh: level pedas sedang"></div>
+    <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required> <span>Saya setuju nama, nomor WhatsApp, dan alamat diteruskan ke penjual untuk memproses pesanan, sesuai <a href="/kontak#privasi">kebijakan privasi</a>.</span></label>
+    <div class="hp" aria-hidden="true"><label>Jangan diisi<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn btn-main" type="submit" style="width:100%">Kirim pesanan</button>
+    <p class="hint">Pesanan untuk beberapa penjual dipisah otomatis. Setelah ini kamu diarahkan mengirim pesanan ke WhatsApp masing-masing penjual.</p>
+  </form>
+</dialog>
+<?php
+$scriptHalaman = ($pesananBaru ? '<script>try{localStorage.removeItem("mm_keranjang")}catch(e){}</script>' : '') . '<script src="/assets/js/keranjang.js"></script>' . ($errorPesan ? '<script>document.addEventListener("DOMContentLoaded",function(){var d=document.getElementById("keranjangDialog");d&&d.showModal&&d.showModal()})</script>' : '');
+require __DIR__ . '/../inc/footer.php';
+?>

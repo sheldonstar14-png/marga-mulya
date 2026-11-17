@@ -16,6 +16,8 @@ $grup = [
             'batas_timur'    => ['Batas timur', 'text'],
             'batas_selatan'  => ['Batas selatan', 'text'],
             'batas_barat'    => ['Batas barat', 'text'],
+            'sambutan_kades' => ['Sambutan kepala desa (pisahkan paragraf dengan baris kosong; paragraf pertama tampil di beranda)', 'area'],
+            'foto_kades'     => ['Foto kepala desa (opsional)', 'foto'],
         ],
     ],
     'pengaturan' => [
@@ -38,6 +40,7 @@ $grup = [
             'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
             'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
             'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
+            'catatan_data' => ['Catatan di bawah data statistik (sumber dan status data)', 'area'],
             'email_laporan' => ['Email penerima laporan bulanan, misalnya kepala desa (boleh lebih dari satu, pisahkan koma)', 'text'],
             'tiket_hijau_aktif' => ['Tiket Hijau aktif? Isi 1 untuk aktif, 0 untuk mati', 'text'],
             'tiket_hijau_skor' => ['Skor hijau yang mendapat kupon (pisahkan koma, contoh A,B)', 'text'],
@@ -60,10 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
+    if (!empty($baru['foto_kades']) && !preg_match('#^(https://|/assets/)#', $baru['foto_kades'])) $errors[] = 'Alamat foto kepala desa harus diawali https:// atau /assets/.';
     if (!empty($baru['foto_hero']) && !preg_match('#^(https://|/assets/)#', $baru['foto_hero'])) $errors[] = 'Alamat foto beranda harus diawali https:// atau /assets/.';
     if (isset($baru['simpan_data_hari']) && (!ctype_digit($baru['simpan_data_hari']) || (int) $baru['simpan_data_hari'] < 30)) $errors[] = 'Lama penyimpanan data pribadi berupa angka hari, minimal 30.';
     if (isset($baru['lat']) && (!is_numeric($baru['lat']) || !is_numeric($baru['lng']))) $errors[] = 'Lintang dan bujur harus berupa angka, contoh -7.205 dan 107.570.';
@@ -102,7 +106,7 @@ require __DIR__ . '/../../inc/admin-header.php';
         <div class="hint unggah-status" id="status-k-<?= $kunci ?>">Format JPG, PNG, atau WebP, maksimal 5 MB. Kosongkan untuk memakai foto destinasi wisata pertama.</div>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>" placeholder="Atau tempel alamat gambar (https://...)" style="margin-top:8px">
       <?php elseif ($jenis === 'area'): ?>
-        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
+        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum', 'sambutan_kades'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
       <?php else: ?>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>">
       <?php endif; ?>

@@ -46,6 +46,8 @@ require __DIR__ . '/../inc/header.php';
   <p><?= e(setting('profil_ringkas')) ?></p>
 </div>
 
+<div class="wrap" id="sambutan" style="padding-top:16px"><?= kartu_sambutan(false) ?></div>
+
 <div class="wrap sec grid g2" style="padding-top:24px">
   <div class="panel">
     <h3>Sejarah singkat</h3>

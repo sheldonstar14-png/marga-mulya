@@ -73,16 +73,33 @@ function wa_link(string $nomor, string $pesan): string
 // Baris-baris grafik batang dari tabel statistik
 function bar_list(array $rows): string
 {
+    // Grafik batang berwarna. Warna mengikuti URUTAN baris (tetap, tidak diacak) dan sudah diuji
+    // aman untuk buta warna. Baris ke-7 dan seterusnya abu-abu. Kalau semua baris satuannya sama
+    // (misalnya jiwa), di atasnya tampil satu batang komposisi 100% supaya proporsinya terlihat.
     if (!$rows) {
         return '<p class="muted">Belum ada data.</p>';
     }
-    $max = max(array_map(fn($r) => (float) $r['nilai'], $rows)) ?: 1;
+    $nilai = array_map(fn($r) => (float) $r['nilai'], $rows);
+    $max = max($nilai) ?: 1;
+    $satuan = array_unique(array_column($rows, 'satuan'));
+    $komposisi = count($rows) >= 2 && count($satuan) === 1 && $satuan[0] !== '%' && array_sum($nilai) > 0;
+    $total = array_sum($nilai);
+    $warna = fn(int $i) => $i < 6 ? 'var(--seri-' . ($i + 1) . ')' : 'var(--seri-lain)';
     $html = '';
-    foreach ($rows as $r) {
+    if ($komposisi) {
+        $html .= '<div class="komposisi" role="img" aria-label="Komposisi: ' . e(implode(', ', array_map(fn($r) => $r['label'] . ' ' . persen_id((float) $r['nilai'], $total) . ' persen', $rows))) . '">';
+        foreach ($rows as $i => $r) {
+            $pr = (float) $r['nilai'] / $total * 100;
+            if ($pr <= 0) continue;
+            $html .= '<span style="width:' . round($pr, 2) . '%;background:' . $warna($i) . '" title="' . e($r['label'] . ': ' . angka($r['nilai']) . ' ' . $r['satuan'] . ' (' . persen_id((float) $r['nilai'], $total) . '%)') . '"></span>';
+        }
+        $html .= '</div>';
+    }
+    foreach ($rows as $i => $r) {
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
-        $html .= '<div class="bar-row"><span>' . e($r['label']) . '</span>'
-            . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%"></div></div>'
-            . '<b>' . angka($r['nilai']) . ' ' . e($r['satuan']) . '</b></div>';
+        $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . '</span>'
+            . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%;background:' . $warna($i) . '"></div></div>'
+            . '<b>' . angka($r['nilai']) . ' ' . e($r['satuan']) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
     }
     return $html;
 }
@@ -277,6 +294,7 @@ function bersihkan_data_lama(): int
     // Fase 12: surat yang sudah selesai/ditolak, dan antrean yang sudah lewat
     $n += $jalankan("UPDATE surat SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
     $n += $jalankan("DELETE FROM antrean WHERE tanggal < ?");
+    $n += $jalankan("UPDATE pesanan_umkm SET nama = '(dihapus)', wa = '', alamat = '' WHERE dibuat_pada < ? AND nama <> '(dihapus)'");
     // Nama penerima bansos dihapus 30 hari setelah program ditandai selesai (angka per RT tetap ada di laporan)
     $st = db()->prepare('DELETE FROM bansos_penerima WHERE bantuan_id IN (SELECT id FROM bantuan WHERE selesai IS NOT NULL AND selesai < ?)');
     $st->execute([date('Y-m-d', strtotime('-30 days'))]);
@@ -410,4 +428,23 @@ function ringkas_bansos(array $b): array
     }
     $perRt = q('SELECT rt, COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? GROUP BY rt ORDER BY rt', [$b['id']]);
     return ['total' => $total, 'tahap' => $tahap, 'per_rt' => $perRt];
+}
+
+
+// Kartu sambutan kepala desa. $ringkas = true: hanya paragraf pertama (untuk beranda)
+function kartu_sambutan(bool $ringkas): string
+{
+    $teks = trim(str_replace('\n', "\n", setting('sambutan_kades')));
+    if ($teks === '') return '';
+    $kades = q1("SELECT nama FROM aparat WHERE jabatan LIKE 'Kepala Desa%' ORDER BY urutan, id LIMIT 1");
+    $nama = $kades['nama'] ?? 'Kepala Desa';
+    $paragraf = preg_split('/\n\s*\n/', $teks);
+    if ($ringkas) $paragraf = [$paragraf[0]];
+    $foto = setting('foto_kades');
+    $inisial = implode('', array_map(fn($k) => mb_substr($k, 0, 1), array_slice(array_values(array_filter(preg_split('/\s+/', preg_replace('/\b(Hj?|H|Dr|Ir)\.\s*/', '', $nama)), fn($k) => $k !== '' && !str_contains($k, '.'))), 0, 2)));
+    $h = '<figure class="sambutan"><div class="sambutan-foto">' . ($foto ? '<img src="' . e($foto) . '" alt="Foto ' . e($nama) . '" loading="lazy">' : '<span aria-hidden="true">' . e($inisial) . '</span>') . '</div><div>';
+    $h .= '<blockquote>' . implode('', array_map(fn($p) => '<p>' . nl2br(e(trim($p))) . '</p>', $paragraf)) . '</blockquote>';
+    $h .= '<figcaption><b>' . e($nama) . '</b><span>Kepala ' . e(setting('nama_desa')) . '</span></figcaption>';
+    if ($ringkas && count(preg_split('/\n\s*\n/', $teks)) > 1) $h .= '<a class="small" href="/profil#sambutan">Baca sambutan lengkap</a>';
+    return $h . '</div></figure>';
 }

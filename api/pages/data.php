@@ -506,10 +506,15 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   <div class="grid g2">
     <?php foreach ($grupData[$grup] as $kategori): ?>
       <div class="panel">
-        <h3><?= e($kategori) ?></h3>
+        <div class="panel-head"><h3><?= e($kategori) ?></h3><a class="unduh" href="/unduh-data?kategori=<?= urlencode($kategori) ?>" download><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>CSV<span class="sr-only"> data <?= e($kategori) ?></span></a></div>
         <div class="bars"><?= bar_list(statistik($kategori)) ?></div>
       </div>
     <?php endforeach; ?>
+  </div>
+  <div class="catatan-data">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+    <div><p style="margin:0 0 8px"><?= e(setting('catatan_data')) ?></p>
+    <a class="unduh" href="/unduh-data" download>Unduh semua data statistik (CSV, bisa dibuka di Excel)</a></div>
   </div>
 <?php endif; ?>
 </div>

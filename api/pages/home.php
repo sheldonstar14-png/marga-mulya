@@ -95,6 +95,10 @@ require __DIR__ . '/../inc/header.php';
 
 <div class="wrap"><div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div></div>
 
+<?php if ($s = kartu_sambutan(true)): ?>
+<section class="wrap" aria-label="Sambutan kepala desa" style="padding-top:8px"><?= $s ?></section>
+<?php endif; ?>
+
 <section class="sec" id="layanan" aria-labelledby="judul-layanan"><div class="wrap">
   <div class="sec-head"><h2 id="judul-layanan">Semua urusan, satu tempat</h2><p>Pilih sesuai keperluan Bapak dan Ibu.</p></div>
   <div class="layanan-grid">

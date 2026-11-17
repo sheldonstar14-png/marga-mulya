@@ -52,6 +52,7 @@ function data_laporan(string $bulan): array
         $bansos[] = ['nama' => $b['nama'], 'kuota' => (int) $b['kuota'], 'total' => $rb['total'], 'tahap' => $rb['tahap'],
             'bulan_ini' => (int) q1('SELECT COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? AND terakhir_salur BETWEEN ? AND ?', [$b['id'], $awal, $akhir])['n']];
     }
+    $pesananUmkm = q1("SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS nilai FROM pesanan_umkm WHERE status <> 'Dibatalkan' AND dibuat_pada BETWEEN ? AND ?", $rentang);
     $aduBansos = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE kategori LIKE 'Bansos%' AND dibuat_pada BETWEEN ? AND ?", $rentang)['n'];
 
     // Lingkungan dan pembangunan
@@ -61,7 +62,7 @@ function data_laporan(string $bulan): array
     $apb = $tahunApb ? q("SELECT jenis, COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? GROUP BY jenis", [$tahunApb]) : [];
 
     return compact('bulan', 'awal', 'akhir', 'perWisata', 'kunjungan', 'orangLalu', 'batal', 'menunggu', 'kupon', 'ulasan',
-        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'sampah', 'proyek', 'tahunApb', 'apb');
+        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'pesananUmkm', 'sampah', 'proyek', 'tahunApb', 'apb');
 }
 
 // Hal yang perlu diperhatikan kepala desa, disusun otomatis dari angka
@@ -174,7 +175,8 @@ function html_laporan(array $d): string
         array_map(fn($x) => ['Pengajuan ' . $x['layanan_nama'], (int) $x['n']], $d['surat']),
         [['Pengajuan surat yang belum siap (semua bulan)', $d['suratBelum']],
          ['Nomor antrean diambil di kantor desa', (int) $d['antrean']['n'] . ' dalam ' . (int) $d['antrean']['hari'] . ' hari layanan'],
-         ['Laporan atau usulan soal penerima bansos', $d['aduBansos']]]
+         ['Laporan atau usulan soal penerima bansos', $d['aduBansos']],
+         ['Pesanan produk UMKM lewat website', (int) ($d['pesananUmkm']['n'] ?? 0) . ' pesanan, ' . rupiah((int) ($d['pesananUmkm']['nilai'] ?? 0))]]
     ), [1]);
     if ($d['bansos']) {
         $h .= $tabel(['Program bansos', 'Penerima', 'Tersalur per tahap', 'Disalurkan bulan ini'],

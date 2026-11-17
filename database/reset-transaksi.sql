@@ -6,6 +6,8 @@
 -- pengaturan) dan TIDAK mengubah akun atau kata sandi admin.
 -- =========================================================
 
+DELETE FROM pesanan_umkm_item;
+DELETE FROM pesanan_umkm;
 DELETE FROM antrean;
 DELETE FROM surat;
 DELETE FROM permintaan_data;

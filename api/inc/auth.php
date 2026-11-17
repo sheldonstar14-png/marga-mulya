@@ -121,6 +121,7 @@ const MENU_PETUGAS = [
     'darurat'   => 'Nomor darurat',
     'zona'      => 'Zona rawan bencana',
     'ulasanumkm' => 'Ulasan UMKM',
+    'pesananumkm' => 'Pesanan UMKM',
 ];
 
 // Daftar menu yang boleh dibuka seorang admin

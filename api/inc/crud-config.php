@@ -104,6 +104,17 @@ $CRUD = [
         'tanpaTambah' => true,
     ],
 
+    'pesananumkm' => [
+        'judul' => 'Pesanan UMKM', 'satu' => 'pesanan', 'tabel' => 'pesanan_umkm', 'urut' => "CASE status WHEN 'Baru' THEN 1 WHEN 'Diproses' THEN 2 ELSE 3 END, id DESC",
+        'catatan' => 'Pesanan dari keranjang di halaman UMKM. Pembeli juga mengirim ringkasan pesanan ke WhatsApp penjual, jadi penjual tetap menerima langsung. Halaman ini untuk memantau dan membantu penjual yang belum terbiasa dengan HP. Pembayaran langsung ke penjual.',
+        'kolom' => ['kode' => 'Kode', 'usaha' => 'Penjual', 'ringkasan' => 'Isi pesanan', 'nama' => 'Pembeli', 'wa' => 'WA pembeli', 'total' => 'Total', 'status' => 'Status'],
+        'format' => ['total' => 'rupiah'],
+        'field' => [
+            ['status', 'Status pesanan', 'select', ['pilihan' => ['Baru', 'Diproses', 'Selesai', 'Dibatalkan']]],
+        ],
+        'tanpaTambah' => true,
+    ],
+
     'agenda' => [
         'judul' => 'Kelola agenda', 'satu' => 'agenda', 'tabel' => 'agenda', 'urut' => 'tanggal DESC',
         'kolom' => ['tanggal' => 'Tanggal', 'judul' => 'Kegiatan', 'tempat' => 'Tempat'],
