@@ -60,12 +60,12 @@ foreach (q('SELECT pertanyaan, kata_kunci, jawaban FROM faq WHERE aktif = 1 ORDE
 
 // ---------- Kenali maksud pertanyaan ----------
 $maksud = [
-    'darurat'   => ['darurat', 'ambulans', 'polisi', 'kebakaran', 'kecelakaan', 'bahaya', 'banjir', 'longsor', 'hilang', '112'],
+    'darurat'   => ['darurat', 'ambulans', 'polisi', 'kebakaran', 'kecelakaan', 'bahaya', 'banjir', 'rob', 'longsor', 'hilang', '112'],
     'cuaca'     => ['cuaca', 'hujan', 'panas', 'cerah', 'mendung', 'suhu', 'badai'],
     'kupon'     => ['tiket hijau', 'kupon', 'diskon', 'potongan', 'voucher'],
     'emisi'     => ['karbon', 'emisi', 'skor hijau', 'ramah lingkungan'],
     'reservasi' => ['reservasi', 'pesan tiket', 'booking', 'memesan', 'daftar kunjungan', 'cara pesan', 'pesan kunjungan', 'mau pesan', 'ingin pesan', 'kuota', 'penuh', 'sisa'],
-    'wisata'    => ['wisata', 'harga', 'tiket', 'jam buka', 'buka jam', 'destinasi', 'curug', 'air terjun', 'sawah', 'terasering', 'jeruk', 'anyaman', 'liburan', 'jalan-jalan', 'kursi roda', 'lansia', 'toilet'],
+    'wisata'    => ['wisata', 'harga', 'tiket', 'jam buka', 'buka jam', 'destinasi', 'pantai', 'mangrove', 'bakau', 'sawah', 'batok', 'kelapa', 'liburan', 'jalan-jalan', 'kursi roda', 'lansia', 'toilet'],
     'surat'     => ['surat', 'syarat', 'sktm', 'domisili', 'skck', 'kartu keluarga', 'ktp', 'kk', 'administrasi', 'mengurus', 'keterangan usaha', 'pengantar'],
     'lokasi'    => ['lokasi', 'alamat', 'arah', 'rute', 'maps', 'peta', 'dimana', 'di mana', 'menuju', 'ke desa'],
     'kontak'    => ['kontak', 'whatsapp', 'wa ', 'telepon', 'nomor desa', 'email', 'jam layanan', 'kantor'],
@@ -112,7 +112,7 @@ switch ($utama) {
             foreach ($data['daily']['time'] as $i => $t) {
                 $baris[] = '- ' . tgl($t, 'hari') . ': ' . $namaCuaca((int) $data['daily']['weather_code'][$i]) . ', ' . round($data['daily']['temperature_2m_min'][$i]) . ' sampai ' . round($data['daily']['temperature_2m_max'][$i]) . '°C, peluang hujan ' . (int) $data['daily']['precipitation_probability_max'][$i] . '%';
             }
-            $jawab("Prakiraan cuaca di pusat desa (sumber Open-Meteo):\n" . implode("\n", $baris) . "\nUntuk kunjungan ke curug, hindari hari dengan peluang hujan tinggi.", [['label' => 'Lihat cuaca 7 hari dan hari terbaik', 'url' => '/']], ['Cara reservasi', 'Harga dan jam buka wisata']);
+            $jawab("Prakiraan cuaca di pusat desa (sumber Open-Meteo):\n" . implode("\n", $baris) . "\nUntuk kunjungan ke pantai dan mangrove, hindari hari dengan hujan lebat atau angin kencang.", [['label' => 'Lihat cuaca 7 hari dan hari terbaik', 'url' => '/']], ['Cara reservasi', 'Harga dan jam buka wisata']);
         }
         $jawab('Prakiraan cuaca belum bisa dimuat saat ini. Lihat panel cuaca 7 hari di Beranda, lengkap dengan rekomendasi hari terbaik berkunjung.', [['label' => 'Buka Beranda', 'url' => '/']]);
 

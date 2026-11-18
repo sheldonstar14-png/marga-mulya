@@ -9,7 +9,7 @@
 // Jenis field: text, textarea, number, date, select, check, foto, peta, password
 // =========================================================
 
-$KATEGORI_STATISTIK = ['Kependudukan', 'Mata pencaharian', 'Pendidikan penduduk', 'Sekolah', 'Kesehatan', 'Fasilitas kesehatan', 'Pertanian', 'Peternakan', 'Ekonomi', 'Jalan desa', 'Lahan', 'Pemerintahan'];
+$KATEGORI_STATISTIK = ['Kependudukan', 'Mata pencaharian', 'Pendidikan penduduk', 'Sekolah', 'Kesehatan', 'Fasilitas kesehatan', 'Pertanian', 'Perikanan', 'Peternakan', 'Ekonomi', 'Jalan desa', 'Lahan', 'Pemerintahan'];
 
 $CRUD = [
     'wisata' => [
@@ -132,6 +132,17 @@ $CRUD = [
         'tombolTambahan' => ['/admin/relawan', 'Lihat daftar relawan'],
     ],
 
+    'survei' => [
+        'judul' => 'Survei kepuasan layanan', 'satu' => 'penilaian', 'tabel' => 'survei', 'urut' => 'id DESC',
+        'catatan' => 'Penilaian warga setelah surat atau aspirasinya selesai (1 = sangat buruk, 5 = sangat baik). Rangkumannya tampil otomatis di website. Centang "Tampilkan komentar" untuk komentar yang pantas dibaca publik.',
+        'kolom' => ['jenis' => 'Jenis', 'layanan' => 'Layanan', 'nilai' => 'Nilai', 'komentar' => 'Komentar', 'tampil' => 'Tampil'],
+        'format' => ['tampil' => 'yatidak'],
+        'field' => [
+            ['tampil', 'Tampilkan komentar di website (tanpa nama)', 'check', []],
+        ],
+        'tanpaTambah' => true,
+    ],
+
     'relawan' => [
         'judul' => 'Relawan gotong royong', 'satu' => 'relawan', 'tabel' => 'relawan', 'urut' => 'agenda_id DESC, id',
         'catatan' => 'Warga dan pengunjung yang mendaftar lewat tombol "Saya ikut" di halaman Agenda. Hubungi lewat WhatsApp sehari sebelum kegiatan. Data dihapus otomatis 30 hari setelah kegiatan lewat.',
@@ -172,7 +183,7 @@ $CRUD = [
         'judul' => 'Statistik desa', 'satu' => 'angka statistik', 'tabel' => 'statistik', 'urut' => 'kategori, urutan, id',
         'saring' => 'kategori', // tampilkan tombol pilihan per kategori
         'tombolTambahan' => ['/admin/import-statistik', 'Import atau export CSV'],
-        'catatan' => 'Semua angka di halaman Data Desa dan Profil diambil dari sini. Untuk persentase, isi satuan dengan %.',
+        'catatan' => 'Semua angka di halaman Data Desa dan Profil diambil dari sini. Untuk persentase, isi satuan dengan %. Centang "Data ilustrasi" untuk angka contoh; lepas centangnya setelah diganti angka resmi desa.',
         'kolom' => ['kategori' => 'Kategori', 'label' => 'Label', 'nilai' => 'Nilai', 'satuan' => 'Satuan', 'urutan' => 'Urutan'],
         'format' => ['nilai' => 'angka'],
         'field' => [
@@ -181,8 +192,9 @@ $CRUD = [
             ['nilai', 'Nilai', 'number', ['min' => 0, 'desimal' => true]],
             ['satuan', 'Satuan', 'text', ['wajib' => true, 'maks' => 30, 'contoh' => 'jiwa, unit, %']],
             ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
+            ['ilustrasi', 'Data ilustrasi (belum data resmi)', 'check', []],
         ],
-        'baru' => ['kategori' => 'Kependudukan', 'urutan' => 10],
+        'baru' => ['kategori' => 'Kependudukan', 'urutan' => 10, 'ilustrasi' => 0],
     ],
 
     'aparat' => [
@@ -331,13 +343,13 @@ $CRUD += [
         'kolom' => ['nama' => 'Nama zona', 'jenis' => 'Jenis', 'radius_m' => 'Radius (m)'],
         'format' => ['radius_m' => 'angka'],
         'field' => [
-            ['nama', 'Nama zona', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Lereng menuju Curug Cikaso']],
-            ['jenis', 'Jenis bahaya', 'select', ['pilihan' => ['Longsor', 'Banjir', 'Angin kencang', 'Kebakaran lahan'], 'bisaTambah' => true]],
+            ['nama', 'Nama zona', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Pesisir Pantai Pasir Putih']],
+            ['jenis', 'Jenis bahaya', 'select', ['pilihan' => ['Banjir', 'Rob dan abrasi', 'Angin kencang', 'Longsor', 'Kebakaran lahan'], 'bisaTambah' => true]],
             ['radius_m', 'Radius area (meter)', 'number', ['min' => 30, 'max' => 2000]],
             ['keterangan', 'Apa yang perlu diwaspadai warga', 'text', ['maks' => 255, 'wajib' => true]],
             ['peta', 'Titik tengah zona (klik peta)', 'peta', []],
         ],
-        'baru' => ['jenis' => 'Longsor', 'radius_m' => 150],
+        'baru' => ['jenis' => 'Banjir', 'radius_m' => 150],
     ],
 
     'darurat' => [

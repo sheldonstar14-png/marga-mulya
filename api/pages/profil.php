@@ -46,7 +46,6 @@ require __DIR__ . '/../inc/header.php';
   <p><?= e(setting('profil_ringkas')) ?></p>
 </div>
 
-<div class="wrap" id="sambutan" style="padding-top:16px"><?= kartu_sambutan(false) ?></div>
 
 <div class="wrap sec grid g2" style="padding-top:24px">
   <div class="panel">
@@ -96,7 +95,7 @@ require __DIR__ . '/../inc/header.php';
 <?php if ($titikPeta): ?>
 <div class="sec tint" id="peta-desa"><div class="wrap">
   <h2 id="fasilitas">Peta desa</h2>
-  <p class="muted" style="max-width:70ch">Nyalakan lapisan yang kamu perlukan. Lingkaran merah adalah zona rawan longsor atau banjir; saat ada siaga cuaca, zona ini disorot dan sebaiknya dihindari.</p>
+  <p class="muted" style="max-width:70ch">Nyalakan lapisan yang kamu perlukan. Lingkaran merah adalah zona rawan banjir, rob, atau abrasi; saat ada siaga cuaca, zona ini disorot dan sebaiknya dihindari.</p>
   <div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div>
   <div class="chips lapisan-peta" data-peta="peta-desa-isi" role="group" aria-label="Lapisan peta">
     <?php foreach ($LAPISAN as $k => [$label, $warna]): if (empty($daftarPeta[$k])) continue; ?>

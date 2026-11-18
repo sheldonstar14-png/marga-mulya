@@ -16,8 +16,6 @@ $grup = [
             'batas_timur'    => ['Batas timur', 'text'],
             'batas_selatan'  => ['Batas selatan', 'text'],
             'batas_barat'    => ['Batas barat', 'text'],
-            'sambutan_kades' => ['Sambutan kepala desa (pisahkan paragraf dengan baris kosong; paragraf pertama tampil di beranda)', 'area'],
-            'foto_kades'     => ['Foto kepala desa (opsional)', 'foto'],
         ],
     ],
     'pengaturan' => [

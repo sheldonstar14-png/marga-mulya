@@ -97,7 +97,8 @@ function bar_list(array $rows): string
     }
     foreach ($rows as $i => $r) {
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
-        $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . '</span>'
+        $tanda = !empty($r['ilustrasi']) ? ' <span class="ilus" title="Data contoh, bukan data resmi">(ilustrasi)</span>' : '';
+        $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . $tanda . '</span>'
             . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%;background:' . $warna($i) . '"></div></div>'
             . '<b>' . angka($r['nilai']) . ($r['satuan'] === '%' ? '%' : ' ' . e($r['satuan'])) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
     }
@@ -107,7 +108,11 @@ function bar_list(array $rows): string
 // Ambil statistik satu kategori, urut sesuai kolom urutan
 function statistik(string $kategori): array
 {
-    return q('SELECT label, nilai, satuan FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori]);
+    try {
+        return q('SELECT label, nilai, satuan, ilustrasi FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori]);
+    } catch (Throwable $e) { // kolom ilustrasi belum ada (migrasi 12n belum dijalankan)
+        return q('SELECT label, nilai, satuan, 0 AS ilustrasi FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori]);
+    }
 }
 
 // Pisahkan teks per baris (dipakai untuk daftar misi)
@@ -298,6 +303,10 @@ function bersihkan_data_lama(): int
     // Data relawan dihapus 30 hari setelah kegiatannya lewat (jumlah relawan di laporan tidak hilang karena dihitung saat itu)
     $stR = db()->prepare('DELETE FROM relawan WHERE agenda_id IN (SELECT id FROM agenda WHERE tanggal < ?)');
     $stR->execute([date('Y-m-d', strtotime('-30 days'))]);
+    // Foto laporan yang tidak tampil di Papan Aspirasi ikut dihapus setelah laporan selesai lewat masa simpan
+    try {
+        $n += $jalankan("DELETE FROM aspirasi_foto WHERE aspirasi_id IN (SELECT id FROM aspirasi WHERE publik = 0 AND status IN ('Selesai', 'Ditolak') AND COALESCE(diperbarui_pada, dibuat_pada) < ?)");
+    } catch (Throwable $e) {}
     $n += $stR->rowCount();
     // Nama penerima bansos dihapus 30 hari setelah program ditandai selesai (angka per RT tetap ada di laporan)
     $st = db()->prepare('DELETE FROM bansos_penerima WHERE bantuan_id IN (SELECT id FROM bantuan WHERE selesai IS NOT NULL AND selesai < ?)');
@@ -590,6 +599,8 @@ function kontribusi_sdg(?array $d = null): array
 
     if ($d['asp_total']) $tambah(16, persen_id($d['asp_selesai'], $d['asp_total']) . '%', 'aspirasi warga selesai ditindaklanjuti');
     if ($d['apb_tahun']) $tambah(16, persen_id($d['apb_r'], $d['apb_a']) . '%', 'belanja desa ' . $d['apb_tahun'] . ' terealisasi dan dibuka ke publik');
+    $sv = survei_ringkas();
+    if ($sv['n']) $tambah(16, str_replace('.', ',', (string) $sv['rata']) . ' dari 5', 'indeks kepuasan warga terhadap layanan desa');
 
     $rel = $aman(fn() => q1('SELECT COUNT(*) AS n, COUNT(DISTINCT agenda_id) AS kegiatan FROM relawan'));
     if ($rel && (int) $rel['n']) $tambah(17, (string) (int) $rel['n'], 'relawan ikut gotong royong di ' . (int) $rel['kegiatan'] . ' kegiatan');
@@ -604,4 +615,144 @@ function kontribusi_sdg(?array $d = null): array
     }
     ksort($k);
     return $k;
+}
+
+// ---------- Tambahan 12m: foto laporan, riwayat, dan dukungan aspirasi ----------
+const FOTO_ASPIRASI_MAKS = 3;
+
+// Periksa foto unggahan warga. Kembalikan [daftar foto siap simpan, daftar error].
+// Foto diubah ulang menjadi JPEG maks. 1280 px supaya ringan dan data lokasi (GPS) di dalam foto terhapus.
+function siapkan_foto_aspirasi(array $berkas): array
+{
+    $hasil = []; $error = [];
+    $nama = (array) ($berkas['name'] ?? []);
+    foreach ($nama as $i => $n) {
+        $kode = (int) ($berkas['error'][$i] ?? UPLOAD_ERR_NO_FILE);
+        if ($kode === UPLOAD_ERR_NO_FILE) continue;
+        if (count($hasil) >= FOTO_ASPIRASI_MAKS) { $error[] = 'Maksimal ' . FOTO_ASPIRASI_MAKS . ' foto.'; break; }
+        if ($kode !== UPLOAD_ERR_OK) { $error[] = 'Foto "' . $n . '" gagal diunggah. Coba foto yang lebih kecil.'; continue; }
+        $isi = (string) file_get_contents($berkas['tmp_name'][$i]);
+        $info = @getimagesizefromstring($isi);
+        if (!$info || !in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) { $error[] = 'Berkas "' . $n . '" bukan foto JPG, PNG, atau WEBP.'; continue; }
+        if (strlen($isi) > 8 * 1024 * 1024) { $error[] = 'Foto "' . $n . '" lebih dari 8 MB.'; continue; }
+        if (function_exists('imagecreatefromstring')) {
+            $gb = @imagecreatefromstring($isi);
+            if (!$gb) { $error[] = 'Foto "' . $n . '" tidak bisa dibaca.'; continue; }
+            [$w, $h] = [imagesx($gb), imagesy($gb)];
+            $skala = min(1, 1280 / max($w, $h));
+            $w2 = max(1, (int) round($w * $skala)); $h2 = max(1, (int) round($h * $skala));
+            $baru = imagecreatetruecolor($w2, $h2);
+            imagefill($baru, 0, 0, imagecolorallocate($baru, 255, 255, 255));
+            imagecopyresampled($baru, $gb, 0, 0, 0, 0, $w2, $h2, $w, $h);
+            ob_start(); imagejpeg($baru, null, 78); $isi = (string) ob_get_clean();
+            $hasil[] = ['mime' => 'image/jpeg', 'lebar' => $w2, 'tinggi' => $h2, 'data' => $isi];
+        } else {
+            // Tanpa GD: hanya terima foto yang sudah diperkecil di browser (kanvas browser juga membuang data GPS)
+            if (strlen($isi) > 1024 * 1024) { $error[] = 'Foto "' . $n . '" terlalu besar.'; continue; }
+            $hasil[] = ['mime' => $info['mime'], 'lebar' => (int) $info[0], 'tinggi' => (int) $info[1], 'data' => $isi];
+        }
+    }
+    return [$hasil, $error];
+}
+
+function simpan_foto_aspirasi(int $aspirasiId, array $foto): void
+{
+    $st = db()->prepare('INSERT INTO aspirasi_foto (aspirasi_id, mime, lebar, tinggi, data) VALUES (?, ?, ?, ?, ?)');
+    foreach ($foto as $f) {
+        $st->bindValue(1, $aspirasiId, PDO::PARAM_INT);
+        $st->bindValue(2, $f['mime']);
+        $st->bindValue(3, $f['lebar'], PDO::PARAM_INT);
+        $st->bindValue(4, $f['tinggi'], PDO::PARAM_INT);
+        $st->bindValue(5, $f['data'], PDO::PARAM_LOB);
+        $st->execute();
+    }
+}
+
+function catat_riwayat_aspirasi(int $aspirasiId, string $status, ?string $catatan = null): void
+{
+    try {
+        q('INSERT INTO aspirasi_riwayat (aspirasi_id, status, catatan) VALUES (?, ?, ?)', [$aspirasiId, $status, $catatan]);
+    } catch (Throwable $e) { /* tabel belum dibuat: migrasi 12m belum dijalankan */ }
+}
+
+// Urutan tahap untuk ditampilkan: dari tabel riwayat, atau disusun dari status sekarang untuk laporan lama
+function riwayat_aspirasi(array $a): array
+{
+    $baris = [];
+    try { $baris = q('SELECT status, catatan, dibuat_pada FROM aspirasi_riwayat WHERE aspirasi_id = ? ORDER BY dibuat_pada, id', [(int) $a['id']]); } catch (Throwable $e) {}
+    if (!$baris) {
+        $baris[] = ['status' => 'Diterima', 'catatan' => null, 'dibuat_pada' => $a['dibuat_pada']];
+        if ($a['status'] !== 'Diterima') $baris[] = ['status' => $a['status'], 'catatan' => $a['tanggapan'], 'dibuat_pada' => $a['diperbarui_pada'] ?: $a['dibuat_pada']];
+    }
+    return $baris;
+}
+
+// Penanda perangkat untuk tombol dukungan (alamat IP di-hash, tidak disimpan mentah)
+function sidik_pengunjung(): string
+{
+    $ip = trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ''))[0]);
+    $rahasia = getenv('APP_SECRET') ?: (defined('APP_SECRET') ? APP_SECRET : 'marga-mulya');
+    return hash_hmac('sha256', $ip . '|' . ($_SERVER['HTTP_USER_AGENT'] ?? ''), $rahasia);
+}
+
+// ---------- Tambahan 12n: survei kepuasan layanan ----------
+const SURVEI_LABEL = [1 => 'Sangat buruk', 2 => 'Buruk', 3 => 'Cukup', 4 => 'Baik', 5 => 'Sangat baik'];
+
+function survei_ada(string $jenis, string $kode): ?array
+{
+    try { return q1('SELECT nilai, komentar FROM survei WHERE jenis = ? AND kode = ?', [$jenis, $kode]); } catch (Throwable $e) { return null; }
+}
+
+// Ringkasan untuk ditampilkan ke publik: jumlah penilaian, rata-rata (1-5), dan persen yang puas (nilai 4-5)
+function survei_ringkas(?string $jenis = null): array
+{
+    try {
+        $r = $jenis ? q1('SELECT COUNT(*) AS n, AVG(nilai) AS rata, SUM(CASE WHEN nilai >= 4 THEN 1 ELSE 0 END) AS puas FROM survei WHERE jenis = ?', [$jenis])
+                    : q1('SELECT COUNT(*) AS n, AVG(nilai) AS rata, SUM(CASE WHEN nilai >= 4 THEN 1 ELSE 0 END) AS puas FROM survei');
+        $n = (int) $r['n'];
+        return ['n' => $n, 'rata' => $n ? round((float) $r['rata'], 1) : 0, 'puas' => $n ? (int) round((int) $r['puas'] / $n * 100) : 0];
+    } catch (Throwable $e) {
+        return ['n' => 0, 'rata' => 0, 'puas' => 0];
+    }
+}
+
+// Simpan penilaian. Hanya untuk surat/aspirasi yang statusnya Selesai, dan satu kode sekali.
+// Mengembalikan pesan error, atau null kalau berhasil.
+function simpan_survei(string $jenis, string $kode, int $nilai, string $komentar): ?string
+{
+    $komentar = trim(mb_substr($komentar, 0, 500));
+    if (!isset(SURVEI_LABEL[$nilai])) return 'Pilih nilai 1 sampai 5.';
+    if ($komentar !== '' && ada_kata_terlarang($komentar)) return 'Komentar mengandung kata yang tidak pantas.';
+    $data = $jenis === 'surat'
+        ? q1("SELECT layanan_nama AS layanan FROM surat WHERE kode = ? AND status = 'Selesai'", [$kode])
+        : q1("SELECT kategori AS layanan FROM aspirasi WHERE kode = ? AND status = 'Selesai'", [$kode]);
+    if (!$data) return 'Penilaian bisa diberikan setelah statusnya Selesai.';
+    if (survei_ada($jenis, $kode)) return 'Kode ini sudah memberi penilaian. Terima kasih!';
+    q('INSERT INTO survei (jenis, kode, layanan, nilai, komentar) VALUES (?, ?, ?, ?, ?)', [$jenis, $kode, $data['layanan'], $nilai, $komentar]);
+    return null;
+}
+
+// Form penilaian (dipakai di hasil lacak surat dan aspirasi)
+function survei_form(string $jenis, string $kode, string $aksi, ?string $error = null): string
+{
+    $sudah = survei_ada($jenis, $kode);
+    if ($sudah) {
+        return '<div class="survei survei-selesai" role="status"><b>Terima kasih atas penilaianmu.</b> Kamu memberi nilai ' . (int) $sudah['nilai'] . ' dari 5 (' . e(SURVEI_LABEL[(int) $sudah['nilai']]) . '). Penilaian warga membantu desa memperbaiki pelayanan.</div>';
+    }
+    $id = 'sv-' . preg_replace('/\W/', '', $kode);
+    $html = '<form class="survei" method="post" action="' . e($aksi) . '">'
+        . '<input type="hidden" name="aksi" value="survei"><input type="hidden" name="kode" value="' . e($kode) . '">'
+        . '<fieldset><legend>Bagaimana pelayanan desa untuk urusan ini?</legend>';
+    if ($error) $html .= '<div class="alert alert-err" role="alert">' . e($error) . '</div>';
+    $html .= '<div class="survei-nilai">';
+    foreach (SURVEI_LABEL as $n => $label) {
+        $html .= '<label><input type="radio" name="nilai" value="' . $n . '" required><span><b>' . $n . '</b>' . e($label) . '</span></label>';
+    }
+    $html .= '</div></fieldset>'
+        . '<label for="' . $id . '" class="small" style="font-weight:700">Saran untuk petugas (opsional)</label>'
+        . '<textarea id="' . $id . '" name="komentar" rows="2" maxlength="500" placeholder="Apa yang sudah baik, atau apa yang perlu diperbaiki?"></textarea>'
+        . '<button class="btn btn-dark btn-sm" type="submit">Kirim penilaian</button>'
+        . '<p class="small muted" style="margin:6px 0 0">Penilaian tanpa nama. Rangkumannya ditampilkan terbuka sebagai indeks kepuasan layanan desa.</p>'
+        . '</form>';
+    return $html;
 }

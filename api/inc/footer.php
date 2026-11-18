@@ -41,7 +41,7 @@
   <div class="asisten-saran" id="asistenSaran"></div>
   <form class="asisten-form" id="asistenForm">
     <label class="sr-only" for="asistenInput">Tulis pertanyaan</label>
-    <input id="asistenInput" maxlength="300" autocomplete="off" placeholder="Contoh: berapa harga tiket curug?">
+    <input id="asistenInput" maxlength="300" autocomplete="off" placeholder="Contoh: berapa harga tiket pantai?">
     <button class="btn btn-main btn-sm" type="submit">Kirim</button>
   </form>
   <p class="asisten-catatan">Asisten ini bukan manusia dan tidak menyimpan percakapan. Jangan tulis NIK atau data pribadi.</p>

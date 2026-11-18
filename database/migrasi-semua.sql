@@ -493,6 +493,59 @@ CREATE TABLE IF NOT EXISTS relawan (
 );
 UPDATE admin SET akses = CONCAT(akses, ',relawan') WHERE akses LIKE '%agenda%' AND akses NOT LIKE '%relawan%';
 
+-- ---------- Tambahan 12m: papan aspirasi terbuka + foto laporan ----------
+-- izin_publik = pengirim mengizinkan laporannya tampil di Papan Aspirasi (tanpa nama dan kontak)
+-- publik      = petugas sudah memeriksa dan menyetujui tampil
+ALTER TABLE aspirasi ADD COLUMN IF NOT EXISTS izin_publik TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE aspirasi ADD COLUMN IF NOT EXISTS dukungan INT NOT NULL DEFAULT 0;
+UPDATE aspirasi SET izin_publik = 1 WHERE publik = 1 AND izin_publik = 0;
+
+-- Jejak perubahan status, supaya warga melihat kapan laporan diterima, diproses, dan selesai
+CREATE TABLE IF NOT EXISTS aspirasi_riwayat (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  aspirasi_id INT NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  catatan TEXT NULL,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Foto laporan disimpan di database (sudah diperkecil dan dibersihkan dari data lokasi GPS)
+CREATE TABLE IF NOT EXISTS aspirasi_foto (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  aspirasi_id INT NOT NULL,
+  mime VARCHAR(20) NOT NULL DEFAULT 'image/jpeg',
+  lebar INT NOT NULL DEFAULT 0,
+  tinggi INT NOT NULL DEFAULT 0,
+  data MEDIUMBLOB NOT NULL,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Satu perangkat hanya bisa menekan "Saya juga mengalami" sekali per laporan
+CREATE TABLE IF NOT EXISTS aspirasi_dukung (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  aspirasi_id INT NOT NULL,
+  sidik VARCHAR(64) NOT NULL,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT dukung_unik UNIQUE (aspirasi_id, sidik)
+);
+
+-- ---------- Tambahan 12n: tanda data ilustrasi + survei kepuasan layanan ----------
+ALTER TABLE statistik ADD COLUMN IF NOT EXISTS ilustrasi TINYINT NOT NULL DEFAULT 0;
+
+-- Penilaian warga setelah surat atau aspirasinya selesai (1 sampai 5). Satu kode hanya bisa menilai sekali.
+CREATE TABLE IF NOT EXISTS survei (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  jenis VARCHAR(20) NOT NULL,
+  kode VARCHAR(20) NOT NULL,
+  layanan VARCHAR(150) NOT NULL DEFAULT '',
+  nilai TINYINT NOT NULL,
+  komentar VARCHAR(500) NOT NULL DEFAULT '',
+  tampil TINYINT NOT NULL DEFAULT 0,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT survei_unik UNIQUE (jenis, kode)
+);
+UPDATE admin SET akses = CONCAT(akses, ',survei') WHERE (akses LIKE '%surat%' OR akses LIKE '%aspirasi%') AND akses NOT LIKE '%survei%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;
@@ -552,3 +605,11 @@ INSERT IGNORE INTO relawan (id, agenda_id, agenda_judul, nama, wa, asal) VALUES
 (9, 4, 'Merti Desa 2026', 'Sanggar Seni Sauyunan', '081200000309', 'RW 03'),
 (10, 4, 'Merti Desa 2026', 'Imas Masitoh', '081200000310', 'RT 09'),
 (11, 4, 'Merti Desa 2026', 'Fajar Nugraha', '081200000311', 'Pemuda RW 01');
+
+-- Contoh isi 12m: aspirasi contoh tampil di Papan Aspirasi
+-- hanya aspirasi contoh; aspirasi asli tetap menunggu izin pengirimnya
+UPDATE aspirasi SET izin_publik = 1 WHERE kode IN ('ADU-7KQ2PA','ADU-M3XT8B','ADU-R9HW4C','ADU-P4LN7D','ADU-Q8VB2E','ADU-T6HC3G','ADU-W5ZR8H','ADU-X9DF4J');
+UPDATE aspirasi SET publik = 1 WHERE kode IN ('ADU-7KQ2PA','ADU-M3XT8B','ADU-R9HW4C','ADU-P4LN7D','ADU-Q8VB2E','ADU-T6HC3G','ADU-W5ZR8H','ADU-X9DF4J') AND status <> 'Diterima';
+UPDATE aspirasi SET dukungan = 7 WHERE kode = 'ADU-P4LN7D' AND dukungan = 0;
+UPDATE aspirasi SET dukungan = 12 WHERE kode = 'ADU-Q8VB2E' AND dukungan = 0;
+UPDATE aspirasi SET dukungan = 4 WHERE kode = 'ADU-T6HC3G' AND dukungan = 0;

@@ -5,7 +5,7 @@
 // - Halaman CMS (/admin) dan form tidak pernah disimpan.
 // Naikkan angka VERSI kalau CSS atau JS berubah besar.
 // =========================================================
-const VERSI = 'mm-v12-4';
+const VERSI = 'mm-v12-6';
 const WAJIB = ['/', '/kontak', '/assets/css/style.css', '/assets/js/akses.js', '/assets/img/favicon.png', '/assets/img/ikon-192.png'];
 
 self.addEventListener('install', e => {

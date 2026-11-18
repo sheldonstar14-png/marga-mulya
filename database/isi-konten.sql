@@ -1,4 +1,6 @@
 -- =========================================================
+-- !! USANG sejak Fase 12n: isinya masih desa perbukitan fiktif. JANGAN dijalankan lagi.
+-- !! Pakai data-asli-margamulya.sql (data asli Desa Margamulya, Kecamatan Mauk, Tangerang).
 -- ISI KONTEN CONTOH (Fase 12b)
 -- Berita lengkap, agenda, deskripsi dan ulasan UMKM, ulasan wisata, galeri, FAQ.
 -- AMAN dijalankan ulang: data yang sudah ada tidak digandakan.

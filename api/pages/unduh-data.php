@@ -6,9 +6,15 @@
 // Format CSV dengan BOM UTF-8 supaya huruf terbaca benar saat dibuka di Excel.
 // =========================================================
 $kategori = trim((string) ($_GET['kategori'] ?? ''));
-$baris = $kategori !== ''
-    ? q('SELECT kategori, label, nilai, satuan FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori])
-    : q('SELECT kategori, label, nilai, satuan FROM statistik ORDER BY kategori, urutan, id');
+try {
+    $baris = $kategori !== ''
+        ? q('SELECT kategori, label, nilai, satuan, ilustrasi FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori])
+        : q('SELECT kategori, label, nilai, satuan, ilustrasi FROM statistik ORDER BY kategori, urutan, id');
+} catch (Throwable $e) { // kolom ilustrasi belum ada
+    $baris = $kategori !== ''
+        ? q('SELECT kategori, label, nilai, satuan, 0 AS ilustrasi FROM statistik WHERE kategori = ? ORDER BY urutan, id', [$kategori])
+        : q('SELECT kategori, label, nilai, satuan, 0 AS ilustrasi FROM statistik ORDER BY kategori, urutan, id');
+}
 if (!$baris) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
@@ -23,9 +29,9 @@ $out = fopen('php://output', 'w');
 fwrite($out, "\xEF\xBB\xBF");
 // Cegah rumus Excel berbahaya kalau ada teks diawali = + - @
 $aman = fn($v) => is_string($v) && preg_match('/^[=+\-@]/', $v) ? "'" . $v : $v;
-fputcsv($out, ['Kategori', 'Uraian', 'Nilai', 'Satuan'], ',', '"', '');
+fputcsv($out, ['Kategori', 'Uraian', 'Nilai', 'Satuan', 'Keterangan'], ',', '"', '');
 foreach ($baris as $r) {
-    fputcsv($out, [$aman($r['kategori']), $aman($r['label']), $r['nilai'] + 0, $aman($r['satuan'])], ',', '"', '');
+    fputcsv($out, [$aman($r['kategori']), $aman($r['label']), $r['nilai'] + 0, $aman($r['satuan']), !empty($r['ilustrasi']) ? 'ilustrasi' : 'data asli'], ',', '"', '');
 }
 fputcsv($out, [], ',', '"', '');
 fputcsv($out, ['Catatan', $aman(setting('catatan_data'))], ',', '"', '');

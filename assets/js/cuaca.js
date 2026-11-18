@@ -72,14 +72,14 @@
   // h = satu hari dari ambilCuaca(); jenis dan nama = destinasi (kosong untuk panel desa)
   window.saranCuaca = function (h, jenis, nama) {
     const t = tingkatHujan(h);
-    const air = /curug|air terjun/i.test(nama || '');
+    const air = /pantai|mangrove|laut|pesisir/i.test(nama || '');
     const dalamRuang = tempatHujan().some(w => w.nama === nama) || jenis === 'Budaya';
     if (dalamRuang) return t >= 2 ? 'Hujan diperkirakan turun, tapi kegiatan di sini berlangsung di dalam ruangan. Tetap bisa berkunjung.' : 'Cuaca mendukung. Kegiatan berlangsung di dalam ruangan.';
-    if (t === 0) return air ? 'Cuaca bersahabat, jalur curug aman dilalui.' : 'Cocok untuk jalan kaki dan berfoto di luar ruangan.';
-    if (t === 1) return 'Mungkin gerimis, biasanya siang atau sore. Datang pagi dan bawa payung' + (air ? ', pakai alas kaki anti licin.' : '.');
+    if (t === 0) return air ? 'Cuaca bersahabat untuk ke pesisir. Tetap cek jadwal air pasang.' : 'Cocok untuk jalan kaki dan berfoto di luar ruangan.';
+    if (t === 1) return 'Mungkin gerimis, biasanya siang atau sore. Datang pagi dan bawa payung' + (air ? ', dan hindari bermain air kalau angin mulai kencang.' : '.');
     const pilihan = 'Pilihan yang tetap nyaman saat hujan: ' + tautanHujan(nama) + '.';
-    if (t === 3) return (air ? 'Hujan lebat diperkirakan turun. Jalur curug biasanya ditutup demi keselamatan. ' : 'Hujan lebat atau petir diperkirakan turun. Hindari sawah terbuka, curug, dan lereng. ') + pilihan;
-    return 'Hujan diperkirakan turun, biasanya mulai siang. ' + (air ? 'Jalur curug bisa ditutup kalau hujan deras, jadi cek kabar di WhatsApp desa sebelum berangkat. ' : 'Kalau tetap ke luar ruangan, datang pagi. ') + pilihan;
+    if (t === 3) return (air ? 'Hujan lebat diperkirakan turun. Ombak dan air pasang bisa tinggi, kunjungan ke pantai dan mangrove sebaiknya ditunda. ' : 'Hujan lebat atau petir diperkirakan turun. Hindari sawah terbuka dan pesisir. ') + pilihan;
+    return 'Hujan diperkirakan turun, biasanya mulai siang. ' + (air ? 'Pesisir bisa ditutup saat angin kencang, jadi cek kabar di WhatsApp desa sebelum berangkat. ' : 'Kalau tetap ke luar ruangan, datang pagi. ') + pilihan;
   };
 
   const namaHari = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -155,7 +155,7 @@
       el.className = 'siaga ' + (awas ? 'awas' : 'waspada');
       el.setAttribute('role', 'alert');
       el.innerHTML = '<b>Siaga cuaca:</b> ' + daftar.map(d => tglPanjang(d.tgl) + ' berpotensi ' + d.teks).join('; ') +
-        '. Hindari curug dan lereng saat hujan deras. <a href="/profil#peta-desa">Lihat zona rawan</a> atau <a href="/kontak#darurat">nomor darurat</a>.';
+        '. Hindari pantai, tambak, dan saluran sawah saat hujan deras atau air pasang. <a href="/profil#peta-desa">Lihat zona rawan</a> atau <a href="/kontak#darurat">nomor darurat</a>.';
     }).catch(() => { el.hidden = true; });
   });
 })();

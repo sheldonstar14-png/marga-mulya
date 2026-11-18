@@ -12,7 +12,7 @@ $grupData = [
     'Penduduk'   => ['Kependudukan', 'Mata pencaharian'],
     'Pendidikan' => ['Pendidikan penduduk', 'Sekolah'],
     'Kesehatan'  => ['Kesehatan', 'Fasilitas kesehatan'],
-    'Pertanian'  => ['Pertanian', 'Peternakan'],
+    'Pertanian'  => ['Pertanian', 'Perikanan', 'Peternakan'],
     'Ekonomi'    => ['Ekonomi', 'Jalan desa'],
 ];
 // Kategori baru yang ditambahkan admin (di luar daftar di atas) masuk ke tombol "Lainnya"
@@ -106,7 +106,14 @@ $isiSurat = ['layanan_id' => (string) ($_GET['l'] ?? ''), 'nama' => '', 'wa' => 
 $kodeQr = (string) ($_GET['antre'] ?? $_POST['antre'] ?? '');
 $qrSah = $kodeQr !== '' && hash_equals(kode_antrean(), $kodeQr);
 $errorAntre = '';
-if ($grup === 'Layanan surat' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+$errorSurvei = null;
+if ($grup === 'Layanan surat' && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'survei') {
+    $kodeSv = strtoupper(trim((string) ($_POST['kode'] ?? '')));
+    $errorSurvei = simpan_survei('surat', $kodeSv, (int) ($_POST['nilai'] ?? 0), (string) ($_POST['komentar'] ?? ''));
+    if (!$errorSurvei) redirect('/data-desa?grup=Layanan+surat&srt=' . urlencode($kodeSv) . '#surat');
+    $_GET['srt'] = $kodeSv;
+}
+if ($grup === 'Layanan surat' && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'survei') {
     if (($_POST['aksi'] ?? '') === 'surat') {
         foreach ($isiSurat as $k => $_) $isiSurat[$k] = trim((string) ($_POST[$k] ?? ''));
         $wa = preg_replace('/\D/', '', $isiSurat['wa']);
@@ -230,7 +237,20 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   </div>
   <p class="hint">Cara menghitung: emisi perjalanan = faktor emisi kendaraan (UK DESNZ) x jarak pulang pergi. Data dari reservasi yang dikonfirmasi dan selesai. Nilai belanja UMKM = jumlah kupon ditukar x nilai kupon.</p>
 
-<?php elseif ($grup === 'Layanan surat'): ?>
+<?php elseif ($grup === 'Layanan surat'):
+  $indeks = survei_ringkas('surat');
+  $komentarSv = [];
+  try { $komentarSv = q("SELECT layanan, nilai, komentar FROM survei WHERE jenis = 'surat' AND tampil = 1 AND komentar <> '' ORDER BY id DESC LIMIT 3"); } catch (Throwable $e) {} ?>
+  <?php if ($indeks['n']): ?>
+  <section class="indeks-layanan" aria-label="Indeks kepuasan layanan surat">
+    <div class="indeks-angka"><b><?= str_replace('.', ',', (string) $indeks['rata']) ?></b><span>dari 5</span></div>
+    <div>
+      <h2 class="sub-judul" style="margin:0">Indeks kepuasan layanan surat</h2>
+      <p class="muted" style="margin:4px 0 0"><?= $indeks['puas'] ?>% warga menilai pelayanan baik atau sangat baik, dari <?= $indeks['n'] ?> penilaian setelah surat selesai.</p>
+      <?php foreach ($komentarSv as $kv): ?><p class="indeks-kutip">"<?= e($kv['komentar']) ?>" <span class="muted">(<?= e($kv['layanan']) ?>, nilai <?= (int) $kv['nilai'] ?>)</span></p><?php endforeach; ?>
+    </div>
+  </section>
+  <?php endif; ?>
   <h2 class="sub-judul">Mau mengurus apa?</h2>
   <p class="muted" style="max-width:70ch">Pilih keperluanmu untuk melihat dokumen yang harus dibawa. Centang yang sudah siap, supaya cukup sekali datang ke kantor desa. Tidak perlu mengunggah KTP atau KK di sini.</p>
   <?php if (!$layanan): ?><p class="muted">Daftar layanan belum diisi.</p><?php else: ?>
@@ -302,6 +322,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
             <p class="small muted" style="margin:2px 0 0">Untuk <?= e($hasilSrt['keperluan']) ?>, diajukan <?= tgl(substr((string) $hasilSrt['dibuat_pada'], 0, 10)) ?></p>
             <ol class="steps"><?php foreach ($tahapSrt as $i2 => $t): ?><li class="<?= $i2 <= $posSrt ? 'done' : '' ?> <?= $t === 'Ditolak' ? 'bad' : '' ?>"><?= $t ?></li><?php endforeach; ?></ol>
             <?php if ($hasilSrt['catatan']): ?><div class="tanggapan"><b>Catatan petugas</b><p><?= nl2br(e($hasilSrt['catatan'])) ?></p></div><?php endif; ?>
+            <?php if ($hasilSrt['status'] === 'Selesai'): ?><?= survei_form('surat', $hasilSrt['kode'], '/data-desa?grup=Layanan+surat#surat', $errorSurvei) ?><?php endif; ?>
             <?php if ($hasilSrt['status'] === 'Siap diambil'): ?><p class="small" style="margin:10px 0 0"><b>Surat siap.</b> Datang di jam layanan (<?= e(setting('jam_layanan')) ?>) dengan membawa dokumen asli, lalu ambil nomor antrean di meja layanan.</p><?php endif; ?>
           </div>
         <?php else: ?>

@@ -70,7 +70,7 @@ ob_start(); ?>
       <div class="cari-box">
         <label for="cariCepat">Cari apa hari ini?</label>
         <form class="cari-form" id="cariForm" action="/data-desa" method="get" role="search">
-          <input id="cariCepat" name="q" type="search" autocomplete="off" maxlength="200" placeholder="Contoh: syarat SKTM, harga tiket curug">
+          <input id="cariCepat" name="q" type="search" autocomplete="off" maxlength="200" placeholder="Contoh: syarat SKTM, harga tiket pantai">
           <button type="submit" aria-label="Cari"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
         </form>
         <div class="cari-chips" role="group" aria-label="Pencarian cepat">
@@ -115,9 +115,7 @@ ob_start(); ?>
 
 <div class="wrap"><div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div></div>
 
-<?php if ($s = kartu_sambutan(true)): ?>
-<section class="wrap" aria-label="Sambutan kepala desa" style="padding-top:8px"><?= $s ?></section>
-<?php endif; ?>
+
 
 <section class="sec" id="layanan" aria-labelledby="judul-layanan"><div class="wrap">
   <div class="sec-head"><h2 id="judul-layanan">Semua urusan, satu tempat</h2><p>Pilih sesuai keperluan Bapak dan Ibu.</p></div>
@@ -143,7 +141,7 @@ ob_start(); ?>
     <article class="layanan-item merah">
       <span class="ikon-bulat" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
       <h3>Darurat</h3>
-      <p>Nomor ambulans, posko desa, dan peta zona rawan longsor atau banjir.</p>
+      <p>Nomor ambulans, posko desa, dan peta zona rawan banjir atau rob.</p>
       <a class="btn btn-dark btn-sm" href="/kontak#darurat">Lihat nomor</a>
     </article>
   </div>

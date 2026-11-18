@@ -862,3 +862,50 @@ footer{padding-bottom:96px}
   .pintas-desk .pintas-judul{margin:0;flex:none;font-size:1.1rem;max-width:7ch;line-height:1.2}
   .pintas-desk .pintas-grid{flex:1;grid-template-columns:repeat(8,minmax(0,1fr))}
 }
+/* ===== 12m: foto laporan + Papan Aspirasi ===== */
+.foto-lapor input[type=file]{padding:12px;border:1.5px dashed var(--line);border-radius:var(--r-m);background:var(--paper);width:100%;min-height:48px}
+.foto-pratinjau{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.foto-pratinjau figure{margin:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.foto-pratinjau img{width:96px;height:72px;object-fit:cover;border-radius:10px}
+.foto-pratinjau button{border:0;background:none;color:#B3261E;font:700 .85rem var(--body);cursor:pointer;min-height:32px}
+.foto-adu{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.foto-adu img{width:96px;height:72px;object-fit:cover;border-radius:10px;display:block}
+.jejak{list-style:none;margin:10px 0 0;padding:0 0 0 14px;border-left:3px solid var(--soft);font-size:.9rem}
+.jejak li{margin:0 0 6px}
+.papan{margin-top:44px}
+.papan-ringkas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 12px}
+.papan-ringkas div{background:var(--white);border-radius:var(--r-m);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column}
+.papan-ringkas b{font:800 1.5rem/1.1 var(--head)}
+.papan-ringkas span{color:var(--muted);font-size:.88rem}
+.papan-saring{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+.papan-saring label{font-weight:700;margin:0}
+.papan-saring select{max-width:340px}
+.papan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+.papan-kartu{background:var(--white);border-radius:var(--r-l);box-shadow:var(--shadow);padding:22px 24px;display:flex;flex-direction:column}
+.papan-isi{margin:10px 0 0}
+.steps-kecil{margin:14px 0 0;font-size:.82rem}
+.papan-kartu .tanggapan{margin-top:12px}
+.dukung{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:14px}
+.halaman{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px}
+@media (max-width:640px){.papan-ringkas{grid-template-columns:repeat(2,minmax(0,1fr))}.papan-grid{grid-template-columns:1fr}.papan-kartu{padding:20px}}
+/* ===== 12n: tanda ilustrasi + survei kepuasan ===== */
+.ilus{font-size:.74rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.papan-ringkas{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.survei{margin-top:16px;padding:16px;border-radius:var(--r-m);background:var(--paper);display:flex;flex-direction:column;gap:8px}
+.survei fieldset{border:0;margin:0;padding:0}
+.survei legend{font-weight:700;margin-bottom:8px;padding:0}
+.survei-nilai{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.survei-nilai label{position:relative;cursor:pointer}
+.survei-nilai input{position:absolute;opacity:0;inset:0}
+.survei-nilai span{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:64px;justify-content:center;padding:6px 2px;border:1.5px solid var(--line);border-radius:14px;background:#fff;font-size:.72rem;text-align:center;line-height:1.2}
+.survei-nilai span b{font:800 1.2rem/1 var(--head)}
+.survei-nilai input:checked + span{background:var(--leaf-d);border-color:var(--leaf-d);color:#fff}
+.survei-nilai input:focus-visible + span{outline:3px solid var(--air);outline-offset:2px}
+.survei textarea{width:100%}
+.survei-selesai{display:block}
+.indeks-layanan{display:flex;gap:22px;align-items:center;background:var(--white);border-radius:var(--r-l);box-shadow:var(--shadow);padding:22px 24px;margin:8px 0 28px}
+.indeks-angka{flex:none;width:110px;height:110px;border-radius:50%;background:var(--leaf-d);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.indeks-angka b{font:800 2.2rem/1 var(--head);color:var(--shoot)}
+.indeks-angka span{font-size:.85rem}
+.indeks-kutip{margin:8px 0 0;font-size:.92rem}
+@media (max-width:640px){.indeks-layanan{flex-direction:column;align-items:flex-start;padding:20px}.indeks-angka{width:88px;height:88px}.indeks-angka b{font-size:1.8rem}}
