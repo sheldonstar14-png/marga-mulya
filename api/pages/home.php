@@ -41,6 +41,23 @@ $menu  = '';
 $pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 ?>
+<?php
+// Menu cepat: satu daftar, tampil di bawah pencarian (HP) atau sebaris penuh di bawah hero (laptop)
+ob_start(); ?>
+      <nav class="pintas-box" aria-label="Menu cepat">
+        <h2 class="pintas-judul">Mau ke mana?</h2>
+        <ul class="pintas-grid">
+          <li><a class="pintas pintas-hutan" href="/data-desa?grup=Layanan+surat#surat"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="pintas-label">Ajukan surat</span></a></li>
+          <li><a class="pintas pintas-air" href="/data-desa?grup=Layanan+surat#antrean"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3"/></svg></span><span class="pintas-label">Ambil antrean</span></a></li>
+          <li><a class="pintas pintas-jeruk" href="/reservasi"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15l2 2 4-4"/></svg></span><span class="pintas-label">Pesan kunjungan</span></a></li>
+          <li><a class="pintas pintas-lime" href="/wisata"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l6-9 4 5 3-4 5 8z"/><circle cx="16" cy="6" r="2"/></svg></span><span class="pintas-label">Wisata</span></a></li>
+          <li><a class="pintas pintas-jeruk" href="/umkm"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16l-1.5 13h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span><span class="pintas-label">Belanja UMKM</span></a></li>
+          <li><a class="pintas pintas-hutan" href="/data-desa?grup=Pantau+bansos"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="pintas-label">Pantau bansos</span></a></li>
+          <li><a class="pintas pintas-lime" href="/kontak#aspirasi"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="pintas-label">Kirim aspirasi</span></a></li>
+          <li><a class="pintas pintas-merah" href="/kontak#darurat"><span class="pintas-ikon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span><span class="pintas-label">Nomor darurat</span></a></li>
+        </ul>
+      </nav>
+<?php $pintasHtml = ob_get_clean(); ?>
 <section class="hero-fusi" aria-labelledby="judul-hero">
   <span class="hiasan hiasan-daun h1" aria-hidden="true"></span><span class="hiasan hiasan-daun h2" aria-hidden="true"></span><span class="hiasan hiasan-daun h3" aria-hidden="true"></span>
   <span class="hiasan hiasan-titik t1" aria-hidden="true"></span><span class="hiasan hiasan-titik t2" aria-hidden="true"></span><span class="hiasan hiasan-titik t3" aria-hidden="true"></span><span class="hiasan hiasan-titik t4" aria-hidden="true"></span>
@@ -50,10 +67,6 @@ require __DIR__ . '/../inc/header.php';
       <span class="hero-sapa"><?= e(setting('nama_desa')) ?>, <?= e(setting('kecamatan')) ?></span>
       <h1 id="judul-hero"><?= e(setting('hero_judul')) ?></h1>
       <p class="hero-desc"><?= e(setting('hero_teks')) ?></p>
-      <div class="hero-cta">
-        <a class="btn btn-dark" href="#layanan">Layanan warga</a>
-        <a class="btn btn-ghost" href="/wisata">Jelajahi wisata</a>
-      </div>
       <div class="cari-box">
         <label for="cariCepat">Cari apa hari ini?</label>
         <form class="cari-form" id="cariForm" action="/data-desa" method="get" role="search">
@@ -68,6 +81,7 @@ require __DIR__ . '/../inc/header.php';
         </div>
         <div class="cari-hasil" id="cariHasil" role="status" aria-live="polite" hidden></div>
       </div>
+      <?= str_replace('pintas-box', 'pintas-box pintas-hp', $pintasHtml) ?>
     </div>
     <div class="fusi-a">
       <div class="fusi-a-halo" aria-hidden="true"></div>
@@ -80,6 +94,7 @@ require __DIR__ . '/../inc/header.php';
       </div>
     </div>
   </div>
+  <?= str_replace('pintas-box', 'pintas-box pintas-desk', $pintasHtml) ?>
   <div class="bento">
     <a class="bento-kartu bento-hutan" href="/data-desa?grup=Layanan+surat#surat"><div><h3>Ajukan surat dari rumah</h3><p>Isi online, datang saat surat sudah siap.</p></div><span class="bulat" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg></span></a>
     <?php if ($apb && $apb['a'] > 0): $pr = min(100, persen((float) $apb['r'], (float) $apb['a'])); $kel = 2 * 3.1416 * 30; ?>

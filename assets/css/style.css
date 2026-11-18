@@ -838,3 +838,27 @@ footer{padding-bottom:96px}
 .relawan-kotak .bar-track{background:#fff}
 @media (max-width:640px){.ag .relawan-kotak{margin-left:-88px}}
 [id]{scroll-margin-top:96px}
+/* ===== 12l: menu cepat di bawah pencarian ===== */
+.cari-box{margin-top:6px}
+.pintas-box{margin-top:18px}
+.pintas-judul{font-size:1rem;margin:0 0 10px;color:var(--ink)}
+.pintas-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 10px}
+.pintas{display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:var(--ink);text-align:center;padding:6px 2px;border-radius:16px;min-height:48px}
+.pintas-ikon{width:60px;height:60px;border-radius:18px;display:grid;place-items:center;box-shadow:0 2px 0 rgba(19,26,19,.06);transition:transform .15s ease}
+.pintas-label{font:700 .86rem/1.25 var(--body)}
+.pintas:hover .pintas-ikon{transform:translateY(-2px)}
+.pintas:focus-visible{outline:3px solid var(--air);outline-offset:2px}
+.pintas-hutan .pintas-ikon{background:#1E4D2B;color:#C4F536}
+.pintas-air .pintas-ikon{background:#DCEEF3;color:#1F6F8B}
+.pintas-jeruk .pintas-ikon{background:#FCE3D3;color:#B4470F}
+.pintas-lime .pintas-ikon{background:#E9F8B8;color:#1E4D2B}
+.pintas-merah .pintas-ikon{background:#FBDADA;color:#B3261E}
+@media (prefers-reduced-motion:reduce){.pintas-ikon{transition:none}}
+@media (max-width:380px){.pintas-ikon{width:52px;height:52px;border-radius:16px}.pintas-label{font-size:.8rem}.pintas-grid{gap:10px 6px}}
+.pintas-desk{display:none}
+@media (min-width:1000px){
+  .pintas-hp{display:none}
+  .pintas-desk{display:flex;align-items:center;gap:24px;background:#fff;border-radius:var(--r-l);box-shadow:var(--shadow);padding:18px 28px;margin:28px 0 20px}
+  .pintas-desk .pintas-judul{margin:0;flex:none;font-size:1.1rem;max-width:7ch;line-height:1.2}
+  .pintas-desk .pintas-grid{flex:1;grid-template-columns:repeat(8,minmax(0,1fr))}
+}

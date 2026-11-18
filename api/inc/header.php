@@ -37,7 +37,7 @@ $daftarMenu = [
   <?php if (!empty($pakaiPeta)): ?>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12k">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12l">
 </head>
 <body>
 <a class="skip" href="#isi">Langsung ke isi halaman</a>
