@@ -129,6 +129,25 @@ UPDATE pengaturan SET nilai = 'Angka pada halaman ini adalah data simulasi yang 
 -- Mode privat: 1 = website hanya untuk tim yang login CMS (masa pengembangan). Ubah ke 0 di CMS > Pengaturan sebelum submit.
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('mode_privat', '1');
 
+-- ---------- Tambahan 12k: label SDGs dan relawan gotong royong ----------
+-- Kolom sdg berisi nomor tujuan SDGs, dipisah koma. Contoh: '6,2' untuk irigasi.
+ALTER TABLE pembangunan ADD COLUMN IF NOT EXISTS sdg VARCHAR(40) NULL;
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS sdg VARCHAR(40) NULL;
+-- 0 = agenda tidak membuka pendaftaran relawan
+ALTER TABLE agenda ADD COLUMN IF NOT EXISTS relawan_kuota INT NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS relawan (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  agenda_id INT NOT NULL,
+  agenda_judul VARCHAR(150) NOT NULL DEFAULT '',
+  nama VARCHAR(60) NOT NULL,
+  wa VARCHAR(20) NOT NULL,
+  asal VARCHAR(60) NOT NULL DEFAULT '',
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT relawan_unik UNIQUE (agenda_id, wa)
+);
+UPDATE admin SET akses = CONCAT(akses, ',relawan') WHERE akses LIKE '%agenda%' AND akses NOT LIKE '%relawan%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;
@@ -165,3 +184,26 @@ INSERT IGNORE INTO faq (id, pertanyaan, kata_kunci, jawaban, urutan, aktif) VALU
 INSERT IGNORE INTO surat (id, kode, layanan_id, layanan_nama, nama, wa, email, keperluan, status, catatan) VALUES
 (1, 'SRT-4KX9PQ', 1, 'Surat keterangan domisili', 'Rina Marlina', '081200000021', '', 'Melamar kerja di pabrik', 'Siap diambil', 'Surat sudah ditandatangani. Bawa KTP asli saat mengambil.'),
 (2, 'SRT-7HN2WD', 2, 'Surat keterangan tidak mampu (SKTM)', 'Agus Setiawan', '081200000022', '', 'Keringanan biaya sekolah anak', 'Diproses', 'Menunggu kunjungan rumah petugas kesejahteraan.');
+
+-- Contoh isi 12k: label SDGs dan relawan (hanya mengisi yang masih kosong)
+UPDATE pembangunan SET sdg = '9,11' WHERE id = 1 AND sdg IS NULL;
+UPDATE pembangunan SET sdg = '6,2' WHERE id = 2 AND sdg IS NULL;
+UPDATE pembangunan SET sdg = '6,8' WHERE id = 3 AND sdg IS NULL;
+UPDATE pembangunan SET sdg = '12,13' WHERE id = 4 AND sdg IS NULL;
+UPDATE bantuan SET sdg = '1,10' WHERE id = 1 AND sdg IS NULL;
+UPDATE bantuan SET sdg = '2,15' WHERE id = 2 AND sdg IS NULL;
+UPDATE bantuan SET sdg = '8,5' WHERE id = 3 AND sdg IS NULL;
+UPDATE agenda SET relawan_kuota = 40 WHERE id = 2 AND relawan_kuota = 0;
+UPDATE agenda SET relawan_kuota = 25 WHERE id = 4 AND relawan_kuota = 0;
+INSERT IGNORE INTO relawan (id, agenda_id, agenda_judul, nama, wa, asal) VALUES
+(1, 2, 'Kerja bakti saluran irigasi', 'Ujang Sumarna', '081200000301', 'RT 03'),
+(2, 2, 'Kerja bakti saluran irigasi', 'Dedi Kurniawan', '081200000302', 'RT 02'),
+(3, 2, 'Kerja bakti saluran irigasi', 'Karang Taruna RW 02', '081200000303', 'RW 02'),
+(4, 2, 'Kerja bakti saluran irigasi', 'Rizky Pratama', '081200000304', 'Mahasiswa KKN'),
+(5, 2, 'Kerja bakti saluran irigasi', 'Nining Kurniasih', '081200000305', 'RT 04'),
+(6, 2, 'Kerja bakti saluran irigasi', 'Yayan Sopyan', '081200000306', 'RT 07'),
+(7, 2, 'Kerja bakti saluran irigasi', 'Salsa Aulia', '081200000307', 'Pengunjung'),
+(8, 2, 'Kerja bakti saluran irigasi', 'Ade Suryana', '081200000308', 'RT 05'),
+(9, 4, 'Merti Desa 2026', 'Sanggar Seni Sauyunan', '081200000309', 'RW 03'),
+(10, 4, 'Merti Desa 2026', 'Imas Masitoh', '081200000310', 'RT 09'),
+(11, 4, 'Merti Desa 2026', 'Fajar Nugraha', '081200000311', 'Pemuda RW 01');

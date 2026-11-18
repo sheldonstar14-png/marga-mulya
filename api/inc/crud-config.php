@@ -117,7 +117,8 @@ $CRUD = [
 
     'agenda' => [
         'judul' => 'Kelola agenda', 'satu' => 'agenda', 'tabel' => 'agenda', 'urut' => 'tanggal DESC',
-        'kolom' => ['tanggal' => 'Tanggal', 'judul' => 'Kegiatan', 'tempat' => 'Tempat'],
+        'catatan' => 'Isi "Butuh relawan" dengan angka lebih dari 0 kalau kegiatan ini mengajak warga atau pengunjung ikut gotong royong. Tombol "Saya ikut" lalu muncul di halaman Agenda dan beranda.',
+        'kolom' => ['tanggal' => 'Tanggal', 'judul' => 'Kegiatan', 'tempat' => 'Tempat', 'relawan_kuota' => 'Butuh relawan'],
         'format' => ['tanggal' => 'tanggal'],
         'field' => [
             ['judul', 'Nama kegiatan', 'text', ['wajib' => true, 'maks' => 150]],
@@ -125,7 +126,23 @@ $CRUD = [
             ['jam', 'Jam', 'text', ['wajib' => true, 'maks' => 60, 'contoh' => '08.00 sampai 11.00']],
             ['tempat', 'Tempat', 'text', ['wajib' => true, 'maks' => 150]],
             ['isi', 'Keterangan', 'textarea', ['wajib' => true]],
+            ['relawan_kuota', 'Butuh relawan (orang). Isi 0 kalau tidak membuka pendaftaran relawan', 'number', ['min' => 0, 'max' => 1000]],
         ],
+        'baru' => ['relawan_kuota' => 0],
+        'tombolTambahan' => ['/admin/relawan', 'Lihat daftar relawan'],
+    ],
+
+    'relawan' => [
+        'judul' => 'Relawan gotong royong', 'satu' => 'relawan', 'tabel' => 'relawan', 'urut' => 'agenda_id DESC, id',
+        'catatan' => 'Warga dan pengunjung yang mendaftar lewat tombol "Saya ikut" di halaman Agenda. Hubungi lewat WhatsApp sehari sebelum kegiatan. Data dihapus otomatis 30 hari setelah kegiatan lewat.',
+        'saring' => 'agenda_judul', 'saringTurun' => false,
+        'kolom' => ['agenda_judul' => 'Kegiatan', 'nama' => 'Nama', 'asal' => 'Asal', 'wa' => 'WhatsApp'],
+        'field' => [
+            ['nama', 'Nama', 'text', ['wajib' => true, 'maks' => 60]],
+            ['asal', 'Asal (RT, kelompok, atau pengunjung)', 'text', ['maks' => 60]],
+            ['wa', 'Nomor WhatsApp', 'text', ['wajib' => true, 'maks' => 20]],
+        ],
+        'tanpaTambah' => true,
     ],
 
     'berita' => [
@@ -247,6 +264,7 @@ $CRUD += [
             ['foto', 'Foto sebelum (opsional)', 'foto', []],
             ['foto_sesudah', 'Foto sesudah atau terkini (opsional)', 'foto', []],
             ['peta', 'Titik lokasi di peta desa (opsional)', 'peta', []],
+            ['sdg', 'Tujuan SDGs yang didukung (pilih 1 sampai 3)', 'sdg', []],
         ],
         'baru' => ['tahun' => (int) date('Y'), 'anggaran' => 0, 'progres' => 0, 'status' => 'Perencanaan', 'sumber_dana' => 'Dana Desa'],
         'cekSimpan' => fn(array $data, ?int $id, array $admin) => ($data['status'] ?? '') === 'Selesai' && (int) ($data['progres'] ?? 0) < 100
@@ -268,6 +286,7 @@ $CRUD += [
             ['kuota', 'Kuota penerima di desa', 'number', ['min' => 0, 'max' => 100000]],
             ['jumlah_tahap', 'Jumlah tahap penyaluran', 'number', ['min' => 1, 'max' => 12]],
             ['selesai', 'Tanggal program selesai (kosongkan kalau masih berjalan)', 'date', []],
+            ['sdg', 'Tujuan SDGs yang didukung (pilih 1 sampai 3)', 'sdg', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
         'baru' => ['aktif' => 1, 'kuota' => 0, 'jumlah_tahap' => 1],

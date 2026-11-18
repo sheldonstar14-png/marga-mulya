@@ -74,6 +74,8 @@ $maksud = [
     'sampah'    => ['sampah', 'bank sampah', 'daur ulang', 'kompos', 'jelantah'],
     'anggaran'  => ['anggaran', 'apbdes', 'dana desa', 'keuangan', 'pembangunan', 'proyek', 'transparansi'],
     'bantuan'   => ['bantuan', 'blt', 'bansos', 'subsidi', 'modal usaha', 'penerima', 'salah sasaran', 'pkh', 'sembako'],
+    'relawan'   => ['relawan', 'gotong royong', 'kerja bakti', 'sukarela', 'volunteer', 'ikut membantu', 'mau bantu'],
+    'sdgs'      => ['sdg', 'sdgs', 'berkelanjutan', 'pembangunan berkelanjutan', 'tpb'],
     'antrean'   => ['antre', 'antri', 'nomor antrean', 'nomor antrian', 'giliran', 'loket'],
     'aspirasi'  => ['aspirasi', 'lapor', 'pengaduan', 'keluhan', 'usul', 'saran', 'informasi publik'],
     'privasi'   => ['privasi', 'data pribadi', 'hapus data', 'data saya'],
@@ -195,6 +197,19 @@ switch ($utama) {
         }
         $jawab("Program bantuan di desa:\n" . implode("\n", array_map(fn($b) => "- {$b['nama']} ({$b['jadwal']})", $program)) . "\nDi Pantau bansos kamu bisa melihat penyaluran per tahap dan mengecek status dengan nama lengkap dan RT, tanpa NIK.",
             [['label' => 'Cek status penerima', 'url' => '/data-desa?grup=Pantau+bansos#cek-bansos'], ['label' => 'Penyaluran per tahap', 'url' => '/data-desa?grup=Pantau+bansos']], ['Laporkan salah sasaran', 'Syarat mengurus surat']);
+
+    case 'relawan':
+        $kegiatan = agenda_relawan(3);
+        if (!$kegiatan) {
+            $jawab('Saat ini belum ada kegiatan yang membuka pendaftaran relawan. Pantau halaman Agenda, kegiatan gotong royong baru diumumkan di sana.', [['label' => 'Lihat agenda', 'url' => '/agenda']], ['Agenda terdekat', 'Kirim aspirasi']);
+        }
+        $jawab("Kegiatan yang sedang mencari relawan:\n" . implode("\n", array_map(fn($a) => '- ' . $a['judul'] . ', ' . tgl($a['tanggal']) . ' (' . (int) $a['ikut'] . ' dari ' . (int) $a['relawan_kuota'] . ' relawan)', $kegiatan)) . "\nWarga dan pengunjung boleh ikut. Cukup isi nama dan nomor WhatsApp.",
+            [['label' => 'Daftar jadi relawan', 'url' => '/agenda#agenda-' . (int) $kegiatan[0]['id']]], ['Agenda terdekat', 'Lokasi kantor desa']);
+
+    case 'sdgs':
+        $sdgJawab = kontribusi_sdg();
+        $jawab('Desa ini sudah bergerak untuk ' . count($sdgJawab) . " tujuan SDGs, antara lain:\n" . implode("\n", array_map(fn($n) => '- SDG ' . $n . ': ' . SDG[$n][0], array_slice(array_keys($sdgJawab), 0, 6))) . "\nBukti tiap tujuan dihitung otomatis dari data desa.",
+            [['label' => 'Lihat kontribusi SDGs', 'url' => '/data-desa?grup=Dampak#sdgs']], ['Ikut gotong royong', 'Bank sampah']);
 
     case 'antrean':
         $kini = q1("SELECT nomor FROM antrean WHERE tanggal = ? AND status = 'Dipanggil' ORDER BY dipanggil_pada DESC LIMIT 1", [date('Y-m-d')]);

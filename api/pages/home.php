@@ -3,7 +3,12 @@
 // HALAMAN BERANDA. Semua isi diambil dari database.
 // =========================================================
 $wisata = q('SELECT slug, nama, jenis, harga, kuota, ringkas, foto FROM wisata WHERE aktif = 1 ORDER BY id');
-$agenda = q('SELECT judul, tanggal, jam, tempat, isi FROM agenda WHERE tanggal >= ? ORDER BY tanggal LIMIT 3', [date('Y-m-d')]);
+try {
+    $agenda = q('SELECT id, judul, tanggal, jam, tempat, isi, relawan_kuota FROM agenda WHERE tanggal >= ? ORDER BY tanggal LIMIT 3', [date('Y-m-d')]);
+} catch (Throwable $e) { // migrasi 12k belum dijalankan
+    $agenda = q('SELECT id, judul, tanggal, jam, tempat, isi, 0 AS relawan_kuota FROM agenda WHERE tanggal >= ? ORDER BY tanggal LIMIT 3', [date('Y-m-d')]);
+}
+$gotongRoyong = agenda_relawan(1)[0] ?? null;
 $umkm   = q('SELECT nama_usaha, produk, harga, satuan, foto FROM umkm ORDER BY id LIMIT 3');
 $berita = q('SELECT id, judul, tanggal, isi, foto FROM berita ORDER BY tanggal DESC, id DESC LIMIT 3');
 
@@ -170,7 +175,7 @@ require __DIR__ . '/../inc/header.php';
       <?php foreach ($agenda as $a): ?>
         <div class="ag">
           <div class="ag-date"><b><?= tgl($a['tanggal'], 'tanggal') ?></b><?= tgl($a['tanggal'], 'bulan') ?></div>
-          <div><h3><?= e($a['judul']) ?></h3><p><?= e($a['tempat']) ?>, <?= e($a['jam']) ?></p></div>
+          <div><h3><?= e($a['judul']) ?></h3><p><?= e($a['tempat']) ?>, <?= e($a['jam']) ?></p><?php if ((int) $a['relawan_kuota'] > 0): ?><a class="tag tag-hijau" href="/agenda#agenda-<?= (int) $a['id'] ?>">Butuh relawan</a><?php endif; ?></div>
         </div>
       <?php endforeach; ?>
       <?php if (!$agenda): ?><p class="muted">Belum ada agenda terdekat.</p><?php endif; ?>
@@ -212,6 +217,29 @@ require __DIR__ . '/../inc/header.php';
     <a class="stat" href="/data-desa?grup=Pembangunan"><span>Proyek pembangunan</span><b><?= $proyekBerjalan ?> berjalan</b><small><?= $proyekSelesai ?> sudah selesai</small></a>
     <?php if ($kgSampah > 0): ?><a class="stat" href="/data-desa?grup=Bank+sampah"><span>Sampah dikelola bank sampah</span><b><?= angka(round($kgSampah / 1000, 1)) ?> ton</b><small>dalam 6 bulan terakhir</small></a><?php endif; ?>
     <a class="stat" href="/kontak#aspirasi"><span>Aspirasi warga ditindaklanjuti</span><b><?= $aspSelesai ?> dari <?= $aspTotal ?></b><small>kirim aspirasimu</small></a>
+  </div>
+  <?php $sdgHome = array_keys(kontribusi_sdg($d)); ?>
+  <div class="sdg-strip <?= $gotongRoyong ? '' : 'tunggal' ?>">
+    <?php if ($sdgHome): ?>
+    <div class="sdg-ringkas">
+      <h3>Bergerak untuk <?= count($sdgHome) ?> tujuan SDGs</h3>
+      <p class="small muted">Setiap fitur di website ini terhubung ke Tujuan Pembangunan Berkelanjutan. Buktinya dihitung dari data desa.</p>
+      <ul class="sdg-baris" aria-label="Tujuan SDGs yang digerakkan desa">
+        <?php foreach ($sdgHome as $n): ?><li><?= sdg_bulat($n) ?><span class="sr-only"><?= e(SDG[$n][0]) ?></span></li><?php endforeach; ?>
+      </ul>
+      <a class="btn btn-ghost btn-sm" href="/data-desa?grup=Dampak#sdgs">Lihat bukti per tujuan</a>
+    </div>
+    <?php endif; ?>
+    <?php if ($gotongRoyong): $kuotaG = (int) $gotongRoyong['relawan_kuota']; $ikutG = (int) $gotongRoyong['ikut']; ?>
+    <div class="gotong-mini">
+      <h3>Ayo gotong royong</h3>
+      <p style="margin:0"><b><?= e($gotongRoyong['judul']) ?></b></p>
+      <p class="small muted" style="margin:2px 0 10px"><?= tgl($gotongRoyong['tanggal'], 'hari') ?>, <?= e($gotongRoyong['jam']) ?>, <?= e($gotongRoyong['tempat']) ?></p>
+      <div class="bar-track" role="img" aria-label="<?= $ikutG ?> dari <?= $kuotaG ?> relawan"><div class="bar-fill" style="width:<?= min(100, round($ikutG / max(1, $kuotaG) * 100)) ?>%"></div></div>
+      <p class="small" style="margin:6px 0 12px"><b><?= $ikutG ?> dari <?= $kuotaG ?></b> relawan sudah ikut. Warga dan pengunjung sama-sama boleh bergabung.</p>
+      <a class="btn btn-main btn-sm" href="/agenda#agenda-<?= (int) $gotongRoyong['id'] ?>">Saya ikut</a>
+    </div>
+    <?php endif; ?>
   </div>
 </div></div>
 

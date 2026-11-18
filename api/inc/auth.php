@@ -108,6 +108,7 @@ const MENU_PETUGAS = [
     'budaya'    => 'Budaya',
     'umkm'      => 'UMKM',
     'agenda'    => 'Agenda',
+    'relawan'   => 'Relawan gotong royong',
     'berita'    => 'Berita',
     'galeri'    => 'Galeri',
     'statistik' => 'Statistik desa',

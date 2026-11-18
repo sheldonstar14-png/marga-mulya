@@ -120,4 +120,24 @@ require __DIR__ . '/../inc/header.php';
   </div>
 </div></div>
 <?php endif; ?>
+<section class="sec" aria-labelledby="judul-prinsip"><div class="wrap">
+  <div class="sec-head"><h2 id="judul-prinsip">Prinsip website desa ini</h2><p>Dibuat supaya teknologi membantu semua warga, bukan hanya yang sudah terbiasa dengan internet.</p></div>
+  <div class="prinsip-grid">
+    <article class="prinsip">
+      <h3>Inovatif, tetap sederhana</h3>
+      <p>Surat online dengan antrean QR, asisten desa yang menjawab dari data resmi, dan peta yang menyorot zona rawan saat siaga cuaca. Semua nyaman di HP dan tetap bisa dibuka tanpa sinyal setelah dipasang.</p>
+      <a href="/data-desa?grup=Layanan+surat">Coba surat online</a>
+    </article>
+    <article class="prinsip">
+      <h3>Tumbuh bersama</h3>
+      <p>Warga dan pengunjung bisa ikut gotong royong, menulis ulasan, menyampaikan aspirasi, dan belanja langsung dari UMKM. Setiap tindak lanjut bisa dilacak dengan kode, jadi semua pihak saling percaya.</p>
+      <a href="/agenda">Ikut gotong royong</a>
+    </article>
+    <article class="prinsip">
+      <h3>Peduli pada yang paling membutuhkan</h3>
+      <p>Huruf besar dan kontras tinggi untuk lansia, bahasa sehari-hari, aspirasi boleh tanpa nama, dan nama penerima bansos selalu disamarkan. Website ini tidak pernah meminta KTP, KK, atau NIK.</p>
+      <a href="/data-desa?grup=Dampak#sdgs">Lihat kontribusi pada SDGs</a>
+    </article>
+  </div>
+</div></section>
 <?php require __DIR__ . '/../inc/footer.php'; ?>

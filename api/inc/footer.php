@@ -15,9 +15,10 @@
       <button type="button" class="btn btn-sm pasang-btn" id="pasangBtn" hidden>Pasang di HP (bisa dibuka tanpa sinyal)</button>
     </div>
   </div>
-  <?php if (setting('kredit_foto') !== ''): ?>
-    <div class="wrap"><p class="small" style="margin:24px 0 0;opacity:.8"><?= nl2br(e(setting('kredit_foto'))) ?></p></div>
-  <?php endif; ?>
+  <div class="wrap footer-bawah">
+    <p class="small">&copy; <?= date('Y') ?> Pemerintah <?= e(setting('nama_desa')) ?>. Isi website dikelola perangkat desa.</p>
+    <?= kredit_foto_html(setting('kredit_foto')) ?>
+  </div>
 </footer>
 <script>
   // Tombol menu untuk layar HP

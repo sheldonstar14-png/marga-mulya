@@ -61,6 +61,11 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 if (!in_array($nilai, pilihan_dropdown($c, $nama, $opsi), true)) { $errors[] = "Pilih \"$label\" dari daftar."; break; }
                 $data[$nama] = $nilai;
                 break;
+            case 'sdg':
+                $dipilih = array_values(array_intersect(array_keys(SDG), array_map('intval', (array) ($_POST[$nama] ?? []))));
+                if (count($dipilih) > 3) { $errors[] = "\"$label\": pilih paling banyak 3 tujuan supaya fokus."; break; }
+                $data[$nama] = $dipilih ? implode(',', $dipilih) : null;
+                break;
             case 'akses':
                 $dipilih = array_intersect(array_keys(MENU_PETUGAS), (array) ($_POST['akses'] ?? []));
                 $data[$nama] = implode(',', $dipilih);
@@ -198,6 +203,17 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
               <?php endforeach; ?>
             </div>
             <div class="hint">Super admin otomatis bisa membuka semua menu, termasuk Akun admin dan Pengaturan.</div>
+          </fieldset>
+        <?php elseif ($jenis === 'sdg'):
+          $terpilihSdg = is_array($v) ? array_map('intval', $v) : sdg_daftar((string) $v); ?>
+          <fieldset style="border:0;padding:0;margin:0">
+            <legend style="font-weight:700;margin-bottom:8px"><?= e($label) ?></legend>
+            <div class="cek-grid cek-sdg">
+              <?php foreach (SDG as $nSdg => [$namaSdg]): ?>
+                <label class="cek"><input type="checkbox" name="<?= $nama ?>[]" value="<?= $nSdg ?>" <?= in_array($nSdg, $terpilihSdg, true) ? 'checked' : '' ?>> <?= sdg_bulat($nSdg) ?> <?= e($namaSdg) ?></label>
+              <?php endforeach; ?>
+            </div>
+            <div class="hint">Label ini tampil di website dan dihitung di Informasi desa &gt; Dampak &gt; Kontribusi SDGs.</div>
           </fieldset>
         <?php elseif ($jenis === 'check'): ?>
           <label style="display:flex;gap:10px;align-items:center;font-weight:400">

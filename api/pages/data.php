@@ -31,6 +31,7 @@ if (!isset($grupData[$grup]) && !in_array($grup, $grupKhusus, true)) {
 // ---------- Data untuk tab khusus ----------
 if ($grup === 'Dampak') {
     $dampak = ringkasan_dampak();
+    $sdgDesa = kontribusi_sdg($dampak);
     // Pengunjung dan emisi per orang, 6 bulan terakhir
     $bulanDampak = [];
     for ($i = 5; $i >= 0; $i--) $bulanDampak[date('Y-m', strtotime("first day of -$i month"))] = ['orang' => 0, 'kg' => 0.0, 'tercatat' => 0];
@@ -194,6 +195,24 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
     <?php if ($d['apb_tahun']): ?><div class="stat"><span>Belanja desa <?= $d['apb_tahun'] ?> terealisasi</span><b><?= persen_id($d['apb_r'], $d['apb_a']) ?>%</b><small>dari <?= rupiah_ringkas($d['apb_a']) ?></small></div><?php endif; ?>
     <?php if ($d['ulasan_n']): ?><div class="stat"><span>Kepuasan pengunjung</span><b><?= number_format($d['ulasan_rata'], 1, ',', '.') ?> / 5</b><small>dari <?= $d['ulasan_n'] ?> ulasan terverifikasi</small></div><?php endif; ?>
   </div>
+  <section class="sdg-bagian" id="sdgs" aria-labelledby="judul-sdgs">
+    <h2 id="judul-sdgs" class="sub-judul">Kontribusi pada SDGs</h2>
+    <p class="muted" style="max-width:70ch">Tujuan Pembangunan Berkelanjutan (SDGs) adalah 17 target bersama dunia sampai 2030. Kartu di bawah menunjukkan tujuan yang sudah digerakkan <?= e(setting('nama_desa')) ?> beserta buktinya. Angka dihitung otomatis; proyek dan program diberi label lewat CMS.</p>
+    <div class="sdg-grid">
+      <?php foreach ($sdgDesa as $n => $isi): ?>
+        <article class="sdg-kartu" style="--sdg:<?= SDG[$n][1] ?>">
+          <div class="sdg-kepala"><?= sdg_bulat($n, 'besar') ?><h3><span class="sr-only">SDG <?= $n ?>: </span><?= e(SDG[$n][0]) ?></h3></div>
+          <?php foreach ($isi['angka'] ?? [] as [$nilai, $ket]): ?>
+            <p class="sdg-angka"><b><?= e($nilai) ?></b> <?= e($ket) ?></p>
+          <?php endforeach; ?>
+          <?php if (!empty($isi['terkait'])): ?>
+            <p class="small muted sdg-terkait"><b>Lewat:</b> <?= e(implode(', ', array_unique($isi['terkait']))) ?></p>
+          <?php endif; ?>
+        </article>
+      <?php endforeach; ?>
+    </div>
+  </section>
+
   <div class="grid g2">
     <div class="panel">
       <h3>Pengunjung per bulan</h3>
@@ -367,7 +386,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
           </div>
         <?php endif; ?>
         <div class="card-body">
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
+          <div class="judul-status">
             <h3 style="margin:0"><?= e($p['nama']) ?></h3>
             <span class="status st-<?= $warnaStatus[$p['status']] ?? 'Menunggu' ?>"><?= e($p['status']) ?></span>
           </div>
@@ -375,6 +394,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
           <p style="margin:8px 0"><?= e($p['deskripsi']) ?></p>
           <div class="progres"><div class="bar-track" role="img" aria-label="Progres <?= (int) $p['progres'] ?> persen"><div class="bar-fill" style="width:<?= (int) $p['progres'] ?>%"></div></div><b><?= (int) $p['progres'] ?>%</b></div>
           <p class="small" style="margin:8px 0 0"><b><?= rupiah($p['anggaran']) ?></b> dari <?= e($p['sumber_dana']) ?></p>
+          <?= sdg_lencana($p['sdg'] ?? null) ?>
         </div>
       </article>
     <?php endforeach; ?>
@@ -391,6 +411,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
         <div class="head-row" style="margin-bottom:8px"><span class="tag"><?= e($b['penyelenggara']) ?></span><?php if ($b['selesai']): ?><span class="status st-Selesai">Program selesai</span><?php endif; ?></div>
         <h3 style="margin:0 0 4px"><?= e($b['nama']) ?></h3>
         <p class="small muted" style="margin:0 0 14px">Untuk: <?= e($b['sasaran']) ?></p>
+        <?= sdg_lencana($b['sdg'] ?? null) ?>
         <?php if ($rb['total'] > 0): ?>
           <div class="bansos-angka">
             <div><b><?= $rb['total'] ?></b><span>penerima terdaftar<?= (int) $b['kuota'] ? ' dari kuota ' . (int) $b['kuota'] : '' ?></span></div>

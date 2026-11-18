@@ -249,6 +249,7 @@ require __DIR__ . '/../inc/header.php';
     <div class="panel"><h3>Data yang kami simpan</h3><ul class="small">
       <li>Reservasi: nama, WhatsApp, email, jumlah orang, kendaraan, dan perkiraan jarak.</li>
       <li>Aspirasi dan pesan: nama dan kontak (boleh tanpa nama untuk aspirasi).</li>
+      <li>Relawan gotong royong: nama dan WhatsApp, dihapus 30 hari setelah kegiatan.</li>
       <li>Kami tidak meminta KTP, KK, atau NIK lewat website.</li></ul></div>
     <div class="panel"><h3>Untuk apa dan berapa lama</h3><ul class="small">
       <li>Hanya untuk mengurus reservasi, membalas pesan, dan menindaklanjuti aspirasi.</li>

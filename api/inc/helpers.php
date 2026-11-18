@@ -99,7 +99,7 @@ function bar_list(array $rows): string
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
         $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . '</span>'
             . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%;background:' . $warna($i) . '"></div></div>'
-            . '<b>' . angka($r['nilai']) . ' ' . e($r['satuan']) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
+            . '<b>' . angka($r['nilai']) . ($r['satuan'] === '%' ? '%' : ' ' . e($r['satuan'])) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
     }
     return $html;
 }
@@ -295,6 +295,10 @@ function bersihkan_data_lama(): int
     $n += $jalankan("UPDATE surat SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
     $n += $jalankan("DELETE FROM antrean WHERE tanggal < ?");
     $n += $jalankan("UPDATE pesanan_umkm SET nama = '(dihapus)', wa = '', alamat = '' WHERE dibuat_pada < ? AND nama <> '(dihapus)'");
+    // Data relawan dihapus 30 hari setelah kegiatannya lewat (jumlah relawan di laporan tidak hilang karena dihitung saat itu)
+    $stR = db()->prepare('DELETE FROM relawan WHERE agenda_id IN (SELECT id FROM agenda WHERE tanggal < ?)');
+    $stR->execute([date('Y-m-d', strtotime('-30 days'))]);
+    $n += $stR->rowCount();
     // Nama penerima bansos dihapus 30 hari setelah program ditandai selesai (angka per RT tetap ada di laporan)
     $st = db()->prepare('DELETE FROM bansos_penerima WHERE bantuan_id IN (SELECT id FROM bantuan WHERE selesai IS NOT NULL AND selesai < ?)');
     $st->execute([date('Y-m-d', strtotime('-30 days'))]);
@@ -447,4 +451,157 @@ function kartu_sambutan(bool $ringkas): string
     $h .= '<figcaption><b>' . e($nama) . '</b><span>Kepala ' . e(setting('nama_desa')) . '</span></figcaption>';
     if ($ringkas && count(preg_split('/\n\s*\n/', $teks)) > 1) $h .= '<a class="small" href="/profil#sambutan">Baca sambutan lengkap</a>';
     return $h . '</div></figure>';
+}
+
+// ---------- Tambahan 12k: SDGs, relawan, kredit foto ----------
+// 17 Tujuan Pembangunan Berkelanjutan (SDGs). Warna mengikuti warna resmi PBB;
+// 'teks' dipilih supaya kontras angka di lingkaran minimal 4,5:1.
+const SDG = [
+    1  => ['Tanpa kemiskinan', '#E5243B', '#fff'],
+    2  => ['Tanpa kelaparan', '#DDA63A', '#131A13'],
+    3  => ['Kehidupan sehat dan sejahtera', '#4C9F38', '#131A13'],
+    4  => ['Pendidikan berkualitas', '#C5192D', '#fff'],
+    5  => ['Kesetaraan gender', '#FF3A21', '#131A13'],
+    6  => ['Air bersih dan sanitasi', '#26BDE2', '#131A13'],
+    7  => ['Energi bersih dan terjangkau', '#FCC30B', '#131A13'],
+    8  => ['Pekerjaan layak dan ekonomi', '#A21942', '#fff'],
+    9  => ['Industri, inovasi, dan infrastruktur', '#FD6925', '#131A13'],
+    10 => ['Berkurangnya kesenjangan', '#DD1367', '#fff'],
+    11 => ['Permukiman berkelanjutan', '#FD9D24', '#131A13'],
+    12 => ['Konsumsi dan produksi bertanggung jawab', '#BF8B2E', '#131A13'],
+    13 => ['Penanganan perubahan iklim', '#3F7E44', '#fff'],
+    14 => ['Ekosistem lautan', '#0A97D9', '#131A13'],
+    15 => ['Ekosistem daratan', '#56C02B', '#131A13'],
+    16 => ['Perdamaian, keadilan, dan kelembagaan', '#00689D', '#fff'],
+    17 => ['Kemitraan untuk mencapai tujuan', '#19486A', '#fff'],
+];
+
+// '6, 2' -> [6, 2] (hanya nomor 1 sampai 17, tanpa duplikat)
+function sdg_daftar(?string $teks): array
+{
+    $hasil = [];
+    foreach (preg_split('/\D+/', (string) $teks, -1, PREG_SPLIT_NO_EMPTY) as $n) {
+        $n = (int) $n;
+        if (isset(SDG[$n]) && !in_array($n, $hasil, true)) $hasil[] = $n;
+    }
+    return $hasil;
+}
+
+// Lingkaran nomor SDG berwarna. $denganNama = true menampilkan nama tujuan di sebelahnya.
+function sdg_bulat(int $n, string $kelas = ''): string
+{
+    [$nama, $warna, $teks] = SDG[$n];
+    return '<span class="sdg-bulat ' . $kelas . '" style="background:' . $warna . ';color:' . $teks . '" title="SDG ' . $n . ': ' . e($nama) . '">' . $n . '</span>';
+}
+
+function sdg_lencana(?string $teks): string
+{
+    $daftar = sdg_daftar($teks);
+    if (!$daftar) return '';
+    $html = '<ul class="sdg-lencana" aria-label="Mendukung tujuan SDGs">';
+    foreach ($daftar as $n) {
+        $html .= '<li>' . sdg_bulat($n) . '<span>' . e(SDG[$n][0]) . '</span></li>';
+    }
+    return $html . '</ul>';
+}
+
+// Agenda yang membuka pendaftaran relawan, beserta jumlah yang sudah ikut
+function agenda_relawan(int $batas = 10): array
+{
+    try {
+        return q('SELECT a.*, (SELECT COUNT(*) FROM relawan r WHERE r.agenda_id = a.id) AS ikut
+                  FROM agenda a WHERE a.relawan_kuota > 0 AND a.tanggal >= ? ORDER BY a.tanggal LIMIT ' . (int) $batas, [date('Y-m-d')]);
+    } catch (Throwable $e) {
+        return []; // tabel relawan belum dibuat (migrasi 12k belum dijalankan)
+    }
+}
+
+// Kredit foto dari Pengaturan, dirapikan menjadi tautan pendek.
+// Setiap baris boleh berisi "Keterangan: https://..." atau hanya alamat. Baris tanpa alamat menjadi judul.
+function kredit_foto_html(string $teks): string
+{
+    $judul = 'Kredit foto';
+    $item = [];
+    $sudah = [];
+    foreach (preg_split('/\R/', $teks) as $baris) {
+        $baris = trim($baris);
+        if ($baris === '') continue;
+        if (!preg_match('#https?://\S+#', $baris, $m)) {
+            if (!$item) { $judul = rtrim($baris, ': '); } else { $item[] = [$baris, null]; }
+            continue;
+        }
+        $url = rtrim($m[0], '.,;)');
+        if (isset($sudah[$url])) continue; // alamat yang sama cukup sekali
+        $sudah[$url] = true;
+        $ket = trim(rtrim(str_replace($m[0], '', $baris), ' :-'));
+        if ($ket === '') {
+            $host = preg_replace('/^www\./', '', (string) parse_url($url, PHP_URL_HOST));
+            $ket = match (true) {
+                str_contains($host, 'pin.it'), str_contains($host, 'pinterest') => 'Pinterest',
+                str_contains($host, 'unsplash') => 'Unsplash',
+                str_contains($host, 'pexels') => 'Pexels',
+                str_contains($host, 'freepik') => 'Freepik',
+                str_contains($host, 'wikimedia') => 'Wikimedia',
+                default => $host,
+            };
+            $ket .= ' #' . (count(array_filter($item, fn($i) => $i[1] !== null && str_starts_with($i[0], $ket))) + 1);
+        }
+        $item[] = [$ket, $url];
+    }
+    if (!$item) return '';
+    $html = '<div class="kredit"><b>' . e($judul) . '</b><ul>';
+    foreach ($item as [$ket, $url]) {
+        $html .= '<li>' . ($url ? '<a href="' . e($url) . '" target="_blank" rel="noopener nofollow">' . e($ket) . '</a>' : e($ket)) . '</li>';
+    }
+    return $html . '</ul></div>';
+}
+
+
+// Kontribusi desa per tujuan SDGs, dihitung otomatis dari data yang sudah diisi petugas.
+// Hasil: [nomor SDG => ['angka' => [[nilai, keterangan], ...], 'terkait' => [nama proyek/program, ...]]]
+function kontribusi_sdg(?array $d = null): array
+{
+    $d ??= ringkasan_dampak();
+    $k = [];
+    $tambah = function (int $n, string $nilai, string $ket) use (&$k) { $k[$n]['angka'][] = [$nilai, $ket]; };
+    $aman = function (callable $f) { try { return $f(); } catch (Throwable $e) { return null; } };
+
+    $penerima = (int) ($aman(fn() => q1('SELECT COUNT(*) AS n FROM bansos_penerima p JOIN bantuan b ON b.id = p.bantuan_id WHERE b.aktif = 1')['n']) ?? 0);
+    if ($penerima) $tambah(1, angka($penerima), 'penerima bantuan dipantau terbuka per tahap, nama disamarkan');
+
+    $sehat = q1("SELECT label, nilai, satuan FROM statistik WHERE kategori = 'Kesehatan' ORDER BY urutan, id LIMIT 1");
+    if ($sehat) $tambah(3, angka($sehat['nilai']) . ($sehat['satuan'] === '%' ? '%' : ' ' . $sehat['satuan']), mb_strtolower($sehat['label']));
+    $posyandu = (int) q1("SELECT COUNT(*) AS n FROM agenda WHERE judul LIKE '%osyandu%' AND tanggal >= ?", [date('Y-m-d')])['n'];
+    if ($posyandu) $tambah(3, (string) $posyandu, 'jadwal posyandu bisa disimpan ke kalender HP');
+
+    $jUmkm = (int) q1('SELECT COUNT(*) AS n FROM umkm')['n'];
+    if ($jUmkm) $tambah(8, (string) $jUmkm, 'usaha warga dijual langsung tanpa perantara');
+    if ($d['nilai_umkm'] > 0) $tambah(8, rupiah_ringkas($d['nilai_umkm']), 'belanja Tiket Hijau berputar ke UMKM');
+
+    $zona = (int) ($aman(fn() => q1('SELECT COUNT(*) AS n FROM zona_rawan')['n']) ?? 0);
+    if ($zona) $tambah(11, (string) $zona, 'zona rawan bencana dipetakan dan disorot saat siaga cuaca');
+    $kuotaWisata = (int) q1('SELECT COALESCE(SUM(kuota), 0) AS n FROM wisata WHERE aktif = 1')['n'];
+    if ($kuotaWisata) $tambah(11, angka($kuotaWisata), 'kuota pengunjung per hari supaya desa tidak terlalu padat');
+
+    if ($d['sampah_kg'] > 0) $tambah(12, angka(round($d['sampah_kg'] / 1000, 1)) . ' ton', 'sampah dikelola bank sampah dalam 12 bulan');
+
+    if ($d['kg_hemat'] > 0) $tambah(13, angka(round($d['kg_hemat'])) . ' kg', 'CO2e dihemat karena pengunjung memilih transport hijau');
+    if ($d['orang_tercatat']) $tambah(13, persen_id($d['orang_hijau'], $d['orang_tercatat']) . '%', 'pengunjung datang dengan bus, angkutan umum, kereta, atau sepeda');
+
+    if ($d['asp_total']) $tambah(16, persen_id($d['asp_selesai'], $d['asp_total']) . '%', 'aspirasi warga selesai ditindaklanjuti');
+    if ($d['apb_tahun']) $tambah(16, persen_id($d['apb_r'], $d['apb_a']) . '%', 'belanja desa ' . $d['apb_tahun'] . ' terealisasi dan dibuka ke publik');
+
+    $rel = $aman(fn() => q1('SELECT COUNT(*) AS n, COUNT(DISTINCT agenda_id) AS kegiatan FROM relawan'));
+    if ($rel && (int) $rel['n']) $tambah(17, (string) (int) $rel['n'], 'relawan ikut gotong royong di ' . (int) $rel['kegiatan'] . ' kegiatan');
+    $mitra = (int) q1('SELECT COUNT(DISTINCT penyelenggara) AS n FROM bantuan WHERE aktif = 1')['n'];
+    if ($mitra) $tambah(17, (string) $mitra, 'lembaga penyelenggara program bantuan bekerja sama dengan desa');
+
+    // Label SDGs dari proyek pembangunan dan program bantuan
+    foreach ([['pembangunan', 'nama', ''], ['bantuan', 'nama', ' WHERE aktif = 1']] as [$tabel, $kolom, $syarat]) {
+        foreach ($aman(fn() => q("SELECT $kolom AS nama, sdg FROM $tabel$syarat")) ?? [] as $r) {
+            foreach (sdg_daftar($r['sdg']) as $n) $k[$n]['terkait'][] = $r['nama'];
+        }
+    }
+    ksort($k);
+    return $k;
 }

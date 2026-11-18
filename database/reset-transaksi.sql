@@ -1,12 +1,13 @@
 -- =========================================================
 -- BERSIHKAN DATA UJI COBA (jalankan sehari sebelum submit)
--- Menghapus SEMUA reservasi, aspirasi, pesan, surat, antrean, pesanan UMKM, dan permintaan data
+-- Menghapus SEMUA reservasi, aspirasi, pesan, surat, antrean, pesanan UMKM, relawan, dan permintaan data
 -- (termasuk data asli yang sempat dipakai untuk uji coba), lalu mengisi ulang contoh
 -- dengan tanggal yang segar.
 -- Ulasan dan aspirasi contoh juga diisi ulang. TIDAK menyentuh konten (wisata, UMKM, berita, galeri, foto, statistik,
 -- pengaturan) dan TIDAK mengubah akun atau kata sandi admin.
 -- =========================================================
 
+DELETE FROM relawan;
 DELETE FROM pesanan_umkm_item;
 DELETE FROM pesanan_umkm;
 DELETE FROM antrean;
@@ -125,3 +126,17 @@ INSERT INTO pesanan_umkm (kode, usaha, wa_penjual, nama, wa, pengambilan, alamat
 INSERT IGNORE INTO surat (id, kode, layanan_id, layanan_nama, nama, wa, email, keperluan, status, catatan) VALUES
 (1, 'SRT-4KX9PQ', 1, 'Surat keterangan domisili', 'Rina Marlina', '081200000021', '', 'Melamar kerja di pabrik', 'Siap diambil', 'Surat sudah ditandatangani. Bawa KTP asli saat mengambil.'),
 (2, 'SRT-7HN2WD', 2, 'Surat keterangan tidak mampu (SKTM)', 'Agus Setiawan', '081200000022', '', 'Keringanan biaya sekolah anak', 'Diproses', 'Menunggu kunjungan rumah petugas kesejahteraan.');
+
+-- Relawan gotong royong (contoh)
+INSERT IGNORE INTO relawan (id, agenda_id, agenda_judul, nama, wa, asal) VALUES
+(1, 2, 'Kerja bakti saluran irigasi', 'Ujang Sumarna', '081200000301', 'RT 03'),
+(2, 2, 'Kerja bakti saluran irigasi', 'Dedi Kurniawan', '081200000302', 'RT 02'),
+(3, 2, 'Kerja bakti saluran irigasi', 'Karang Taruna RW 02', '081200000303', 'RW 02'),
+(4, 2, 'Kerja bakti saluran irigasi', 'Rizky Pratama', '081200000304', 'Mahasiswa KKN'),
+(5, 2, 'Kerja bakti saluran irigasi', 'Nining Kurniasih', '081200000305', 'RT 04'),
+(6, 2, 'Kerja bakti saluran irigasi', 'Yayan Sopyan', '081200000306', 'RT 07'),
+(7, 2, 'Kerja bakti saluran irigasi', 'Salsa Aulia', '081200000307', 'Pengunjung'),
+(8, 2, 'Kerja bakti saluran irigasi', 'Ade Suryana', '081200000308', 'RT 05'),
+(9, 4, 'Merti Desa 2026', 'Sanggar Seni Sauyunan', '081200000309', 'RW 03'),
+(10, 4, 'Merti Desa 2026', 'Imas Masitoh', '081200000310', 'RT 09'),
+(11, 4, 'Merti Desa 2026', 'Fajar Nugraha', '081200000311', 'Pemuda RW 01');
