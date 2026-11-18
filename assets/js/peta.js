@@ -6,7 +6,7 @@
 (function () {
   if (typeof L === 'undefined') return; // Leaflet gagal dimuat: lewati tanpa merusak halaman lain
 
-  const warna = { wisata: '#E8641E', umkm: '#2E6B3A', fasilitas: '#1F6F8B', pilih: '#B3261E' };
+  const warna = { wisata: '#F08A5D', umkm: '#15607F', fasilitas: '#1F6F8B', pilih: '#B3261E' };
 
   document.querySelectorAll('.peta').forEach(el => {
     let titik = [];

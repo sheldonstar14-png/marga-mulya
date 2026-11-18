@@ -85,12 +85,12 @@ function kirim_email(string $ke, string $subjek, string $html): true|string
 function bungkus_email(string $judul, string $isiHtml): string
 {
     $nama = e(setting('nama_desa'));
-    return '<!doctype html><html><body style="margin:0;background:#F6F6F2;font-family:Arial,sans-serif;color:#131A13">'
+    return '<!doctype html><html><body style="margin:0;background:#F6F0E2;font-family:Arial,sans-serif;color:#0E1B24">'
         . '<div style="max-width:560px;margin:0 auto;padding:24px">'
-        . '<div style="background:#1E4D2B;color:#F6F6F2;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:bold;font-size:18px">' . $nama . '</div>'
+        . '<div style="background:#0B3C5D;color:#F6F0E2;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:bold;font-size:18px">' . $nama . '</div>'
         . '<div style="background:#ffffff;padding:22px;border-radius:0 0 12px 12px;border:1px solid #D9DECF;border-top:0">'
         . '<h2 style="margin:0 0 12px;font-size:20px">' . e($judul) . '</h2>' . $isiHtml . '</div>'
-        . '<p style="font-size:12px;color:#4C594C;margin-top:14px">Email ini dikirim otomatis oleh website ' . $nama . '. '
+        . '<p style="font-size:12px;color:#475663;margin-top:14px">Email ini dikirim otomatis oleh website ' . $nama . '. '
         . 'Pertanyaan? Hubungi WhatsApp +' . e(setting('wa')) . '.</p></div></body></html>';
 }
 
@@ -102,13 +102,13 @@ function email_reservasi(string $kode): true|string
         return 'reservasi ini tidak punya alamat email';
     }
     $linkStatus = url_dasar() . '/reservasi?cek=' . urlencode($r['kode']);
-    $tombol = fn(string $url, string $label) => '<p><a href="' . e($url) . '" style="display:inline-block;background:#E8641E;color:#131A13;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">' . e($label) . '</a></p>';
+    $tombol = fn(string $url, string $label) => '<p><a href="' . e($url) . '" style="display:inline-block;background:#F08A5D;color:#0E1B24;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">' . e($label) . '</a></p>';
     $rincian = '<table style="width:100%;border-collapse:collapse;font-size:15px;margin:12px 0">'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Kode</td><td style="padding:6px 0"><b style="font-size:18px">' . e($r['kode']) . '</b></td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Destinasi</td><td>' . e($r['nama_wisata']) . '</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Tanggal</td><td>' . tgl($r['tanggal'], 'hari') . '</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Jumlah</td><td>' . (int) $r['jumlah'] . ' orang</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Bayar di lokasi</td><td>' . rupiah($r['harga'] * $r['jumlah']) . '</td></tr></table>';
+        . '<tr><td style="padding:6px 0;color:#475663">Kode</td><td style="padding:6px 0"><b style="font-size:18px">' . e($r['kode']) . '</b></td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Destinasi</td><td>' . e($r['nama_wisata']) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Tanggal</td><td>' . tgl($r['tanggal'], 'hari') . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Jumlah</td><td>' . (int) $r['jumlah'] . ' orang</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Bayar di lokasi</td><td>' . rupiah($r['harga'] * $r['jumlah']) . '</td></tr></table>';
     $halo = '<p>Halo ' . e($r['nama']) . ',</p>';
 
     switch ($r['status']) {
@@ -125,7 +125,7 @@ function email_reservasi(string $kode): true|string
                 . $rincian . $tombol($linkStatus, 'Buka tiket dan kode QR')
                 . ($r['kupon'] ? '<div style="border:2px dashed #3F7D3A;border-radius:12px;padding:12px 14px;margin:12px 0;background:#EEF2E4"><b>Kamu mendapat Tiket Hijau: ' . e($r['kupon']) . '</b><br>'
                     . e(setting('tiket_hijau_syarat')) . ' Tunjukkan kode QR kupon di halaman status kepada penjual UMKM desa.</div>' : '')
-                . '<p style="font-size:14px;color:#4C594C">Cek prakiraan cuaca di website sehari sebelum berangkat.</p>';
+                . '<p style="font-size:14px;color:#475663">Cek prakiraan cuaca di website sehari sebelum berangkat.</p>';
             break;
         case 'Dibatalkan':
             $subjek = "Reservasi {$r['kode']} tidak dapat diterima";
@@ -170,7 +170,7 @@ function email_aspirasi(string $kode): true|string
         return 'aspirasi ini tidak punya alamat email';
     }
     $link = url_dasar() . '/kontak?adu=' . urlencode($a['kode']) . '#aspirasi';
-    $tombol = '<p><a href="' . e($link) . '" style="display:inline-block;background:#E8641E;color:#131A13;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">Lihat perkembangan</a></p>';
+    $tombol = '<p><a href="' . e($link) . '" style="display:inline-block;background:#F08A5D;color:#0E1B24;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">Lihat perkembangan</a></p>';
     $kalimat = [
         'Diterima' => 'Aspirasimu sudah kami terima dan akan ditinjau petugas desa.',
         'Diproses' => 'Aspirasimu sedang <b>ditindaklanjuti</b> oleh pemerintah desa.',
@@ -180,9 +180,9 @@ function email_aspirasi(string $kode): true|string
     $subjek = "Aspirasi {$a['kode']}: {$a['status']}";
     $isi = '<p>Halo ' . e($a['nama']) . ',</p><p>' . ($kalimat[$a['status']] ?? '') . '</p>'
         . '<table style="width:100%;border-collapse:collapse;font-size:15px;margin:12px 0">'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Kode</td><td><b style="font-size:18px">' . e($a['kode']) . '</b></td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Kategori</td><td>' . e($a['kategori']) . '</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Status</td><td>' . e($a['status']) . '</td></tr></table>'
+        . '<tr><td style="padding:6px 0;color:#475663">Kode</td><td><b style="font-size:18px">' . e($a['kode']) . '</b></td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Kategori</td><td>' . e($a['kategori']) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Status</td><td>' . e($a['status']) . '</td></tr></table>'
         . ($a['tanggapan'] ? '<p><b>Tanggapan petugas:</b><br>' . nl2br(e($a['tanggapan'])) . '</p>' : '')
         . $tombol;
     return kirim_email($a['email'], $subjek, bungkus_email($subjek, $isi));
@@ -238,11 +238,11 @@ function email_surat(string $kode): true|string
     $subjek = "Surat {$s['kode']}: {$s['status']}";
     $isi = '<p>Halo ' . e($s['nama']) . ',</p><p>' . ($kalimat[$s['status']] ?? '') . '</p>'
         . '<table style="width:100%;border-collapse:collapse;font-size:15px;margin:12px 0">'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Kode</td><td><b style="font-size:18px">' . e($s['kode']) . '</b></td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Jenis surat</td><td>' . e($s['layanan_nama']) . '</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#4C594C">Status</td><td>' . e($s['status']) . '</td></tr></table>'
+        . '<tr><td style="padding:6px 0;color:#475663">Kode</td><td><b style="font-size:18px">' . e($s['kode']) . '</b></td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Jenis surat</td><td>' . e($s['layanan_nama']) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#475663">Status</td><td>' . e($s['status']) . '</td></tr></table>'
         . ($s['catatan'] ? '<p><b>Catatan petugas:</b><br>' . nl2br(e($s['catatan'])) . '</p>' : '')
-        . '<p><a href="' . e(url_dasar() . '/data-desa?grup=Layanan+surat&srt=' . urlencode($s['kode']) . '#surat') . '" style="display:inline-block;background:#E8641E;color:#131A13;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">Lihat perkembangan</a></p>';
+        . '<p><a href="' . e(url_dasar() . '/data-desa?grup=Layanan+surat&srt=' . urlencode($s['kode']) . '#surat') . '" style="display:inline-block;background:#F08A5D;color:#0E1B24;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:999px">Lihat perkembangan</a></p>';
     return kirim_email($s['email'], $subjek, bungkus_email($subjek, $isi));
 }
 

@@ -33,7 +33,7 @@ if ($path === 'manifest.webmanifest') {
         'name' => $namaApp, 'short_name' => mb_strimwidth(str_replace('Desa ', '', $namaApp), 0, 12, ''),
         'description' => 'Wisata, layanan warga, dan informasi ' . $namaApp,
         'lang' => 'id', 'start_url' => '/?pwa=1', 'scope' => '/', 'display' => 'standalone',
-        'background_color' => '#F7F8F2', 'theme_color' => '#2B5A28',
+        'background_color' => '#F7F4EC', 'theme_color' => '#0B3C5D',
         'icons' => [
             ['src' => '/assets/img/ikon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
             ['src' => '/assets/img/ikon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],

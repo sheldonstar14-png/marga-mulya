@@ -96,10 +96,10 @@ function catatan_laporan(array $d): array
 // Susun laporan sebagai HTML dengan gaya tertulis langsung (inline), supaya rapi di email dan saat dicetak
 function html_laporan(array $d): string
 {
-    $th = 'style="text-align:left;padding:6px 8px;border-bottom:2px solid #1E4D2B;font-size:13px"';
+    $th = 'style="text-align:left;padding:6px 8px;border-bottom:2px solid #0B3C5D;font-size:13px"';
     $td = 'style="padding:6px 8px;border-bottom:1px solid #E1E6D8;font-size:13px"';
     $tdr = 'style="padding:6px 8px;border-bottom:1px solid #E1E6D8;font-size:13px;text-align:right;white-space:nowrap"';
-    $h3 = 'style="font-size:16px;margin:22px 0 8px;color:#1E4D2B"';
+    $h3 = 'style="font-size:16px;margin:22px 0 8px;color:#0B3C5D"';
     $tabel = function (array $kepala, array $baris, array $kanan = []) use ($th, $td, $tdr) {
         $h = '<table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>';
         foreach ($kepala as $i => $k) $h .= '<th ' . (in_array($i, $kanan, true) ? str_replace('text-align:left', 'text-align:right', $th) : $th) . '>' . e($k) . '</th>';
@@ -112,8 +112,8 @@ function html_laporan(array $d): string
         return $h . '</table>';
     };
     $kotak = fn(string $label, string $nilai, string $ket = '') => '<td style="width:25%;padding:10px;background:#F2F5EC;border:4px solid #fff;vertical-align:top">'
-        . '<div style="font-size:12px;color:#4C594C">' . e($label) . '</div><div style="font-size:20px;font-weight:bold;margin:2px 0">' . e($nilai) . '</div>'
-        . ($ket ? '<div style="font-size:11px;color:#4C594C">' . e($ket) . '</div>' : '') . '</td>';
+        . '<div style="font-size:12px;color:#475663">' . e($label) . '</div><div style="font-size:20px;font-weight:bold;margin:2px 0">' . e($nilai) . '</div>'
+        . ($ket ? '<div style="font-size:11px;color:#475663">' . e($ket) . '</div>' : '') . '</td>';
 
     $k = $d['kunjungan'];
     $orang = (int) $k['orang'];
@@ -122,10 +122,10 @@ function html_laporan(array $d): string
     $jumlahAspirasi = array_sum(array_column($d['aspirasiMasuk'], 'n'));
     $judulBulan = tgl($d['awal'], 'bulantahun');
 
-    $h = '<div style="font-family:Arial,sans-serif;color:#131A13;line-height:1.5">';
-    $h .= '<p style="margin:0 0 4px;font-size:13px;color:#4C594C">Laporan bulanan ' . e(setting('nama_desa')) . ', ' . e(setting('kecamatan')) . ', ' . e(setting('kabupaten')) . '</p>';
+    $h = '<div style="font-family:Arial,sans-serif;color:#0E1B24;line-height:1.5">';
+    $h .= '<p style="margin:0 0 4px;font-size:13px;color:#475663">Laporan bulanan ' . e(setting('nama_desa')) . ', ' . e(setting('kecamatan')) . ', ' . e(setting('kabupaten')) . '</p>';
     $h .= '<h2 style="margin:0 0 4px;font-size:22px">' . e($judulBulan) . '</h2>';
-    $h .= '<p style="margin:0 0 14px;font-size:12px;color:#4C594C">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
+    $h .= '<p style="margin:0 0 14px;font-size:12px;color:#475663">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
 
     $h .= '<table style="width:100%;border-collapse:collapse"><tr>'
         . $kotak('Pengunjung', angka($orang) . ' orang', (int) $k['rombongan'] . ' reservasi')
@@ -141,7 +141,7 @@ function html_laporan(array $d): string
     $h .= '<h3 ' . $h3 . '>1. Wisata</h3>';
     $h .= $tabel(['Destinasi', 'Reservasi', 'Pengunjung', 'Perkiraan pendapatan'],
         array_map(fn($w) => [$w['nama'], $w['rombongan'], angka($w['orang']), rupiah($w['pendapatan'])], $d['perWisata']), [1, 2, 3]);
-    $h .= '<p style="font-size:12px;color:#4C594C;margin:4px 0 0">Bulan sebelumnya: ' . angka($d['orangLalu']) . ' pengunjung. Dibatalkan bulan ini: ' . $d['batal'] . ' reservasi.'
+    $h .= '<p style="font-size:12px;color:#475663;margin:4px 0 0">Bulan sebelumnya: ' . angka($d['orangLalu']) . ' pengunjung. Dibatalkan bulan ini: ' . $d['batal'] . ' reservasi.'
         . ((int) $d['ulasan']['n'] ? ' Ulasan baru: ' . (int) $d['ulasan']['n'] . ', rata-rata ' . number_format((float) $d['ulasan']['rata'], 1, ',', '.') . ' dari 5.' : '') . '</p>';
 
     $h .= '<h3 ' . $h3 . '>2. Lingkungan</h3>';
@@ -155,7 +155,7 @@ function html_laporan(array $d): string
         $h .= $tabel(['Bank sampah: jenis', 'Berat', 'Nilai tabungan warga'],
             array_map(fn($s) => [$s['jenis'], angka(round((float) $s['kg'])) . ' kg', rupiah((int) $s['rp'])], $d['sampah']), [1, 2]);
     } else {
-        $h .= '<p style="font-size:13px;color:#4C594C">Data bank sampah bulan ini belum diisi.</p>';
+        $h .= '<p style="font-size:13px;color:#475663">Data bank sampah bulan ini belum diisi.</p>';
     }
 
     $h .= '<h3 ' . $h3 . '>3. Layanan warga</h3>';
@@ -167,7 +167,7 @@ function html_laporan(array $d): string
         ['Permintaan data pribadi', $d['permintaanData']],
     ], [1]);
     if ($d['aspirasiMasuk']) {
-        $h .= '<p style="font-size:12px;color:#4C594C;margin:4px 0 0">Kategori aspirasi: ' . e(implode(', ', array_map(fn($a) => $a['kategori'] . ' (' . $a['n'] . ')', $d['aspirasiMasuk']))) . '.</p>';
+        $h .= '<p style="font-size:12px;color:#475663;margin:4px 0 0">Kategori aspirasi: ' . e(implode(', ', array_map(fn($a) => $a['kategori'] . ' (' . $a['n'] . ')', $d['aspirasiMasuk']))) . '.</p>';
     }
 
     $h .= '<h3 ' . $h3 . '>4. Surat, antrean, dan bansos</h3>';
@@ -192,7 +192,7 @@ function html_laporan(array $d): string
             array_map(fn($a) => [$a['jenis'], rupiah($a['a']), rupiah($a['r']), persen_id((float) $a['r'], (float) $a['a']) . '%'], $d['apb']), [1, 2, 3]);
     }
 
-    $h .= '<p style="font-size:12px;color:#4C594C;margin-top:22px">Detail lengkap ada di CMS website. Laporan ini bisa dicetak atau disimpan sebagai PDF dari halaman CMS > Laporan bulanan.</p></div>';
+    $h .= '<p style="font-size:12px;color:#475663;margin-top:22px">Detail lengkap ada di CMS website. Laporan ini bisa dicetak atau disimpan sebagai PDF dari halaman CMS > Laporan bulanan.</p></div>';
     return $h;
 }
 

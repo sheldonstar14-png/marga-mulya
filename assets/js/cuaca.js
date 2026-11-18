@@ -44,11 +44,11 @@
 
   window.ikonCuaca = function (jenis) {
     const g = {
-      cerah: '<circle cx="16" cy="16" r="7" fill="#E8641E"/><g stroke="#E8641E" stroke-width="2.4" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l3 3M23 23l3 3M26 6l-3 3M9 23l-3 3"/></g>',
-      awan: '<circle cx="11" cy="12" r="5" fill="#E8641E"/><path d="M9 25h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#9AA9A0"/>',
+      cerah: '<circle cx="16" cy="16" r="7" fill="#F08A5D"/><g stroke="#F08A5D" stroke-width="2.4" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l3 3M23 23l3 3M26 6l-3 3M9 23l-3 3"/></g>',
+      awan: '<circle cx="11" cy="12" r="5" fill="#F08A5D"/><path d="M9 25h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#9AA9A0"/>',
       kabut: '<g stroke="#9AA9A0" stroke-width="2.6" stroke-linecap="round"><path d="M5 11h22M8 16h18M5 21h22M10 26h14"/></g>',
       hujan: '<path d="M8 19h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#7F938A"/><g stroke="#1F6F8B" stroke-width="2.4" stroke-linecap="round"><path d="M11 23l-2 5M17 23l-2 5M23 23l-2 5"/></g>',
-      badai: '<path d="M8 17h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#5E6E66"/><path d="M17 18l-4 7h4l-2 6 7-9h-4l2-4z" fill="#E8641E"/>'
+      badai: '<path d="M8 17h15a5 5 0 0 0 0-10 7 7 0 0 0-13 1 4.5 4.5 0 0 0-2 9z" fill="#5E6E66"/><path d="M17 18l-4 7h4l-2 6 7-9h-4l2-4z" fill="#F08A5D"/>'
     };
     return '<svg class="ic" viewBox="0 0 32 32" aria-hidden="true">' + g[jenis] + '</svg>';
   };

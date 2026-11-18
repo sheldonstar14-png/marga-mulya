@@ -13,8 +13,8 @@ $batas = [
 // ---------- Peta desa berlapis (Fase 12) ----------
 // Lima lapisan bisa dinyalakan atau dimatikan: wisata, UMKM, fasilitas, pembangunan, rawan bencana.
 $LAPISAN = [
-    'wisata'      => ['Wisata', '#E8641E'],
-    'umkm'        => ['UMKM', '#2E6B3A'],
+    'wisata'      => ['Wisata', '#F08A5D'],
+    'umkm'        => ['UMKM', '#15607F'],
     'fasilitas'   => ['Fasilitas umum', '#1F6F8B'],
     'pembangunan' => ['Pembangunan', '#6B4FA0'],
     'rawan'       => ['Rawan bencana', '#B3261E'],

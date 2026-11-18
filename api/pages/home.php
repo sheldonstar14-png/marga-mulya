@@ -24,7 +24,8 @@ $aspSelesai = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Seles
 
 // Hero Fusi A (Fase 12): angka mengambang dan foto lingkaran
 $penduduk = (int) (q1("SELECT COALESCE(SUM(nilai), 0) AS n FROM statistik WHERE kategori = 'Kependudukan' AND label IN ('Laki-laki', 'Perempuan')")['n'] ?? 0);
-$kk = (int) (q1("SELECT nilai FROM statistik WHERE kategori = 'Kependudukan' AND label = 'Kepala keluarga'")['nilai'] ?? 0);
+// Luas wilayah (km²) = jumlah penggunaan lahan dalam hektare dibagi 100
+$luasKm = round((float) (q1("SELECT COALESCE(SUM(nilai), 0) AS n FROM statistik WHERE kategori = 'Lahan' AND satuan = 'ha'")['n'] ?? 0) / 100, 2);
 $jumlahUmkm = (int) q1('SELECT COUNT(*) AS n FROM umkm')['n'];
 $fotoHero = setting('foto_hero') ?: (array_values(array_filter(array_column($wisata, 'foto')))[0] ?? '/assets/img/sawah.svg');
 $darurat = q('SELECT nama, nomor, keterangan FROM darurat ORDER BY urutan, id LIMIT 4');
@@ -88,7 +89,7 @@ ob_start(); ?>
       <div class="fusi-a-lingkar"><img src="<?= e($fotoHero) ?>" alt="Pemandangan <?= e(setting('nama_desa')) ?>" fetchpriority="high"></div>
       <div class="fusi-a-stat">
         <a class="float-stat fs-1" href="/data-desa"><span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M16 3.1a4 4 0 0 1 0 7.8M23 21v-2a4 4 0 0 0-3-3.9"/></svg></span><span><b><?= angka($penduduk) ?></b><span>Penduduk</span></span></a>
-        <a class="float-stat fs-2" href="/data-desa"><span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-7 9 7v10H3z"/><path d="M9 21v-6h6v6"/></svg></span><span><b><?= angka($kk) ?></b><span>Kepala keluarga</span></span></a>
+        <a class="float-stat fs-2" href="/data-desa"><span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></span><span><b><?= str_replace('.', ',', (string) $luasKm) ?> km²</b><span>Luas wilayah</span></span></a>
         <a class="float-stat fs-3" href="/wisata"><span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 20l6-9 4 5 3-4 5 8z"/><circle cx="16" cy="6" r="2"/></svg></span><span><b><?= count($wisata) ?> destinasi</b><span>Wisata alam</span></span></a>
         <a class="float-stat fs-4" href="/umkm"><span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16l-1.5 13h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span><span><b><?= $jumlahUmkm ?> UMKM</b><span>Karya warga</span></span></a>
       </div>
@@ -100,7 +101,7 @@ ob_start(); ?>
     <?php if ($apb && $apb['a'] > 0): $pr = min(100, persen((float) $apb['r'], (float) $apb['a'])); $kel = 2 * 3.1416 * 30; ?>
     <a class="bento-kartu" href="/data-desa?grup=Transparansi">
       <div style="display:flex;align-items:center;gap:14px">
-        <span class="cincin" aria-hidden="true"><svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="#E2EAD5" stroke-width="9"/><circle cx="38" cy="38" r="30" fill="none" stroke="#E8641E" stroke-width="9" stroke-linecap="round" stroke-dasharray="<?= round($kel * $pr / 100, 1) ?> <?= round($kel, 1) ?>" transform="rotate(-90 38 38)"/></svg><b><?= persen_id((float) $apb['r'], (float) $apb['a']) ?>%</b></span>
+        <span class="cincin" aria-hidden="true"><svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="#D3E6EA" stroke-width="9"/><circle cx="38" cy="38" r="30" fill="none" stroke="#F08A5D" stroke-width="9" stroke-linecap="round" stroke-dasharray="<?= round($kel * $pr / 100, 1) ?> <?= round($kel, 1) ?>" transform="rotate(-90 38 38)"/></svg><b><?= persen_id((float) $apb['r'], (float) $apb['a']) ?>%</b></span>
         <div><h3>Belanja desa <?= $tahunApb ?></h3><p><?= rupiah_ringkas((float) $apb['r']) ?> dari <?= rupiah_ringkas((float) $apb['a']) ?></p></div>
       </div>
       <span class="bulat" style="background:var(--paper)" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg></span>

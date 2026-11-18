@@ -24,7 +24,7 @@ $daftarMenu = [
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($judul) ?></title>
   <meta name="description" content="<?= e(setting('hero_teks')) ?>">
-  <meta name="theme-color" content="#1E4D2B">
+  <meta name="theme-color" content="#0B3C5D">
   <meta property="og:type" content="website">
   <meta property="og:title" content="<?= e($judul) ?>">
   <meta property="og:description" content="<?= e(setting('hero_teks')) ?>">
@@ -37,7 +37,7 @@ $daftarMenu = [
   <?php if (!empty($pakaiPeta)): ?>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12n">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12o">
 </head>
 <body>
 <a class="skip" href="#isi">Langsung ke isi halaman</a>
