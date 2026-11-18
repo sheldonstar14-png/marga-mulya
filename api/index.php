@@ -58,6 +58,7 @@ $rute = [
     'asisten'   => 'asisten', // bukan halaman: jawaban Asisten Desa (JSON)
     'unduh-data' => 'unduh-data', // bukan halaman: unduhan CSV statistik desa untuk umum
     'foto-aspirasi' => 'foto-aspirasi', // bukan halaman: foto laporan warga dari database
+    'foto' => 'foto', // bukan halaman: foto unggahan warga (produk UMKM) dari database
     'laporan-otomatis' => 'laporan-otomatis', // bukan halaman: dipanggil Vercel Cron tiap tanggal 1
 ];
 

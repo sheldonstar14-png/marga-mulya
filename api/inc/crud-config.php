@@ -73,7 +73,7 @@ $CRUD = [
         'format' => ['foto' => 'foto', 'harga' => 'rupiah'],
         'field' => [
             ['nama_usaha', 'Nama usaha', 'text', ['wajib' => true, 'maks' => 150]],
-            ['kategori', 'Kategori', 'select', ['pilihan' => ['Makanan', 'Kerajinan', 'Olahan tani', 'Jasa'], 'bisaTambah' => true]],
+            ['kategori', 'Kategori', 'select', ['pilihan' => KATEGORI_UMKM, 'bisaTambah' => true]],
             ['produk', 'Nama produk', 'text', ['wajib' => true, 'maks' => 150]],
             ['deskripsi', 'Cerita singkat usaha dan produk (opsional, tampil di kartu UMKM)', 'textarea', ['maks' => 600]],
             ['harga', 'Harga (Rp)', 'number', ['min' => 0]],
@@ -130,6 +130,22 @@ $CRUD = [
         ],
         'baru' => ['relawan_kuota' => 0],
         'tombolTambahan' => ['/admin/relawan', 'Lihat daftar relawan'],
+    ],
+
+    'kreditfoto' => [
+        'judul' => 'Sumber & kredit foto', 'satu' => 'sumber', 'tabel' => 'kredit_foto', 'urut' => 'urutan, id',
+        'catatan' => 'Daftar ini tampil saat pengunjung menekan "Sumber dan kredit" di bagian bawah website. Wajib diisi untuk setiap foto atau data yang bukan milik tim, sesuai aturan lomba tentang atribusi aset.',
+        'kolom' => ['judul' => 'Judul', 'pembuat' => 'Pembuat', 'lisensi' => 'Lisensi', 'urutan' => 'Urutan'],
+        'field' => [
+            ['judul', 'Judul foto atau aset', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Perahu nelayan di Pantai Pasir Putih']],
+            ['pembuat', 'Pembuat atau pemilik', 'text', ['maks' => 150, 'contoh' => 'Nama fotografer']],
+            ['sumber_url', 'Alamat sumber (link)', 'text', ['maks' => 500, 'contoh' => 'https://commons.wikimedia.org/wiki/File:...']],
+            ['lisensi', 'Lisensi', 'text', ['maks' => 80, 'contoh' => 'CC BY-SA 4.0, karya sendiri, izin pemilik']],
+            ['lisensi_url', 'Link lisensi (opsional)', 'text', ['maks' => 300]],
+            ['keterangan', 'Keterangan (opsional)', 'text', ['maks' => 300]],
+            ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
+        ],
+        'baru' => ['urutan' => 10],
     ],
 
     'survei' => [

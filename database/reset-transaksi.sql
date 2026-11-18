@@ -8,6 +8,8 @@
 -- =========================================================
 
 DELETE FROM relawan;
+DELETE FROM foto_unggah WHERE id IN (SELECT foto_id FROM pengajuan_umkm WHERE status <> 'Diterbitkan' AND foto_id IS NOT NULL);
+DELETE FROM pengajuan_umkm WHERE status <> 'Diterbitkan';
 DELETE FROM survei;
 DELETE FROM aspirasi_dukung;
 DELETE FROM aspirasi_foto;
@@ -167,3 +169,8 @@ INSERT INTO survei (jenis, kode, layanan, nilai, komentar, tampil) VALUES
 ('aspirasi', 'ADU-Q8VB2E', 'Kesehatan', 4, '', 0),
 ('aspirasi', 'ADU-T6HC3G', 'Pelayanan administrasi', 5, 'Sekarang tidak perlu antre lama di hari Senin.', 1),
 ('aspirasi', 'ADU-M3XT8B', 'Kebersihan dan lingkungan', 4, '', 0);
+
+-- Pengajuan produk UMKM dari warga (contoh, menunggu ditinjau)
+INSERT IGNORE INTO pengajuan_umkm (kode, nama_usaha, kategori, produk, harga, satuan, pemilik, wa, deskripsi, status) VALUES
+('PRD-4TQ8MA', 'Ikan Asin Bu Romlah (ilustrasi)', 'Olahan hasil laut', 'Ikan asin teri jengki', 25000, '250 g', 'Bu Romlah, RT 02 (ilustrasi)', '6281200000401', 'Teri dari nelayan Margamulya, dijemur dua hari di para-para bambu.', 'Menunggu'),
+('PRD-7HD2KE', 'Terasi Udang Rebon Pak Darta (ilustrasi)', 'Olahan hasil laut', 'Terasi udang rebon', 15000, '100 g', 'Pak Darta, RT 09 (ilustrasi)', '6281200000402', 'Terasi tumbuk dari rebon segar tanpa pewarna.', 'Menunggu');

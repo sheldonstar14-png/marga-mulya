@@ -756,3 +756,31 @@ function survei_form(string $jenis, string $kode, string $aksi, ?string $error =
         . '</form>';
     return $html;
 }
+
+// ---------- Tambahan 12p: foto unggahan warga + pengajuan produk ----------
+function simpan_foto_unggah(array $f): int
+{
+    $st = db()->prepare('INSERT INTO foto_unggah (mime, lebar, tinggi, data) VALUES (?, ?, ?, ?)');
+    $st->bindValue(1, $f['mime']);
+    $st->bindValue(2, $f['lebar'], PDO::PARAM_INT);
+    $st->bindValue(3, $f['tinggi'], PDO::PARAM_INT);
+    $st->bindValue(4, $f['data'], PDO::PARAM_LOB);
+    $st->execute();
+    return (int) db()->lastInsertId();
+}
+
+function daftar_kredit(): array
+{
+    try { return q('SELECT * FROM kredit_foto ORDER BY urutan, id'); } catch (Throwable $e) { return []; }
+}
+
+const KATEGORI_UMKM = ['Olahan hasil laut', 'Olahan kelapa', 'Makanan', 'Kerajinan', 'Olahan tani', 'Jasa'];
+
+// Tautan "Lihat referensi" di akhir data statistik (alamat diatur di CMS > Pengaturan)
+function tautan_referensi(): string
+{
+    $url = setting('referensi_data_url');
+    if ($url === '') return '';
+    return '<p class="referensi"><span>Sumber: ' . e(setting('referensi_data_nama')) . '</span> <a href="' . e($url) . '" target="_blank" rel="noopener">Lihat referensi<span class="sr-only"> (membuka situs BPS)</span></a></p>';
+}
+

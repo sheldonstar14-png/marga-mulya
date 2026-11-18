@@ -33,18 +33,18 @@ $daftarMenu = [
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Young+Serif&display=swap" rel="stylesheet">
   <?php if (!empty($pakaiPeta)): ?>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12o">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12p">
 </head>
 <body>
 <a class="skip" href="#isi">Langsung ke isi halaman</a>
 <header class="top">
   <div class="top-in">
     <a class="brand" href="/">
-      <img class="brand-logo" src="/assets/img/logo-mark.png" alt="" width="68" height="38">
+      <img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="74" height="40">
       <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?></small></span>
     </a>
     <div class="top-aksi">

@@ -107,6 +107,37 @@ if (isset($_GET['pesanan'])) {
     }
 }
 
+// ---------- Pengajuan produk baru oleh warga ----------
+// Warga mengisi form, petugas meninjau di CMS > Pengajuan produk, lalu menerbitkannya ke daftar UMKM.
+$errorAju = [];
+$isiAju = ['nama_usaha' => '', 'kategori' => KATEGORI_UMKM[0], 'produk' => '', 'harga' => '', 'satuan' => '', 'pemilik' => '', 'wa' => '', 'deskripsi' => ''];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ajukan') {
+    foreach ($isiAju as $k => $_) $isiAju[$k] = trim((string) ($_POST[$k] ?? ''));
+    $waAju = nomor_wa($isiAju['wa']);
+    if (!empty($_POST['website'])) $errorAju[] = 'Pengajuan ditolak.';
+    if (mb_strlen($isiAju['nama_usaha']) < 3 || mb_strlen($isiAju['nama_usaha']) > 150) $errorAju[] = 'Isi nama usaha (3 sampai 150 huruf).';
+    if (!in_array($isiAju['kategori'], KATEGORI_UMKM, true)) $errorAju[] = 'Pilih kategori produk.';
+    if (mb_strlen($isiAju['produk']) < 3 || mb_strlen($isiAju['produk']) > 150) $errorAju[] = 'Isi nama produk (3 sampai 150 huruf).';
+    if (!ctype_digit($isiAju['harga']) || (int) $isiAju['harga'] < 500 || (int) $isiAju['harga'] > 50000000) $errorAju[] = 'Harga diisi angka saja, contoh 15000.';
+    if ($isiAju['satuan'] === '' || mb_strlen($isiAju['satuan']) > 40) $errorAju[] = 'Isi satuan, contoh 250 g atau per bungkus.';
+    if (mb_strlen($isiAju['pemilik']) < 3 || mb_strlen($isiAju['pemilik']) > 150) $errorAju[] = 'Isi nama pemilik dan RT.';
+    if (!preg_match('/^628\d{7,11}$/', $waAju)) $errorAju[] = 'Nomor WhatsApp belum benar. Contoh: 081234567890.';
+    if (mb_strlen($isiAju['deskripsi']) > 600) $errorAju[] = 'Cerita produk maksimal 600 huruf.';
+    if (empty($_POST['setuju_data'])) $errorAju[] = 'Centang persetujuan supaya nomor WhatsApp bisa ditampilkan untuk pembeli.';
+    [$fotoAju, $errFoto] = siapkan_foto_aspirasi($_FILES['foto'] ?? []);
+    $errorAju = array_merge($errorAju, $errFoto);
+    if (!$errorAju) {
+        $fotoId = $fotoAju ? simpan_foto_unggah($fotoAju[0]) : null;
+        $kodeAju = kode_unik('PRD', 'pengajuan_umkm');
+        q('INSERT INTO pengajuan_umkm (kode, nama_usaha, kategori, produk, harga, satuan, pemilik, wa, deskripsi, foto_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$kodeAju, $isiAju['nama_usaha'], $isiAju['kategori'], $isiAju['produk'], (int) $isiAju['harga'], $isiAju['satuan'], $isiAju['pemilik'], $waAju, $isiAju['deskripsi'], $fotoId]);
+        redirect('/umkm?cek=' . urlencode($kodeAju) . '&baru=1#ajukan');
+    }
+}
+$kodeCekAju = strtoupper(trim((string) ($_GET['cek'] ?? '')));
+$hasilAju = null;
+if ($kodeCekAju !== '') { try { $hasilAju = q1('SELECT kode, nama_usaha, produk, status, catatan, umkm_id, dibuat_pada FROM pengajuan_umkm WHERE kode = ?', [$kodeCekAju]); } catch (Throwable $e) {} }
+
 $nilaiUmkm = [];
 foreach (q('SELECT umkm_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan_umkm WHERE tampil = 1 GROUP BY umkm_id') as $r) $nilaiUmkm[(int) $r['umkm_id']] = $r;
 $ulasanTerbaru = [];
@@ -118,10 +149,14 @@ $judul = 'Produk UMKM - ' . setting('nama_desa');
 $menu  = 'umkm';
 require __DIR__ . '/../inc/header.php';
 ?>
-<div class="wrap page-title">
-  <h1>Produk UMKM warga</h1>
-  <p>Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.</p>
+<div class="wrap page-title page-title-aksi">
+  <div>
+    <h1>Produk UMKM warga</h1>
+    <p>Olahan hasil laut, kelapa, dan kerajinan buatan warga. Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.</p>
+  </div>
+  <a class="btn btn-dark" href="#ajukan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Ajukan produk</a>
 </div>
+<div class="wrap"><div class="info-lapak"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 10h16l-1-5H5zM5 10v9h14v-9M9 19v-5h6v5"/></svg><p>Setiap produk ditinjau petugas desa sebelum tampil. Ketersediaan dan pembayaran disepakati langsung dengan penjual.</p><a href="#cek-ajuan">Cek pengajuan</a></div></div>
 <div class="wrap" style="padding-top:8px" id="kupon">
   <?php if ($hasilKupon): ?>
     <div class="panel kupon-cek <?= isset($_GET['ditukar']) ? 'kupon-ok' : ($hasilKupon['ok'] ? 'kupon-ok' : 'kupon-tidak') ?>" role="status">
@@ -213,6 +248,60 @@ require __DIR__ . '/../inc/header.php';
   </div>
   <?php if (!$umkm): ?><p class="muted">Belum ada produk di kategori ini.</p><?php endif; ?>
 </div>
+<section class="wrap ajukan" id="ajukan" aria-labelledby="judul-ajukan">
+  <div class="ajukan-kiri">
+    <h2 id="judul-ajukan">Punya produk? Ajukan di sini</h2>
+    <p>Nelayan, pengolah ikan, pengrajin batok, atau pembuat kue rumahan di Marga Mulya bisa menitipkan produknya di website desa, gratis.</p>
+    <ol class="langkah-aju">
+      <li>Isi data produk dan foto yang jelas.</li>
+      <li>Petugas desa meninjau, biasanya 1 sampai 2 hari kerja.</li>
+      <li>Produk tampil di halaman ini, dan pesanan masuk langsung ke WhatsApp-mu.</li>
+    </ol>
+    <div class="panel" id="cek-ajuan">
+      <h3 style="margin:0 0 8px">Cek pengajuan</h3>
+      <form method="get" action="/umkm#cek-ajuan" class="grid" style="grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end">
+        <div><label for="cek-kode">Kode pengajuan</label><input id="cek-kode" name="cek" value="<?= e($kodeCekAju) ?>" placeholder="Contoh: PRD-4TQ8MA"></div>
+        <button class="btn btn-dark" type="submit">Cek</button>
+      </form>
+      <?php if ($kodeCekAju !== ''): ?>
+        <?php if ($hasilAju): $tahapAju = $hasilAju['status'] === 'Ditolak' ? ['Diterima', 'Ditolak'] : ['Diterima', 'Ditinjau', 'Diterbitkan'];
+          $posAju = ['Menunggu' => 0, 'Ditinjau' => 1, 'Diterbitkan' => 2, 'Ditolak' => 1][$hasilAju['status']] ?? 0; ?>
+          <div class="hasil-adu" role="status" style="margin-top:14px">
+            <?php if (isset($_GET['baru'])): ?><div class="alert alert-ok">Pengajuan terkirim. Simpan kode <b><?= e($hasilAju['kode']) ?></b> untuk mengecek statusnya.</div><?php endif; ?>
+            <p style="margin:0"><b><?= e($hasilAju['produk']) ?></b>, <?= e($hasilAju['nama_usaha']) ?></p>
+            <ol class="steps steps-kecil"><?php foreach ($tahapAju as $i => $tp): ?><li class="<?= $i <= $posAju ? 'done' : '' ?> <?= $tp === 'Ditolak' ? 'bad' : '' ?>"><?= $tp ?></li><?php endforeach; ?></ol>
+            <?php if ($hasilAju['catatan']): ?><div class="tanggapan"><b>Catatan petugas</b><p><?= nl2br(e($hasilAju['catatan'])) ?></p></div><?php endif; ?>
+            <?php if ($hasilAju['status'] === 'Diterbitkan' && $hasilAju['umkm_id']): ?><p class="small" style="margin:10px 0 0"><a href="/umkm#umkm-<?= (int) $hasilAju['umkm_id'] ?>">Lihat produkmu di halaman UMKM</a></p><?php endif; ?>
+          </div>
+        <?php else: ?>
+          <div class="alert alert-err" role="alert" style="margin-top:14px">Kode <?= e($kodeCekAju) ?> tidak ditemukan. Kode diawali PRD-.</div>
+        <?php endif; ?>
+      <?php endif; ?>
+    </div>
+  </div>
+  <form class="panel ajukan-form" method="post" action="/umkm#ajukan" enctype="multipart/form-data">
+    <input type="hidden" name="aksi" value="ajukan">
+    <?php if ($errorAju): ?><div class="alert alert-err" role="alert"><b>Pengajuan belum terkirim:</b><ul><?php foreach ($errorAju as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+    <div class="grid g2" style="gap:12px">
+      <div class="field"><label for="aj-usaha">Nama usaha</label><input id="aj-usaha" name="nama_usaha" value="<?= e($isiAju['nama_usaha']) ?>" maxlength="150" required placeholder="Contoh: Ikan Asin Bu Romlah"></div>
+      <div class="field"><label for="aj-kat">Kategori</label><select id="aj-kat" name="kategori"><?php foreach (KATEGORI_UMKM as $k): ?><option <?= $isiAju['kategori'] === $k ? 'selected' : '' ?>><?= e($k) ?></option><?php endforeach; ?></select></div>
+    </div>
+    <div class="field"><label for="aj-produk">Nama produk</label><input id="aj-produk" name="produk" value="<?= e($isiAju['produk']) ?>" maxlength="150" required placeholder="Contoh: Ikan asin teri jengki"></div>
+    <div class="grid g2" style="gap:12px">
+      <div class="field"><label for="aj-harga">Harga (Rp)</label><input id="aj-harga" name="harga" value="<?= e($isiAju['harga']) ?>" inputmode="numeric" pattern="[0-9]*" required placeholder="25000"></div>
+      <div class="field"><label for="aj-satuan">Per satuan</label><input id="aj-satuan" name="satuan" value="<?= e($isiAju['satuan']) ?>" maxlength="40" required placeholder="250 g, bungkus, buah"></div>
+    </div>
+    <div class="grid g2" style="gap:12px">
+      <div class="field"><label for="aj-pemilik">Pemilik dan RT</label><input id="aj-pemilik" name="pemilik" value="<?= e($isiAju['pemilik']) ?>" maxlength="150" required placeholder="Bu Romlah, RT 02"></div>
+      <div class="field"><label for="aj-wa">WhatsApp untuk pesanan</label><input id="aj-wa" name="wa" value="<?= e($isiAju['wa']) ?>" inputmode="tel" required placeholder="08xxxxxxxxxx"></div>
+    </div>
+    <div class="field"><label for="aj-desk">Cerita singkat produk (opsional)</label><textarea id="aj-desk" name="deskripsi" rows="3" maxlength="600" placeholder="Bahan dari mana, cara membuat, keunggulannya"><?= e($isiAju['deskripsi']) ?></textarea></div>
+    <div class="field foto-lapor"><label for="aj-foto">Foto produk (opsional, 1 foto)</label><input id="aj-foto" name="foto[]" type="file" accept="image/jpeg,image/png,image/webp"><div class="hint">Foto diperkecil otomatis dan data lokasi di dalamnya dihapus.</div></div>
+    <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required> <span>Saya pemilik usaha ini dan setuju nama usaha serta nomor WhatsApp ditampilkan untuk pembeli setelah diterbitkan.</span></label>
+    <div class="hp" aria-hidden="true"><label>Jangan diisi<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn btn-main" type="submit">Kirim pengajuan</button>
+  </form>
+</section>
 <!-- Keranjang -->
 <button type="button" class="keranjang-bar" id="keranjangBar" hidden aria-haspopup="dialog">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16l-1.5 13h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
@@ -241,6 +330,6 @@ require __DIR__ . '/../inc/header.php';
   </form>
 </dialog>
 <?php
-$scriptHalaman = ($pesananBaru ? '<script>try{localStorage.removeItem("mm_keranjang")}catch(e){}</script>' : '') . '<script src="/assets/js/keranjang.js"></script>' . ($errorPesan ? '<script>document.addEventListener("DOMContentLoaded",function(){var d=document.getElementById("keranjangDialog");d&&d.showModal&&d.showModal()})</script>' : '');
+$scriptHalaman = ($errorAju ? '<script>document.addEventListener("DOMContentLoaded",function(){var a=document.getElementById("ajukan");a&&a.scrollIntoView()})</script>' : '') . ($pesananBaru ? '<script>try{localStorage.removeItem("mm_keranjang")}catch(e){}</script>' : '') . '<script src="/assets/js/keranjang.js"></script>' . ($errorPesan ? '<script>document.addEventListener("DOMContentLoaded",function(){var d=document.getElementById("keranjangDialog");d&&d.showModal&&d.showModal()})</script>' : '');
 require __DIR__ . '/../inc/footer.php';
 ?>

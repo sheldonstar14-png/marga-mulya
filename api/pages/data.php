@@ -556,7 +556,8 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   <div class="catatan-data">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
     <div><p style="margin:0 0 8px"><?= e(setting('catatan_data')) ?></p>
-    <a class="unduh" href="/unduh-data" download>Unduh semua data statistik (CSV, bisa dibuka di Excel)</a></div>
+    <a class="unduh" href="/unduh-data" download>Unduh semua data statistik (CSV, bisa dibuka di Excel)</a>
+    <?= tautan_referensi() ?></div>
   </div>
 <?php endif; ?>
 </div>

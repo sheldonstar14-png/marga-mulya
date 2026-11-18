@@ -35,11 +35,13 @@ $grup = [
             'wa'          => ['Nomor WhatsApp desa', 'text'],
             'lat'         => ['Lintang kantor desa (latitude)', 'text'],
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
-            'kredit_foto' => ['Kredit foto (opsional, tampil di bagian paling bawah website)', 'area'],
+            'kredit_foto' => ['Kredit foto lama berbentuk teks (opsional). Lebih rapi pakai menu Sumber & kredit foto', 'area'],
             'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
             'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
             'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
             'catatan_data' => ['Catatan di bawah data statistik (sumber dan status data)', 'area'],
+            'referensi_data_nama' => ['Nama referensi data (tampil di bawah statistik)', 'text'],
+            'referensi_data_url' => ['Link referensi data, misalnya halaman publikasi BPS (tempel link lengkapnya)', 'text'],
             'email_laporan' => ['Email penerima laporan bulanan, misalnya kepala desa (boleh lebih dari satu, pisahkan koma)', 'text'],
             'tiket_hijau_aktif' => ['Tiket Hijau aktif? Isi 1 untuk aktif, 0 untuk mati', 'text'],
             'tiket_hijau_skor' => ['Skor hijau yang mendapat kupon (pisahkan koma, contoh A,B)', 'text'],
@@ -62,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";

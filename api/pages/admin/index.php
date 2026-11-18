@@ -34,6 +34,7 @@ $halamanAdmin = [
     'surat'       => 'surat.php',
     'antrean'     => 'antrean.php',
     'bansos'      => 'bansos.php',
+    'pengajuanumkm' => 'pengajuan-umkm.php',
 ];
 // Halaman yang memakai hak akses menu lain
 $aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik', 'antrean' => 'surat'];

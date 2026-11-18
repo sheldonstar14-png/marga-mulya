@@ -30,7 +30,7 @@ small{display:block;text-align:center;color:#475663;margin-top:16px;font-size:.8
 </head>
 <body>
 <main>
-  <img class="logo" src="/assets/img/logo-mark.png" alt="Logo Desa Marga Mulya" width="400" height="225">
+  <img class="logo" src="/assets/img/logo-desa.png?v=2" alt="Logo Desa Marga Mulya" width="600" height="396">
   <h1>Website sedang dalam pengembangan</h1>
   <p><?= gerbang_mode() === 'cms' ? 'Masuk dengan akun CMS tim untuk melihat website.' : 'Masukkan password tim untuk melihat website.' ?></p>
   <?php if ($error): ?><div class="salah" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>

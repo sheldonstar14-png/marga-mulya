@@ -546,6 +546,54 @@ CREATE TABLE IF NOT EXISTS survei (
 );
 UPDATE admin SET akses = CONCAT(akses, ',survei') WHERE (akses LIKE '%surat%' OR akses LIKE '%aspirasi%') AND akses NOT LIKE '%survei%';
 
+-- ---------- Tambahan 12p: kredit foto, referensi data, pengajuan produk UMKM ----------
+CREATE TABLE IF NOT EXISTS kredit_foto (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  judul VARCHAR(150) NOT NULL,
+  pembuat VARCHAR(150) NOT NULL DEFAULT '',
+  sumber_url VARCHAR(500) NOT NULL DEFAULT '',
+  lisensi VARCHAR(80) NOT NULL DEFAULT '',
+  lisensi_url VARCHAR(300) NOT NULL DEFAULT '',
+  keterangan VARCHAR(300) NOT NULL DEFAULT '',
+  urutan INT NOT NULL DEFAULT 10
+);
+
+-- Foto yang diunggah warga (misalnya foto produk UMKM). Tampil ke publik hanya setelah disetujui petugas.
+CREATE TABLE IF NOT EXISTS foto_unggah (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mime VARCHAR(20) NOT NULL DEFAULT 'image/jpeg',
+  lebar INT NOT NULL DEFAULT 0,
+  tinggi INT NOT NULL DEFAULT 0,
+  data MEDIUMBLOB NOT NULL,
+  publik TINYINT NOT NULL DEFAULT 0,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pengajuan_umkm (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  kode VARCHAR(20) NOT NULL UNIQUE,
+  nama_usaha VARCHAR(150) NOT NULL,
+  kategori VARCHAR(60) NOT NULL,
+  produk VARCHAR(150) NOT NULL,
+  harga INT NOT NULL DEFAULT 0,
+  satuan VARCHAR(40) NOT NULL DEFAULT '',
+  pemilik VARCHAR(150) NOT NULL,
+  wa VARCHAR(20) NOT NULL,
+  deskripsi VARCHAR(600) NOT NULL DEFAULT '',
+  foto_id INT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'Menunggu',
+  catatan VARCHAR(500) NOT NULL DEFAULT '',
+  umkm_id INT NULL,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  diperbarui_pada TIMESTAMP NULL
+);
+
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('referensi_data_nama', 'Kecamatan Mauk Dalam Angka 2025, BPS Kabupaten Tangerang (Katalog 1102001.3603160)'),
+('referensi_data_url', 'https://tangerangkab.bps.go.id/id/publication');
+UPDATE admin SET akses = CONCAT(akses, ',pengajuanumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%pengajuanumkm%';
+UPDATE admin SET akses = CONCAT(akses, ',kreditfoto') WHERE akses LIKE '%galeri%' AND akses NOT LIKE '%kreditfoto%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;
@@ -613,3 +661,11 @@ UPDATE aspirasi SET publik = 1 WHERE kode IN ('ADU-7KQ2PA','ADU-M3XT8B','ADU-R9H
 UPDATE aspirasi SET dukungan = 7 WHERE kode = 'ADU-P4LN7D' AND dukungan = 0;
 UPDATE aspirasi SET dukungan = 12 WHERE kode = 'ADU-Q8VB2E' AND dukungan = 0;
 UPDATE aspirasi SET dukungan = 4 WHERE kode = 'ADU-T6HC3G' AND dukungan = 0;
+
+-- Contoh isi 12p: sumber dan kredit (ganti atau tambah lewat CMS > Kredit foto)
+INSERT IGNORE INTO kredit_foto (id, judul, pembuat, sumber_url, lisensi, lisensi_url, keterangan, urutan) VALUES
+(1, 'Logo Desa Marga Mulya', 'Tim EcoQuest Marga Mulya', '', 'Karya sendiri', '', 'Logo website, bukan logo resmi pemerintah desa.', 1),
+(2, 'Ilustrasi perahu, ikan, pantai, mangrove, dan kelapa', 'Tim EcoQuest Marga Mulya', '', 'Karya sendiri', '', 'Gambar vektor yang dipakai bila foto asli belum tersedia.', 2),
+(3, 'Data statistik desa', 'BPS Kabupaten Tangerang', 'https://tangerangkab.bps.go.id/id/publication', 'Publikasi resmi BPS', '', 'Kecamatan Mauk Dalam Angka 2025.', 3),
+(4, 'Peta dasar', 'Kontributor OpenStreetMap', 'https://www.openstreetmap.org/copyright', 'ODbL', 'https://opendatacommons.org/licenses/odbl/', 'Ditampilkan lewat Leaflet.', 4),
+(5, 'Prakiraan cuaca', 'Open-Meteo', 'https://open-meteo.com/', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/', '', 5);

@@ -73,6 +73,7 @@ require __DIR__ . '/../inc/header.php';
     </div>
     <h3 style="margin-top:22px">Penggunaan lahan</h3>
     <div class="bars"><?= bar_list(statistik('Lahan')) ?></div>
+    <?= tautan_referensi() ?>
   </div>
 
   <div class="panel">
