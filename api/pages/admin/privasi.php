@@ -56,7 +56,7 @@ $menuAdmin = 'privasi';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Permintaan data pribadi</h2>
-<p class="muted">Warga berhak meminta salinan, perbaikan, atau penghapusan data pribadinya, dan menarik persetujuan. Tanggapi secepatnya. Data lama juga dihapus otomatis setelah <?= (int) setting('simpan_data_hari') ?> hari (atur di Pengaturan).</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Warga berhak meminta salinan, perbaikan, atau penghapusan data pribadinya, dan menarik persetujuan. Tanggapi secepatnya. Data lama juga dihapus otomatis setelah <?= (int) setting('simpan_data_hari') ?> hari (atur di Pengaturan).</p></details>
 <div class="grid" style="gap:14px">
   <?php foreach ($daftar as $p): $t = data_terkait($p); ?>
     <details class="panel aspirasi-item" <?= $buka === $p['kode'] || ($p['status'] === 'Diterima' && $buka === '') ? 'open' : '' ?>>

@@ -158,6 +158,7 @@ if ($aksi === 'tambah' && !empty($c['tanpaTambah'])) $aksi = '';
 if (in_array($aksi, ['tambah', 'edit'], true)):
     $id = $aksi === 'edit' ? (int) ($_GET['id'] ?? 0) : null;
     $baris = $id ? q1("SELECT * FROM $tabel WHERE id = ?", [$id]) : ($c['baru'] ?? []);
+    if (!$id && isset($_GET['induk_id']) && in_array('induk', array_column($c['field'], 2), true)) $baris['induk_id'] = (int) $_GET['induk_id'];
     if ($id && !$baris) {
         echo '<p>Data tidak ditemukan. <a href="' . $alamat . '">Kembali</a></p>';
         require __DIR__ . '/../../inc/admin-footer.php';
@@ -261,8 +262,18 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
         <?php endif; ?>
         </div>
       <?php endforeach; ?>
-      <div class="actions"><button class="btn btn-dark" type="submit">Simpan</button><a class="btn btn-ghost" href="<?= $alamat ?>">Batal</a></div>
+      <div class="actions aksi-lekat"><button class="btn btn-dark" type="submit">Simpan</button><a class="btn btn-ghost" href="<?= $alamat ?>">Batal</a></div>
     </form>
+    <?php if ($id): $namaBaris = $baris['nama'] ?? $baris['judul'] ?? $baris['produk'] ?? $baris['label'] ?? $baris['uraian'] ?? $baris['jenis'] ?? 'data ini'; ?>
+      <details class="zona-hapus">
+        <summary>Hapus <?= e($c['satu']) ?> ini</summary>
+        <p class="small">Data yang dihapus tidak bisa dikembalikan. Kalau hanya ingin menyembunyikan, pakai pilihan "Aktif" atau "Tampil" bila ada.</p>
+        <form method="post" action="<?= $alamat ?>" class="form-hapus" data-nama="<?= e($namaBaris) ?>">
+          <?= csrf_field() ?><input type="hidden" name="aksi" value="hapus"><input type="hidden" name="id" value="<?= (int) $id ?>">
+          <button class="btn btn-danger btn-sm" type="submit">Ya, hapus "<?= e(mb_strimwidth((string) $namaBaris, 0, 40, '...')) ?>"</button>
+        </form>
+      </details>
+    <?php endif; ?>
 
 <?php
 // ======================= DAFTAR =======================
@@ -281,22 +292,50 @@ else:
         <?php if (empty($c['tanpaTambah'])): ?><a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah">Tambah <?= e($c['satu']) ?></a><?php endif; ?>
       </div>
     </div>
-    <?php if (!empty($c['catatan'])): ?><p class="muted"><?= e($c['catatan']) ?></p><?php endif; ?>
+    <?php if (!empty($c['catatan'])): ?><details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p><?= e($c['catatan']) ?></p></details><?php endif; ?>
     <?php if ($saring): ?>
       <nav class="chips" aria-label="Saring">
         <?php foreach ($pilihanSaring as $p): ?><a class="chip <?= $p === $nilaiSaring ? 'on' : '' ?>" href="<?= $alamat ?>?<?= $saring ?>=<?= urlencode($p) ?>"><?= e($p) ?></a><?php endforeach; ?>
       </nav>
     <?php endif; ?>
-    <div class="panel table-wrap">
-      <table class="stack">
+    <?php if (count($daftar) > 6): ?>
+      <div class="cari-daftar"><label class="sr-only" for="cariDaftar">Cari di daftar</label><input type="search" id="cariDaftar" data-cari-daftar="#daftarCrud" placeholder="Cari di daftar ini" autocomplete="off"><span class="cari-info small muted" aria-live="polite"></span></div>
+    <?php endif; ?>
+    <?php if ($tabel === 'asisten_menu'):
+      // Tampilan pohon: pilihan anak di bawah induknya, supaya alur menu terlihat jelas
+      $anak = [];
+      foreach ($daftar as $bAs) $anak[(int) $bAs['induk_id']][] = $bAs;
+      $gambarPohon = function (int $induk, int $tingkat) use (&$gambarPohon, $anak, $alamat) {
+          foreach ($anak[$induk] ?? [] as $no => $bAs): ?>
+            <li data-cari-item class="pohon-item <?= $bAs['aktif'] ? '' : 'pohon-mati' ?>">
+              <div class="pohon-baris">
+                <span class="pohon-no"><?= $no + 1 ?></span>
+                <a class="pohon-judul" href="<?= $alamat ?>?aksi=edit&id=<?= (int) $bAs['id'] ?>"><?= e($bAs['judul']) ?></a>
+                <?php if (!$bAs['aktif']): ?><span class="status st-Dibatalkan">Disembunyikan</span><?php endif; ?>
+                <?php if (trim((string) $bAs['jawaban']) !== ''): ?><span class="tag">Jawaban</span><?php endif; ?>
+                <?php if ($tingkat < 3 && trim((string) $bAs['jawaban']) === ''): ?><a class="pohon-tambah" href="<?= $alamat ?>?aksi=tambah&induk_id=<?= (int) $bAs['id'] ?>">+ Pilihan di bawah ini</a><?php endif; ?>
+              </div>
+              <?php if (!empty($anak[(int) $bAs['id']])): ?><ol class="pohon"><?php $gambarPohon((int) $bAs['id'], $tingkat + 1); ?></ol><?php endif; ?>
+            </li>
+          <?php endforeach;
+      }; ?>
+      <div class="panel" id="daftarCrud">
+        <p class="small muted" style="margin-top:0">Nomor = urutan tombol yang dilihat pengunjung. Tekan judul untuk mengubah.</p>
+        <ol class="pohon pohon-akar"><?php $gambarPohon(0, 1); ?></ol>
+        <a class="btn btn-main btn-sm" href="<?= $alamat ?>?aksi=tambah&induk_id=0">+ Pilihan di menu awal</a>
+      </div>
+    <?php else: ?>
+    <div class="panel table-wrap" id="daftarCrud">
+      <table class="stack daftar-kartu">
         <thead><tr><?php foreach ($c['kolom'] as $label): ?><th><?= e($label) ?></th><?php endforeach; ?><th>Aksi</th></tr></thead>
         <tbody>
-        <?php foreach ($daftar as $baris): ?>
-          <tr>
+        <?php foreach ($daftar as $baris): $urutKol = 0; ?>
+          <tr data-cari-item>
             <?php foreach ($c['kolom'] as $kol => $label):
               $v = $baris[$kol] ?? '';
-              $f = $format[$kol] ?? ''; ?>
-              <td data-l="<?= e($label) ?>" class="<?= in_array($f, ['rupiah', 'angka'], true) ? 'num' : '' ?>">
+              $f = $format[$kol] ?? '';
+              $kelasKol = $f === 'foto' ? 'kol-foto' : ($urutKol++ === 0 ? 'kol-utama' : 'kol-lain'); ?>
+              <td data-l="<?= e($label) ?>" class="<?= $kelasKol ?> <?= in_array($f, ['rupiah', 'angka'], true) ? 'num' : '' ?>">
                 <?php if ($f === 'foto'): ?><div class="thumb"><?php if ($v): ?><img src="<?= e($v) ?>" alt=""><?php endif; ?></div>
                 <?php elseif ($f === 'rupiah'): ?><?= rupiah($v) ?>
                 <?php elseif ($f === 'angka'): ?><?= angka($v) ?>
@@ -309,9 +348,9 @@ else:
                 <?php else: ?><?= e($v) ?><?php endif; ?>
               </td>
             <?php endforeach; ?>
-            <td data-l="Aksi">
+            <td data-l="Aksi" class="kol-aksi">
               <div class="actions">
-                <a class="btn btn-dark btn-sm" href="<?= $alamat ?>?aksi=edit&id=<?= (int) $baris['id'] ?>">Edit</a>
+                <a class="btn btn-dark btn-sm tombol-edit" href="<?= $alamat ?>?aksi=edit&id=<?= (int) $baris['id'] ?>">Edit<span class="sr-only"> <?= e((string) ($baris['nama'] ?? $baris['judul'] ?? $baris['produk'] ?? $baris['label'] ?? '')) ?></span></a>
                 <form method="post" action="<?= $alamat ?>" class="form-hapus" data-nama="<?= e($baris['nama'] ?? $baris['judul'] ?? $baris['produk'] ?? $baris['label'] ?? $baris['uraian'] ?? $baris['jenis'] ?? 'data ini') ?>">
                   <?= csrf_field() ?><input type="hidden" name="aksi" value="hapus"><input type="hidden" name="id" value="<?= (int) $baris['id'] ?>">
                   <button class="btn btn-danger btn-sm" type="submit">Hapus</button>
@@ -324,5 +363,6 @@ else:
         </tbody>
       </table>
     </div>
+    <?php endif; ?>
 <?php endif;
 require __DIR__ . '/../../inc/admin-footer.php';

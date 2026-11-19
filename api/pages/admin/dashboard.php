@@ -44,6 +44,31 @@ $menuAdmin = 'dashboard';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Halo, <?= e(explode(',', $admin['nama'])[0]) ?></h2>
+<?php
+// Tugas hari ini: semua hal yang menunggu tindakan, diambil dari angka di menu
+$labelTugas = [
+    'aspirasi' => ['aspirasi warga baru', '/admin/aspirasi?status=Diterima'],
+    'surat' => ['pengajuan surat baru', '/admin/surat'],
+    'reservasi' => ['kunjungan rombongan menunggu konfirmasi', '/admin/reservasi?status=Menunggu'],
+    'pengajuanumkm' => ['produk UMKM menunggu ditinjau', '/admin/pengajuanumkm'],
+    'pesan' => ['pesan belum dibaca', '/admin/pesan'],
+    'ulasanumkm' => ['ulasan UMKM menunggu diperiksa', '/admin/ulasanumkm'],
+    'privasi' => ['permintaan data pribadi', '/admin/privasi'],
+];
+$tugas = array_filter($labelTugas, fn($k) => !empty($badge[$k]), ARRAY_FILTER_USE_KEY);
+?>
+<section class="tugas" aria-labelledby="judulTugas">
+  <h3 id="judulTugas">Tugas hari ini</h3>
+  <?php if ($tugas): ?>
+    <ul>
+      <?php foreach ($tugas as $k => [$teks, $url]): ?>
+        <li><a href="<?= $url ?>"><b><?= (int) $badge[$k] ?></b><span><?= e($teks) ?></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+      <?php endforeach; ?>
+    </ul>
+  <?php else: ?>
+    <p class="tugas-beres">Semua sudah ditangani. Terima kasih!</p>
+  <?php endif; ?>
+</section>
 <?php if (!$lihatReservasi): // akun petugas tanpa akses reservasi: tampilkan menu kerjanya saja ?>
   <p class="muted">Ini menu yang bisa kamu kelola:</p>
   <div class="stat-row">
@@ -57,27 +82,21 @@ require __DIR__ . '/../../inc/admin-header.php';
     </div>
   <?php endif; ?>
 <?php else: ?>
-<div class="stat-row">
-  <div class="stat"><span>Kunjungan rombongan menunggu</span><b><?= $jumlahMenunggu ?></b></div>
-  <div class="stat"><span>Pengunjung 7 hari ke depan</span><b><?= $pengunjungSepekan ?></b></div>
-  <div class="stat"><span>Pesan belum dibaca</span><b><?= $pesanBaru ?></b></div>
-  <div class="stat"><span>Produk UMKM tampil</span><b><?= $jumlahUmkm ?></b></div>
-</div>
-<div class="stat-row">
-  <?php $pengajuanBaru = 0; try { $pengajuanBaru = (int) q1("SELECT COUNT(*) AS n FROM pengajuan_umkm WHERE status = 'Menunggu'")['n']; } catch (Throwable $e) {} ?>
-  <a class="stat" style="text-decoration:none;color:inherit" href="/admin/pengajuanumkm"><span>Pengajuan produk UMKM menunggu</span><b><?= $pengajuanBaru ?></b></a>
-  <?php if ($aspirasiBaru !== null): ?><a class="stat" style="text-decoration:none;color:inherit" href="/admin/aspirasi?status=Diterima"><span>Aspirasi warga belum ditanggapi</span><b><?= $aspirasiBaru ?></b><small class="muted">buka menu Aspirasi</small></a><?php endif; ?>
+<h3 class="judul-ringkas">Ringkasan</h3>
+<div class="stat-mini">
+  <div><b><?= $pengunjungSepekan ?></b><span>pengunjung rombongan 7 hari ke depan</span></div>
+  <div><b><?= $jumlahUmkm ?></b><span>produk UMKM tampil</span></div>
 </div>
 
 <div class="grid g2">
   <div class="panel">
-    <h3>Perlu ditindaklanjuti</h3>
+    <h3>Rombongan menunggu konfirmasi</h3>
     <?php foreach ($menunggu as $r): ?>
       <p style="margin:0 0 10px"><b><?= e($r['kode']) ?></b> <?= e($r['nama']) ?><br>
       <span class="small muted"><?= e($r['wisata']) ?>, <?= tgl($r['tanggal'], 'pendek') ?>, <?= (int) $r['jumlah'] ?> orang</span></p>
     <?php endforeach; ?>
-    <?php if (!$menunggu): ?><p class="muted">Semua reservasi sudah ditangani.</p><?php endif; ?>
-    <a class="btn btn-dark btn-sm" href="/admin/reservasi?status=Menunggu">Buka reservasi</a>
+    <?php if (!$menunggu): ?><p class="muted">Semua kunjungan rombongan sudah ditangani.</p><?php endif; ?>
+    <a class="btn btn-dark btn-sm" href="/admin/reservasi?status=Menunggu">Buka kunjungan rombongan</a>
   </div>
   <div class="panel">
     <h3>Pengunjung per bulan</h3>

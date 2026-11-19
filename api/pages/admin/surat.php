@@ -37,14 +37,15 @@ $menuAdmin = 'surat';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <div class="head-row"><h2>Pengajuan surat online</h2><a class="btn btn-main btn-sm" href="/admin/antrean">Buka antrean hari ini</a></div>
-<p class="muted" style="max-width:75ch">Siapkan surat sebelum warga datang. Saat status diubah menjadi <b>Siap diambil</b>, warga mendapat email (kalau mengisinya). Cocokkan nama dengan KTP asli saat surat diserahkan.</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Siapkan surat sebelum warga datang. Saat status diubah menjadi <b>Siap diambil</b>, warga mendapat email (kalau mengisinya). Cocokkan nama dengan KTP asli saat surat diserahkan.</p></details>
 <nav class="chips" aria-label="Saring status">
   <a class="chip <?= $saring === '' ? 'on' : '' ?>" href="/admin/surat">Semua</a>
   <?php foreach ($daftarStatus as $st): ?><a class="chip <?= $saring === $st ? 'on' : '' ?>" href="/admin/surat?status=<?= urlencode($st) ?>"><?= $st ?> (<?= (int) ($jumlah[$st] ?? 0) ?>)</a><?php endforeach; ?>
 </nav>
-<div class="grid" style="gap:14px">
+<div class="cari-daftar"><label class="sr-only" for="cariDaftar">Cari kode, nama, atau isi</label><input type="search" id="cariDaftar" data-cari-daftar="#daftarItem" placeholder="Cari kode, nama, atau isi" autocomplete="off"><span class="cari-info small muted" aria-live="polite"></span></div>
+<div class="grid" style="gap:14px" id="daftarItem">
   <?php foreach ($daftar as $s): ?>
-    <details class="panel aspirasi-item" <?= $buka === $s['kode'] || ($buka === '' && $s['status'] === 'Diterima') ? 'open' : '' ?>>
+    <details data-cari-item class="panel aspirasi-item" <?= $buka === $s['kode'] || ($buka === '' && $s['status'] === 'Diterima') ? 'open' : '' ?>>
       <summary>
         <span><b><?= e($s['kode']) ?></b> <span class="tag"><?= e($s['layanan_nama']) ?></span></span>
         <span class="status st-<?= $warna[$s['status']] ?? 'Menunggu' ?>"><?= e($s['status']) ?></span>

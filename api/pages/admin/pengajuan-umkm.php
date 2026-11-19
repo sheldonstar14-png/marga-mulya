@@ -48,14 +48,15 @@ $menuAdmin = 'pengajuanumkm';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <div class="head-row"><h2>Pengajuan produk UMKM</h2><a class="btn btn-ghost btn-sm" href="/admin/umkm">Daftar UMKM tayang</a></div>
-<p class="muted" style="max-width:75ch">Periksa apakah usaha benar milik warga Marga Mulya, harga wajar, dan foto pantas. Tekan <b>Terbitkan</b> supaya produk tampil di halaman UMKM. Foto baru bisa dilihat publik setelah diterbitkan.</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Periksa apakah usaha benar milik warga Marga Mulya, harga wajar, dan foto pantas. Tekan <b>Terbitkan</b> supaya produk tampil di halaman UMKM. Foto baru bisa dilihat publik setelah diterbitkan.</p></details>
 <nav class="chips" aria-label="Saring status">
   <a class="chip <?= $saring === '' ? 'on' : '' ?>" href="/admin/pengajuanumkm">Semua</a>
   <?php foreach ($daftarStatus as $st): ?><a class="chip <?= $saring === $st ? 'on' : '' ?>" href="/admin/pengajuanumkm?status=<?= urlencode($st) ?>"><?= $st ?> (<?= (int) ($jumlah[$st] ?? 0) ?>)</a><?php endforeach; ?>
 </nav>
-<div class="grid" style="gap:14px">
+<div class="cari-daftar"><label class="sr-only" for="cariDaftar">Cari kode, nama, atau isi</label><input type="search" id="cariDaftar" data-cari-daftar="#daftarItem" placeholder="Cari kode, nama, atau isi" autocomplete="off"><span class="cari-info small muted" aria-live="polite"></span></div>
+<div class="grid" style="gap:14px" id="daftarItem">
   <?php foreach ($daftar as $p): ?>
-    <details class="panel aspirasi-item" <?= $buka === $p['kode'] || ($buka === '' && $p['status'] === 'Menunggu') ? 'open' : '' ?>>
+    <details data-cari-item class="panel aspirasi-item" <?= $buka === $p['kode'] || ($buka === '' && $p['status'] === 'Menunggu') ? 'open' : '' ?>>
       <summary>
         <span><b><?= e($p['kode']) ?></b> <?= e($p['produk']) ?> <span class="tag"><?= e($p['kategori']) ?></span></span>
         <span class="status st-<?= $warna[$p['status']] ?? 'Menunggu' ?>"><?= e($p['status']) ?></span>

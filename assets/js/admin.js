@@ -2,6 +2,42 @@
 // JAVASCRIPT CMS: konfirmasi hapus, upload foto ke Cloudinary, pilih lokasi di peta
 // =========================================================
 (function () {
+  // ---------- Menu CMS di HP: layar penuh + cari menu ----------
+  const menu = document.getElementById('menuCms'), bukaMenu = document.getElementById('menuCmsBtn'), tutupMenu = document.getElementById('menuCmsTutup');
+  if (menu && bukaMenu) {
+    const atur = buka => { document.body.classList.toggle('menu-cms-buka', buka); bukaMenu.setAttribute('aria-expanded', String(buka)); if (buka) { const c = document.getElementById('cariMenuCms'); if (c) c.focus(); } };
+    bukaMenu.addEventListener('click', () => atur(!document.body.classList.contains('menu-cms-buka')));
+    if (tutupMenu) tutupMenu.addEventListener('click', () => { atur(false); bukaMenu.focus(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('menu-cms-buka')) { atur(false); bukaMenu.focus(); } });
+  }
+  const cariMenu = document.getElementById('cariMenuCms');
+  if (cariMenu) cariMenu.addEventListener('input', () => {
+    const k = cariMenu.value.trim().toLowerCase();
+    menu.querySelectorAll('.side-link').forEach(a => { a.hidden = k !== '' && !a.textContent.toLowerCase().includes(k); });
+    menu.querySelectorAll('h4').forEach(h => {
+      let n = h.nextElementSibling, ada = false;
+      while (n && n.tagName !== 'H4') { if (n.classList.contains('side-link') && !n.hidden) ada = true; n = n.nextElementSibling; }
+      h.hidden = !ada;
+    });
+  });
+
+  // ---------- Di HP, seluruh kartu data bisa ditekan untuk membuka halaman edit ----------
+  document.querySelectorAll('table.daftar-kartu tr[data-cari-item]').forEach(tr => tr.addEventListener('click', e => {
+    if (window.innerWidth > 820 || e.target.closest('a, button, form, input')) return;
+    const a = tr.querySelector('.tombol-edit');
+    if (a) location.href = a.href;
+  }));
+
+  // ---------- Kotak cari di daftar panjang ----------
+  document.querySelectorAll('[data-cari-daftar]').forEach(input => {
+    const wadah = document.querySelector(input.dataset.cariDaftar), info = input.parentElement.querySelector('.cari-info');
+    input.addEventListener('input', () => {
+      const k = input.value.trim().toLowerCase(); let n = 0;
+      wadah.querySelectorAll('[data-cari-item]').forEach(el => { const cocok = !k || el.textContent.toLowerCase().includes(k); el.hidden = !cocok; if (cocok) n++; });
+      if (info) info.textContent = k ? n + ' data cocok' : '';
+    });
+  });
+
   // ---------- Konfirmasi sebelum menghapus / menolak ----------
   document.querySelectorAll('.form-hapus').forEach(f => f.addEventListener('submit', e => {
     if (!confirm('Hapus "' + f.dataset.nama + '"? Data yang dihapus tidak bisa dikembalikan.')) e.preventDefault();

@@ -51,7 +51,7 @@ $menuAdmin = 'aspirasi';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Aspirasi dan pengaduan warga</h2>
-<p class="muted">Setiap perubahan status atau tanggapan dikirim ke email warga dan tercatat di riwayat. Laporan yang diizinkan pengirim bisa ditampilkan di Papan Aspirasi (halaman Kontak) tanpa nama dan kontak. Periksa dulu isinya: jangan tampilkan laporan yang menyebut nama orang, berisi tuduhan, atau data pribadi.</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Setiap perubahan status atau tanggapan dikirim ke email warga dan tercatat di riwayat. Laporan yang diizinkan pengirim bisa ditampilkan di Papan Aspirasi (halaman Kontak) tanpa nama dan kontak. Periksa dulu isinya: jangan tampilkan laporan yang menyebut nama orang, berisi tuduhan, atau data pribadi.</p></details>
 <nav class="chips" aria-label="Saring status">
   <a class="chip <?= $saring === '' ? 'on' : '' ?>" href="/admin/aspirasi">Semua (<?= array_sum($hitung) ?>)</a>
   <?php foreach ($daftarStatus as $s): ?>
@@ -62,9 +62,10 @@ require __DIR__ . '/../../inc/admin-header.php';
   <p class="small muted">Paling banyak dilaporkan: <?= e(implode(', ', array_map(fn($k) => $k['kategori'] . ' (' . $k['n'] . ')', array_slice($perKategori, 0, 3)))) ?></p>
 <?php endif; ?>
 
-<div class="grid" style="gap:14px">
+<div class="cari-daftar"><label class="sr-only" for="cariDaftar">Cari kode, nama, atau isi</label><input type="search" id="cariDaftar" data-cari-daftar="#daftarItem" placeholder="Cari kode, nama, atau isi" autocomplete="off"><span class="cari-info small muted" aria-live="polite"></span></div>
+<div class="grid" style="gap:14px" id="daftarItem">
   <?php foreach ($daftar as $a): ?>
-    <details class="panel aspirasi-item" <?= $buka === $a['kode'] || ($a['status'] === 'Diterima' && $buka === '') ? 'open' : '' ?>>
+    <details data-cari-item class="panel aspirasi-item" <?= $buka === $a['kode'] || ($a['status'] === 'Diterima' && $buka === '') ? 'open' : '' ?>>
       <summary>
         <span><b><?= e($a['kode']) ?></b> <span class="tag"><?= e($a['kategori']) ?></span></span>
         <span class="status st-<?= e(['Diterima' => 'Menunggu', 'Diproses' => 'Dikonfirmasi', 'Selesai' => 'Selesai', 'Ditolak' => 'Dibatalkan'][$a['status']] ?? 'Menunggu') ?>"><?= e($a['status']) ?></span>

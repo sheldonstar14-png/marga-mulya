@@ -1176,3 +1176,108 @@ footer.kaki a{color:#fff}
   .ganti-foto{display:none}
   .sambut-teks{font-size:1rem}
 }
+
+/* =====================================================================
+   CMS ramah HP (Fase 12q)
+   - HP: bar menu bawah (Beranda, Aspirasi, Surat, Rombongan, Semua menu)
+     dan menu lengkap layar penuh dengan kotak cari.
+   - Daftar data jadi kartu ringkas; Hapus pindah ke halaman edit.
+   - Tombol Simpan menempel di bawah layar.
+   ===================================================================== */
+body.cms{background:#ECEEF0}
+.cms-atas,.cms-bawah,.side-tutup{display:none}
+.side-kepala{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.side-cari{width:100%;margin:2px 0 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:10px;padding:9px 12px;font-size:.95rem}
+.side-cari::placeholder{color:#B9CAD6}
+.side-link[hidden],.side h4[hidden]{display:none!important}
+.cara-pakai{max-width:75ch;margin:0 0 16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.cara-pakai summary{cursor:pointer;font:700 .95rem var(--head);color:var(--navy)}
+.cara-pakai p{margin:8px 0 2px;color:var(--muted);font-size:.95rem}
+.cari-daftar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px;max-width:560px}
+.cari-daftar input{flex:1;min-width:200px;background:#fff}
+[data-cari-item][hidden]{display:none!important}
+.zona-hapus{max-width:760px;margin-top:18px;border:1px solid #F2C2BB;border-radius:16px;padding:12px 16px;background:#FFF7F5}
+.zona-hapus summary{cursor:pointer;font-weight:700;color:#A12A1C}
+.aksi-lekat{position:sticky;bottom:0;z-index:5;background:#fff;margin:18px -22px -22px;padding:12px 22px;border-top:1px solid var(--line);border-radius:0 0 var(--r-m) var(--r-m)}
+.form-bagian .aksi-lekat{margin:14px 0 0;border:1px solid var(--line);border-radius:16px}
+/* Tugas hari ini */
+.tugas{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 20px;margin:0 0 22px}
+.tugas h3{margin:0 0 10px;font-size:1.15rem}
+.tugas ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tugas a{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:#F6F1E7;text-decoration:none;color:var(--ink);font-weight:700;min-height:56px}
+.tugas a:hover{background:#EFE6D3}
+.tugas a b{flex:none;min-width:38px;height:38px;border-radius:999px;background:var(--turmeric);color:#1E1006;display:grid;place-items:center;font:800 1.05rem var(--head);padding:0 8px}
+.tugas a span{flex:1}
+.tugas-beres{margin:0;color:#1E7A46;font-weight:700}
+.judul-ringkas{font-size:1rem;margin:0 0 8px;color:var(--muted)}
+.stat-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 22px}
+.stat-mini>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:baseline;gap:10px}
+.stat-mini b{font:800 1.5rem var(--head);color:var(--navy)}
+.stat-mini span{font-size:.88rem;color:var(--muted)}
+/* Pengaturan per bagian */
+.bagian-form{margin:0 0 12px;padding:0}
+.bagian-form>summary{cursor:pointer;padding:16px 20px;font:800 1.05rem var(--head);color:var(--navy);list-style-position:inside}
+.bagian-form[open]>summary{border-bottom:1px solid var(--line)}
+.bagian-form>.field{padding:0 20px}
+.bagian-form>.field:first-of-type{padding-top:16px}
+.bagian-form>.field:last-child{padding-bottom:6px}
+.saklar-privat{border:0;padding:0;margin:0}
+.saklar-privat legend{font-weight:700;margin-bottom:8px}
+.saklar-opsi{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;font-weight:400;cursor:pointer}
+.saklar-opsi input{width:22px;height:22px;flex:none;margin-top:2px}
+.saklar-opsi small{display:block;color:var(--muted);font-size:.88rem}
+.saklar-opsi:has(input:checked){border-color:#1E8E4F;background:#EEF8F1}
+.saklar-privat-1:has(input:checked){border-color:#C9842B;background:#FFF6E8}
+/* Asisten: tampilan pohon */
+.pohon{list-style:none;margin:0;padding:0 0 0 22px;border-left:2px solid var(--line)}
+.pohon-akar{padding-left:0;border-left:0;margin-bottom:14px}
+.pohon-item{margin:8px 0}
+.pohon-baris{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.pohon-no{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:800 .85rem var(--head)}
+.pohon-judul{font-weight:700;text-decoration:none;color:var(--ink);flex:1;min-width:160px}
+.pohon-judul:hover{text-decoration:underline}
+.pohon-tambah{font-size:.85rem;font-weight:700}
+.pohon-mati>.pohon-baris{opacity:.6}
+
+@media (max-width:820px){
+  .cms-atas{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;background:var(--navy);color:#fff;padding:10px 14px}
+  .cms-atas img{background:#F6F0E2;border-radius:8px;padding:3px 4px;width:44px;height:auto}
+  .cms-atas small{display:block;font-size:.72rem;color:#B9CAD6}
+  .cms-atas b{display:block;font:800 1rem/1.2 var(--head)}
+  body.cms .side{display:none!important}
+  body.cms.menu-cms-buka .side{display:block!important;position:fixed;inset:0;z-index:80;overflow-y:auto;padding:14px 16px 100px}
+  body.cms.menu-cms-buka{overflow:hidden}
+  body.cms .side h3,body.cms .side h4{display:block}
+  body.cms .side .side-link{white-space:normal;flex:none;min-height:48px;font-size:1rem}
+  .side-tutup{display:block!important;width:auto!important;background:rgba(255,255,255,.12)!important;color:#fff!important;border-radius:999px!important;font-size:1.6rem!important;line-height:1;padding:4px 14px 8px!important}
+  .cms-bawah{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:90;background:#fff;border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -6px 18px -12px rgba(11,60,93,.4)}
+  .cms-bawah a,.cms-bawah button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;padding:4px 2px;background:none;border:0;color:var(--muted);font:700 .72rem var(--head);text-decoration:none;cursor:pointer;border-radius:12px}
+  .cms-bawah .on{color:var(--navy);background:#EAF1F6}
+  .cms-bawah .badge{position:absolute;top:2px;left:calc(50% + 6px);font-style:normal;font-size:.68rem;min-width:18px;height:18px;padding:0 5px;display:grid;place-items:center}
+  .admin-main{padding:16px 12px 100px}
+  .admin-main h2{font-size:1.4rem}
+  .aksi-lekat{bottom:68px;margin:16px -18px -18px;padding:12px 18px;box-shadow:0 -8px 16px -14px rgba(11,60,93,.5)}
+  .form-bagian .aksi-lekat{margin:14px 0 0}
+  .aksi-lekat .btn{flex:1}
+  .stat-mini{grid-template-columns:1fr}
+  /* Daftar data jadi kartu ringkas */
+  table.daftar-kartu,table.daftar-kartu tbody{display:block;width:100%}
+  table.daftar-kartu thead{display:none}
+  table.daftar-kartu tr{display:grid;border-bottom:1px solid var(--line);grid-template-columns:1fr auto;gap:2px 12px;padding:14px 6px;position:relative;align-items:start}
+  table.daftar-kartu tr:has(.kol-foto){grid-template-columns:64px 1fr auto}
+  table.daftar-kartu td{display:block;padding:0;grid-column:1}
+  table.daftar-kartu td::before{display:none}
+  table.daftar-kartu tr:has(.kol-foto) td.kol-utama,table.daftar-kartu tr:has(.kol-foto) td.kol-lain{grid-column:2}
+  table.daftar-kartu td.kol-foto{grid-column:1;grid-row:1 / span 8}
+  table.daftar-kartu td.kol-foto .thumb{width:64px;aspect-ratio:1}
+  table.daftar-kartu td.kol-utama{font-weight:700;font-size:1rem;line-height:1.35}
+  table.daftar-kartu td.kol-lain{font-size:.86rem;color:var(--muted);text-align:left}
+  table.daftar-kartu td.kol-lain::before{display:inline;content:attr(data-l) ": ";font-weight:400;color:var(--muted)}
+  table.daftar-kartu td.kol-aksi{grid-column:-2 / -1;grid-row:1 / span 8;align-self:center}
+  table.daftar-kartu .kol-aksi .form-hapus{display:none}
+  table.daftar-kartu .tombol-edit{padding:8px 14px;position:static}
+  table.daftar-kartu tr{position:relative;cursor:pointer}
+  .pohon{padding-left:12px}
+}
+.side .side-tutup{display:none}
+@media (max-width:820px){body.cms .side .side-tutup{display:block!important}}

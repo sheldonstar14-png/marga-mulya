@@ -24,7 +24,7 @@ $menuAdmin = 'ulasan';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Ulasan pengunjung</h2>
-<p class="muted">Ulasan hanya bisa ditulis pengunjung yang reservasinya berstatus Selesai. Sembunyikan ulasan yang tidak pantas, misalnya berisi kata kasar atau iklan.</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Ulasan hanya bisa ditulis pengunjung yang reservasinya berstatus Selesai. Sembunyikan ulasan yang tidak pantas, misalnya berisi kata kasar atau iklan.</p></details>
 <div class="stat-row">
   <?php foreach ($ringkas as $r): ?>
     <div class="stat"><span><?= e($r['nama']) ?></span><b><?= $r['n'] ? number_format((float) $r['rata'], 1, ',', '.') . ' ★' : '-' ?></b><span><?= (int) $r['n'] ?> ulasan tampil</span></div>

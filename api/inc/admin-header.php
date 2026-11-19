@@ -42,9 +42,29 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
   <link rel="stylesheet" href="/assets/css/style.css?v=12q">
 </head>
 <body class="cms">
+<?php
+// Menu bawah untuk HP: 4 menu yang paling sering dipakai petugas + tombol Semua menu
+$menuBawah = array_filter([
+    'dashboard' => ['Beranda', '<path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/>'],
+    'aspirasi'  => ['Aspirasi', '<path d="M4 5h16v11H9l-5 4z"/>'],
+    'surat'     => ['Surat', '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>'],
+    'reservasi' => ['Rombongan', '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 20c0-2 1-4 3-4s3 1.5 3 4"/>'],
+], fn($k) => $k === 'dashboard' || boleh($admin, $k), ARRAY_FILTER_USE_KEY);
+$labelMenuIni = '';
+foreach ($grupMenu as $isiGrupMenu) if (isset($isiGrupMenu[$menuAdmin ?? ''])) $labelMenuIni = $isiGrupMenu[$menuAdmin];
+?>
+<div class="cms-atas">
+  <img src="/assets/img/logo-mark.png?v=2" alt="" width="44" height="24">
+  <span><small>CMS <?= e(setting('nama_desa')) ?></small><b><?= e($labelMenuIni ?: ($judulAdmin ?? 'CMS')) ?></b></span>
+</div>
 <div class="admin">
-  <nav class="side" aria-label="Menu CMS">
-    <h3><span class="cms-logo"><img src="/assets/img/logo-mark.png?v=2" alt="" width="55" height="30"></span>CMS <?= e(setting('nama_desa')) ?></h3>
+  <nav class="side" id="menuCms" aria-label="Menu CMS">
+    <div class="side-kepala">
+      <h3><span class="cms-logo"><img src="/assets/img/logo-mark.png?v=2" alt="" width="55" height="30"></span>CMS <?= e(setting('nama_desa')) ?></h3>
+      <button type="button" class="side-tutup" id="menuCmsTutup" aria-label="Tutup menu">&times;</button>
+    </div>
+    <label class="sr-only" for="cariMenuCms">Cari menu</label>
+    <input type="search" class="side-cari" id="cariMenuCms" placeholder="Cari menu, misalnya UMKM" autocomplete="off">
     <?php foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu): ?>
       <h4><?= e($namaGrupMenu) ?></h4>
       <?php foreach ($isiGrupMenu as $alamatMenu => $labelMenu): ?>
@@ -56,6 +76,18 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
     <h4>Akun</h4>
     <a class="side-link" href="/" target="_blank" rel="noopener"><span>Lihat website</span></a>
     <a class="side-link" href="/admin/keluar"><span>Keluar (<?= e($admin['username']) ?>)</span></a>
+  </nav>
+  <nav class="cms-bawah" aria-label="Menu cepat">
+    <?php foreach ($menuBawah as $kunciBawah => [$labelBawah, $ikonBawah]): ?>
+      <a href="/admin/<?= $kunciBawah ?>" class="<?= ($menuAdmin ?? '') === $kunciBawah ? 'on' : '' ?>"<?= ($menuAdmin ?? '') === $kunciBawah ? ' aria-current="page"' : '' ?>>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $ikonBawah ?></svg>
+        <span><?= $labelBawah ?></span><?php if (!empty($badge[$kunciBawah])): ?><i class="badge"><?= $badge[$kunciBawah] ?></i><?php endif; ?>
+      </a>
+    <?php endforeach; ?>
+    <button type="button" id="menuCmsBtn" aria-controls="menuCms" aria-expanded="false" class="<?= isset($menuBawah[$menuAdmin ?? '']) ? '' : 'on' ?>">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span>Semua menu</span><?php $sisaBadge = array_sum(array_diff_key($badge, $menuBawah)); if ($sisaBadge): ?><i class="badge"><?= $sisaBadge ?></i><?php endif; ?>
+    </button>
   </nav>
   <main class="admin-main">
     <?php if (!empty($_GET['ok'])): ?><div class="alert alert-ok" role="status"><?= e($_GET['ok']) ?></div><?php endif; ?>

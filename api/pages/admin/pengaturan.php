@@ -22,7 +22,7 @@ $grup = [
         'judul' => 'Pengaturan',
         'catatan' => 'Teks umum yang tampil di seluruh website. Perubahan langsung terlihat setelah disimpan.',
         'kunci' => [
-            'mode_privat' => ['Mode privat: isi 1 supaya website hanya bisa dibuka tim yang login (masa pengembangan), isi 0 untuk membuka ke publik. WAJIB 0 sebelum dikirim ke panitia', 'text'],
+            'mode_privat' => ['Siapa yang boleh membuka website?', 'saklar'],
             'nama_desa'   => ['Nama desa', 'text'],
             'kecamatan'   => ['Kecamatan', 'text'],
             'kabupaten'   => ['Kabupaten', 'text'],
@@ -48,6 +48,16 @@ $grup = [
             'kata_terlarang' => ['Kata kasar yang membuat ulasan ditahan untuk ditinjau (pisahkan dengan koma)', 'area'],
         ],
     ],
+];
+// Pengaturan dibagi per bagian yang bisa dibuka-tutup supaya tidak panjang di HP
+$bagianPengaturan = [
+    'Status website'       => ['mode_privat'],
+    'Identitas desa'       => ['nama_desa', 'kecamatan', 'kabupaten'],
+    'Beranda'              => ['hero_judul', 'hero_teks', 'foto_hero'],
+    'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng'],
+    'Wisata dan bank sampah' => ['kode_etik_umum', 'info_bank_sampah', 'harga_sampah'],
+    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'kredit_foto'],
+    'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
 ];
 $g = $grup[$sub];
 if ($sub === 'pengaturan') {
@@ -88,20 +98,39 @@ $menuAdmin = $sub;
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2><?= e($g['judul']) ?></h2>
-<p class="muted"><?= e($g['catatan']) ?></p>
+<p class="muted small"><?= e($g['catatan']) ?> Tekan judul bagian untuk membuka.</p>
 <?php if ($errors): ?>
   <div class="alert alert-err" role="alert"><b>Belum tersimpan:</b><ul><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul></div>
 <?php endif; ?>
-<form class="panel" method="post" action="/admin/<?= $sub ?>" style="max-width:760px">
+<?php
+$bagianTampil = $sub === 'pengaturan' ? $bagianPengaturan : [$g['judul'] => array_keys($g['kunci'])];
+$sudahTampil = array_merge(...array_values($bagianTampil));
+$sisa = array_diff(array_keys($g['kunci']), $sudahTampil);
+if ($sisa) $bagianTampil['Lainnya'] = array_values($sisa);
+$adaError = (bool) $errors;
+?>
+<form method="post" action="/admin/<?= $sub ?>" style="max-width:760px" class="form-bagian">
   <?= csrf_field() ?>
-  <?php foreach ($g['kunci'] as $kunci => [$label, $jenis]):
+  <?php $nomorBagian = 0; foreach ($bagianTampil as $namaBagian => $kunciBagian): $nomorBagian++; ?>
+  <details class="panel bagian-form" <?= $nomorBagian === 1 || $adaError || count($bagianTampil) === 1 ? 'open' : '' ?>>
+    <summary><?= e($namaBagian) ?></summary>
+  <?php foreach ($kunciBagian as $kunci): if (!isset($g['kunci'][$kunci])) continue; [$label, $jenis] = $g['kunci'][$kunci];
     $nilai = $_POST[$kunci] ?? str_replace('\n', "\n", setting($kunci)); ?>
     <div class="field">
+      <?php if ($jenis === 'saklar'): ?>
+        <fieldset class="saklar-privat">
+          <legend><?= e($label) ?></legend>
+          <label class="saklar-opsi"><input type="radio" name="<?= $kunci ?>" value="0" <?= $nilai !== '1' ? 'checked' : '' ?>><span><b>Terbuka untuk publik</b><small>Siapa pun bisa membuka website. <b>Wajib dipilih sebelum dikirim ke panitia.</b></small></span></label>
+          <label class="saklar-opsi saklar-privat-1"><input type="radio" name="<?= $kunci ?>" value="1" <?= $nilai === '1' ? 'checked' : '' ?>><span><b>Privat, hanya tim</b><small>Website hanya bisa dibuka tim yang login. Untuk masa pengembangan.</small></span></label>
+        </fieldset>
+      <?php else: ?>
       <label for="k-<?= $kunci ?>"><?= e($label) ?></label>
-      <?php if ($jenis === 'foto'): ?>
+      <?php endif; ?>
+      <?php if ($jenis === 'saklar'): ?>
+      <?php elseif ($jenis === 'foto'): ?>
         <div class="img-prev" id="prev-<?= $kunci ?>"><?php if ($nilai): ?><img src="<?= e($nilai) ?>" alt="Foto saat ini"><?php endif; ?></div>
         <input type="file" accept="image/jpeg,image/png,image/webp" class="unggah-foto" data-target="k-<?= $kunci ?>" data-preview="prev-<?= $kunci ?>" style="margin-top:10px" aria-label="Pilih file foto">
-        <div class="hint unggah-status" id="status-k-<?= $kunci ?>">Format JPG, PNG, atau WebP, maksimal 5 MB. Kosongkan untuk memakai foto destinasi wisata pertama.</div>
+        <div class="hint unggah-status" id="status-k-<?= $kunci ?>">Format JPG, PNG, atau WebP, maksimal 5 MB.</div>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>" placeholder="Atau tempel alamat gambar (https://...)" style="margin-top:8px">
       <?php elseif ($jenis === 'area'): ?>
         <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum', 'sambutan_kades'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
@@ -110,6 +139,8 @@ require __DIR__ . '/../../inc/admin-header.php';
       <?php endif; ?>
     </div>
   <?php endforeach; ?>
-  <button class="btn btn-dark" type="submit">Simpan <?= e(strtolower($g['judul'])) ?></button>
+  </details>
+  <?php endforeach; ?>
+  <div class="actions aksi-lekat"><button class="btn btn-dark" type="submit">Simpan <?= e(strtolower($g['judul'])) ?></button></div>
 </form>
 <?php require __DIR__ . '/../../inc/admin-footer.php'; ?>

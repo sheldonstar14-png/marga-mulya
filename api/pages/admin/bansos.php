@@ -80,7 +80,7 @@ $menuAdmin = 'bansos';
 require __DIR__ . '/../../inc/admin-header.php';
 ?>
 <h2>Penerima bansos</h2>
-<p class="muted" style="max-width:75ch">Daftar ini dipakai untuk fitur Pantau bansos di website. Di website nama tampil disamarkan, dan warga hanya bisa mengecek dengan nama lengkap + RT. <b>Jangan menulis NIK, nomor KK, atau alamat lengkap.</b> Nama dihapus otomatis 30 hari setelah tanggal program selesai.</p>
+<details class="cara-pakai"><summary>Cara pakai halaman ini</summary><p>Daftar ini dipakai untuk fitur Pantau bansos di website. Di website nama tampil disamarkan, dan warga hanya bisa mengecek dengan nama lengkap + RT. <b>Jangan menulis NIK, nomor KK, atau alamat lengkap.</b> Nama dihapus otomatis 30 hari setelah tanggal program selesai.</p></details>
 
 <?php if (!$program): ?>
   <p>Belum ada program. <a href="/admin/bantuan?aksi=tambah">Tambah program bantuan dulu</a>.</p>
