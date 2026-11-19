@@ -14,7 +14,6 @@ function data_laporan(string $bulan): array
     $bulanLalu = date('Y-m', strtotime($awal . ' -1 month'));
     $awalLalu = $bulanLalu . '-01';
     $akhirLalu = date('Y-m-t', strtotime($awalLalu));
-    $hijau = "'Bus atau elf rombongan', 'Angkutan umum', 'Kereta lalu ojek', 'Sepeda atau jalan kaki'";
     $aktif = "status IN ('Dikonfirmasi', 'Selesai')";
 
     // Wisata: dihitung dari tanggal kunjungan di bulan itu
@@ -23,14 +22,11 @@ function data_laporan(string $bulan): array
         GROUP BY w.id, w.nama, w.harga ORDER BY orang DESC", [$awal, $akhir]);
     foreach ($perWisata as &$w) $w['pendapatan'] = (int) $w['orang'] * (int) $w['harga'];
     unset($w);
-    $kunjungan = q1("SELECT COUNT(*) AS rombongan, COALESCE(SUM(jumlah), 0) AS orang, COALESCE(SUM(emisi_kg), 0) AS kg,
-        COALESCE(SUM(CASE WHEN kendaraan <> '' THEN jumlah ELSE 0 END), 0) AS tercatat,
-        COALESCE(SUM(CASE WHEN kendaraan IN ($hijau) THEN jumlah ELSE 0 END), 0) AS orang_hijau
+    $kunjungan = q1("SELECT COUNT(*) AS rombongan, COALESCE(SUM(jumlah), 0) AS orang
         FROM reservasi WHERE tanggal BETWEEN ? AND ? AND $aktif", [$awal, $akhir]);
     $orangLalu = (int) q1("SELECT COALESCE(SUM(jumlah), 0) AS n FROM reservasi WHERE tanggal BETWEEN ? AND ? AND $aktif", [$awalLalu, $akhirLalu])['n'];
     $batal = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE tanggal BETWEEN ? AND ? AND status = 'Dibatalkan'", [$awal, $akhir])['n'];
     $menunggu = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'];
-    $kupon = q1("SELECT COUNT(kupon) AS terbit, COUNT(kupon_dipakai_pada) AS dipakai FROM reservasi WHERE tanggal BETWEEN ? AND ?", [$awal, $akhir]);
     $ulasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE dibuat_pada BETWEEN ? AND ?', [$awal . ' 00:00:00', $akhir . ' 23:59:59']);
 
     // Layanan warga
@@ -61,7 +57,7 @@ function data_laporan(string $bulan): array
     $tahunApb = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
     $apb = $tahunApb ? q("SELECT jenis, COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? GROUP BY jenis", [$tahunApb]) : [];
 
-    return compact('bulan', 'awal', 'akhir', 'perWisata', 'kunjungan', 'orangLalu', 'batal', 'menunggu', 'kupon', 'ulasan',
+    return compact('bulan', 'awal', 'akhir', 'perWisata', 'kunjungan', 'orangLalu', 'batal', 'menunggu', 'ulasan',
         'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'pesananUmkm', 'sampah', 'proyek', 'tahunApb', 'apb');
 }
 
@@ -81,11 +77,6 @@ function catatan_laporan(array $d): array
     foreach ($d['bansos'] ?? [] as $b) {
         $akhirTahap = (int) end($b['tahap']);
         if ($akhirTahap < $b['total'] && $akhirTahap > 0) $c[] = 'Bansos ' . $b['nama'] . ': ' . ($b['total'] - $akhirTahap) . ' penerima belum menerima tahap terakhir.';
-    }
-    $tercatat = (int) $d['kunjungan']['tercatat'];
-    if ($tercatat > 0) {
-        $p = persen((float) $d['kunjungan']['orang_hijau'], (float) $tercatat);
-        $c[] = $p >= 50 ? 'Lebih dari separuh pengunjung datang dengan transport hijau (' . str_replace('.', ',', (string) $p) . '%).' : 'Baru ' . str_replace('.', ',', (string) $p) . '% pengunjung datang dengan transport hijau. Promosi Tiket Hijau ke sekolah dan komunitas bisa ditingkatkan.';
     }
     $lambat = array_filter($d['proyek'], fn($p) => $p['status'] === 'Berjalan' && (int) $p['progres'] < 50);
     if ($lambat) $c[] = count($lambat) . ' proyek pembangunan berjalan masih di bawah 50%: ' . implode(', ', array_column($lambat, 'nama')) . '.';
@@ -117,7 +108,6 @@ function html_laporan(array $d): string
 
     $k = $d['kunjungan'];
     $orang = (int) $k['orang'];
-    $tercatat = (int) $k['tercatat'];
     $pendapatan = array_sum(array_column($d['perWisata'], 'pendapatan'));
     $jumlahAspirasi = array_sum(array_column($d['aspirasiMasuk'], 'n'));
     $judulBulan = tgl($d['awal'], 'bulantahun');
@@ -128,10 +118,9 @@ function html_laporan(array $d): string
     $h .= '<p style="margin:0 0 14px;font-size:12px;color:#475663">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
 
     $h .= '<table style="width:100%;border-collapse:collapse"><tr>'
-        . $kotak('Pengunjung', angka($orang) . ' orang', (int) $k['rombongan'] . ' reservasi')
+        . $kotak('Pengunjung rombongan', angka($orang) . ' orang', (int) $k['rombongan'] . ' rombongan')
         . $kotak('Perkiraan pendapatan tiket', rupiah_ringkas($pendapatan), 'harga tiket x pengunjung')
         . $kotak('Aspirasi warga masuk', (string) $jumlahAspirasi, $d['aspirasiSelesai'] . ' selesai bulan ini')
-        . $kotak('Transport hijau', $tercatat ? str_replace('.', ',', (string) persen((float) $k['orang_hijau'], (float) $tercatat)) . '%' : '-', 'dari pengunjung tercatat')
         . '</tr></table>';
 
     $h .= '<h3 ' . $h3 . '>Perlu perhatian</h3><ul style="margin:0;padding-left:20px;font-size:14px">';
@@ -145,12 +134,6 @@ function html_laporan(array $d): string
         . ((int) $d['ulasan']['n'] ? ' Ulasan baru: ' . (int) $d['ulasan']['n'] . ', rata-rata ' . number_format((float) $d['ulasan']['rata'], 1, ',', '.') . ' dari 5.' : '') . '</p>';
 
     $h .= '<h3 ' . $h3 . '>2. Lingkungan</h3>';
-    $h .= $tabel(['Ukuran', 'Nilai'], [
-        ['Jejak karbon perjalanan pengunjung', angka(round((float) $k['kg'])) . ' kg CO2e'],
-        ['Rata-rata per pengunjung', $tercatat ? angka(round((float) $k['kg'] / $tercatat, 1)) . ' kg CO2e' : '-'],
-        ['Tiket Hijau terbit / ditukar di UMKM', (int) $d['kupon']['terbit'] . ' / ' . (int) $d['kupon']['dipakai']],
-        ['Perkiraan belanja Tiket Hijau ke UMKM', rupiah((int) $d['kupon']['dipakai'] * (int) setting('tiket_hijau_nilai'))],
-    ], [1]);
     if ($d['sampah']) {
         $h .= $tabel(['Bank sampah: jenis', 'Berat', 'Nilai tabungan warga'],
             array_map(fn($s) => [$s['jenis'], angka(round((float) $s['kg'])) . ' kg', rupiah((int) $s['rp'])], $d['sampah']), [1, 2]);

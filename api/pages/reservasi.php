@@ -1,6 +1,8 @@
 <?php
 // =========================================================
-// HALAMAN RESERVASI + CEK STATUS
+// HALAMAN KUNJUNGAN ROMBONGAN + CEK STATUS
+// Khusus rombongan (sekolah, kampus, komunitas, instansi) supaya pengelola bisa menyiapkan
+// pemandu dan tempat. Pengunjung perorangan cukup datang langsung.
 //   GET  /reservasi?w=curug&t=2026-11-20  -> form terisi otomatis
 //   POST /reservasi                       -> simpan reservasi baru
 //   GET  /reservasi?baru=MM-XXXXXX        -> tampilkan tiket setelah berhasil
@@ -15,12 +17,10 @@ $errors  = [];
 $isi = [
     'wisata'  => $_GET['w'] ?? ($daftarWisata[0]['slug'] ?? ''),
     'tanggal' => (isset($_GET['t']) && $_GET['t'] >= $besok) ? $_GET['t'] : $besok,
-    'jumlah'  => 2,
+    'jumlah'  => 10,
     'nama'    => '',
     'wa'      => '',
     'email'   => '',
-    'kendaraan' => '',
-    'jarak_km'  => '',
     'catatan' => '',
 ];
 
@@ -63,13 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'ulasan'
     if (!$tglValid || $tglValid->format('Y-m-d') !== $isi['tanggal']) $errors[] = 'Tanggal kunjungan tidak valid.';
     elseif ($isi['tanggal'] < $besok) $errors[] = 'Reservasi paling cepat untuk besok.';
     elseif ($isi['tanggal'] > $batasAkhir) $errors[] = 'Reservasi paling lambat 60 hari dari sekarang.';
-    if ($jumlah < 1 || $jumlah > 50) $errors[] = 'Jumlah orang antara 1 sampai 50. Untuk rombongan lebih besar, hubungi desa lewat WhatsApp.';
+    if ($jumlah < 10 || $jumlah > 100) $errors[] = 'Pemesanan ini untuk rombongan 10 sampai 100 orang. Kurang dari 10 orang cukup datang langsung tanpa memesan.';
     if (mb_strlen($isi['nama']) < 2 || mb_strlen($isi['nama']) > 150) $errors[] = 'Isi nama pemesan (2 sampai 150 huruf).';
     if (strlen($wa) < 10 || strlen($wa) > 15) $errors[] = 'Nomor WhatsApp 10 sampai 15 digit, contoh 081234567890.';
     if (!filter_var($isi['email'], FILTER_VALIDATE_EMAIL) || strlen($isi['email']) > 150) $errors[] = 'Isi alamat email yang benar, contoh nama@gmail.com. Kabar reservasi dikirim ke email ini.';
-    if (!isset(KENDARAAN[$isi['kendaraan']])) $errors[] = 'Pilih kendaraan yang akan dipakai menuju desa.';
-    $jarak = (int) $isi['jarak_km'];
-    if (!ctype_digit($isi['jarak_km']) || $jarak < 1 || $jarak > 2000) $errors[] = 'Isi perkiraan jarak dari rumah ke desa dalam kilometer (1 sampai 2.000).';
     if (mb_strlen($isi['catatan']) > 255) $errors[] = 'Catatan maksimal 255 huruf.';
     if (empty($_POST['setuju'])) $errors[] = 'Centang persetujuan kode etik pengunjung sebelum mengirim.';
     if (empty($_POST['setuju_data'])) $errors[] = 'Centang persetujuan penggunaan data pribadi untuk mengurus reservasi.';
@@ -84,13 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') !== 'ulasan'
     if (!$errors) {
         $kode = kode_reservasi_baru();
         q(
-            'INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, kendaraan, jarak_km, emisi_kg, catatan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [$kode, $w['id'], $isi['tanggal'], $jumlah, $isi['nama'], $wa, $isi['email'], $isi['kendaraan'], $jarak, emisi_kunjungan($isi['kendaraan'], $jarak, $jumlah), $isi['catatan'], 'Menunggu']
+            'INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$kode, $w['id'], $isi['tanggal'], $jumlah, $isi['nama'], $wa, $isi['email'], $isi['catatan'], 'Menunggu']
         );
-        // Tiket Hijau: pengunjung berskor hijau mendapat kupon belanja UMKM (aktif setelah dikonfirmasi)
-        if (berhak_tiket_hijau(emisi_kunjungan($isi['kendaraan'], $jarak, $jumlah), $jumlah, $isi['kendaraan'])) {
-            q('UPDATE reservasi SET kupon = ? WHERE kode = ?', ['HIJAU-' . substr($kode, 3), $kode]);
-        }
         // Email ke pengunjung dan ke desa (kalau gagal, reservasi tetap tersimpan)
         require_once __DIR__ . '/../inc/email.php';
         $terkirim = email_reservasi($kode) === true;
@@ -113,44 +106,14 @@ $keteranganStatus = [
     'Dibatalkan'   => 'Reservasi tidak dapat diterima. Hubungi desa bila ada pertanyaan.',
 ];
 
-// Kotak jejak karbon perjalanan untuk tiket dan cek status
-function kotak_emisi(array $r, bool $gelap): string
-{
-    if ($r['kendaraan'] === '' || (int) $r['jarak_km'] <= 0) return '';
-    $total = (float) $r['emisi_kg'];
-    $perOrang = $total / max(1, (int) $r['jumlah']);
-    [$huruf, $label] = skor_hijau($perOrang);
-    $bus = emisi_kunjungan('Bus atau elf rombongan', (int) $r['jarak_km'], (int) $r['jumlah']);
-    $saran = match (true) {
-        $r['kendaraan'] === 'Sepeda atau jalan kaki' => 'Perjalananmu tanpa emisi. Terima kasih sudah memberi contoh!',
-        $huruf <= 'B' => 'Pilihan perjalanan yang hemat emisi. Bawa botol minum sendiri supaya kunjunganmu makin hijau.',
-        $bus < $total * 0.7 => 'Naik bus atau elf bersama bisa memangkas sekitar ' . angka(round($total - $bus)) . ' kg. Ajak teman berbagi kendaraan.',
-        default => 'Berbagi kendaraan dan membawa botol minum sendiri membantu menjaga desa tetap lestari.',
-    };
-    return '<div class="eco' . ($gelap ? ' eco-gelap' : '') . '"><span class="eco-skor skor-' . $huruf . '" aria-label="Skor hijau ' . $huruf . '">' . $huruf . '</span>'
-        . '<div><b>Jejak karbon perjalanan: ' . angka(round($total, 1)) . ' kg CO2e</b> <span class="small">(' . angka(round($perOrang, 1)) . ' kg per orang, ' . $label . ')</span>'
-        . '<br><span class="small">' . e($r['kendaraan']) . ', ' . (int) $r['jarak_km'] . ' km sekali jalan, dihitung pulang pergi. ' . e($saran) . '</span></div></div>';
-}
-
-// Kotak Tiket Hijau di tiket dan cek status
-function kotak_kupon(array $r): string
-{
-    if (empty($r['kupon'])) return '';
-    $status = $r['kupon_dipakai_pada'] ? 'Sudah dipakai di ' . $r['kupon_umkm'] : ($r['status'] === 'Menunggu' ? 'Aktif setelah reservasi dikonfirmasi' : 'Tunjukkan ke penjual UMKM desa');
-    return '<div class="kupon"><div class="kupon-atas"><span class="kupon-label">Tiket Hijau</span><b>' . e($r['kupon']) . '</b></div>'
-        . '<p class="small" style="margin:6px 0">Terima kasih memilih perjalanan rendah emisi. ' . e(setting('tiket_hijau_syarat')) . '</p>'
-        . '<div class="qr-box qr-terang"><div class="qr" data-qr="' . e(url_dasar() . '/umkm?kupon=' . urlencode($r['kupon'])) . '"></div>'
-        . '<span class="small"><b>' . e($status) . '.</b> Penjual memindai kode ini untuk menukar kupon.</span></div></div>';
-}
-
-$judul = 'Reservasi - ' . setting('nama_desa');
+$judul = 'Kunjungan rombongan - ' . setting('nama_desa');
 $menu  = 'reservasi';
 $pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
-  <h1>Reservasi kunjungan</h1>
-  <p>Pilih destinasi dan tanggal. Prakiraan cuaca dan sisa kuota langsung muncul. Pembayaran dilakukan di lokasi.</p>
+  <h1>Kunjungan rombongan</h1>
+  <p>Untuk sekolah, kampus, komunitas, atau instansi minimal 10 orang, misalnya study tour, tanam mangrove, atau belajar kerajinan batok. Pengunjung perorangan dan keluarga cukup datang langsung.</p>
 </div>
 
 <div class="wrap sec split" style="padding-top:16px">
@@ -176,15 +139,15 @@ require __DIR__ . '/../inc/header.php';
         <input type="date" id="tanggal" name="tanggal" value="<?= e($isi['tanggal']) ?>" min="<?= $besok ?>" max="<?= $batasAkhir ?>" required>
       </div>
       <div class="field">
-        <label for="jumlah">Jumlah orang</label>
-        <input type="number" id="jumlah" name="jumlah" value="<?= e($isi['jumlah']) ?>" min="1" max="50" required>
+        <label for="jumlah">Jumlah anggota rombongan</label>
+        <input type="number" id="jumlah" name="jumlah" value="<?= e($isi['jumlah']) ?>" min="10" max="100" required>
       </div>
     </div>
     <div id="infoCuaca"></div>
     <p class="small" id="infoKuota"></p>
 
     <div class="field">
-      <label for="nama">Nama pemesan</label>
+      <label for="nama">Nama penanggung jawab rombongan</label>
       <input id="nama" name="nama" value="<?= e($isi['nama']) ?>" autocomplete="name" maxlength="150" required>
     </div>
     <div class="field">
@@ -197,22 +160,9 @@ require __DIR__ . '/../inc/header.php';
       <input id="email" name="email" type="email" value="<?= e($isi['email']) ?>" autocomplete="email" maxlength="150" placeholder="nama@gmail.com" required>
       <div class="hint">Tiket, konfirmasi, dan setiap perubahan status dikirim ke email ini.</div>
     </div>
-    <fieldset class="field perjalanan">
-      <legend>Perjalanan ke desa</legend>
-      <div class="grid g2" style="gap:12px">
-        <div><label for="kendaraan">Kendaraan</label>
-          <select id="kendaraan" name="kendaraan" required data-faktor="<?= e(json_encode(KENDARAAN)) ?>" data-hijau="<?= setting('tiket_hijau_aktif') === '1' ? e(strtoupper(setting('tiket_hijau_skor'))) : '' ?>" data-hadiah="<?= e(rupiah((int) setting('tiket_hijau_nilai'))) ?>">
-            <option value="">Pilih kendaraan</option>
-            <?php foreach (array_keys(KENDARAAN) as $k): ?><option <?= $isi['kendaraan'] === $k ? 'selected' : '' ?>><?= e($k) ?></option><?php endforeach; ?>
-          </select></div>
-        <div><label for="jarak_km">Jarak dari rumah (km)</label>
-          <input id="jarak_km" name="jarak_km" type="number" min="1" max="2000" inputmode="numeric" value="<?= e($isi['jarak_km']) ?>" placeholder="Contoh: 40" required></div>
-      </div>
-      <div id="infoEmisi" class="hint" aria-live="polite">Kami menghitung perkiraan jejak karbon perjalananmu untuk memantau dampak wisata terhadap lingkungan desa.</div>
-    </fieldset>
     <div class="field">
       <label for="catatan">Catatan (opsional)</label>
-      <textarea id="catatan" name="catatan" rows="2" maxlength="255" placeholder="Contoh: rombongan sekolah, butuh pemandu"><?= e($isi['catatan']) ?></textarea>
+      <textarea id="catatan" name="catatan" rows="2" maxlength="255" placeholder="Contoh: SMP Negeri 1 Mauk, butuh pemandu, ingin ikut tanam mangrove"><?= e($isi['catatan']) ?></textarea>
     </div>
     <div class="hp" aria-hidden="true"><label for="website">Jangan diisi</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
 
@@ -228,7 +178,7 @@ require __DIR__ . '/../inc/header.php';
         <span>Saya sudah membaca dan akan mematuhi kode etik pengunjung, termasuk menjaga kebersihan dan kelestarian alam desa.</span>
       </label>
       <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required <?= !empty($_POST['setuju_data']) ? 'checked' : '' ?>>
-        <span>Saya setuju nama, kontak, dan data perjalanan dipakai untuk mengurus reservasi ini. Data dihapus otomatis <?= max(30, (int) setting('simpan_data_hari')) ?> hari setelah kunjungan. <a href="/kontak#privasi" target="_blank" rel="noopener">Baca kebijakan privasi</a></span></label>
+        <span>Saya setuju nama dan kontak dipakai untuk mengurus reservasi ini. Data dihapus otomatis <?= max(30, (int) setting('simpan_data_hari')) ?> hari setelah kunjungan. <a href="/kontak#privasi" target="_blank" rel="noopener">Baca kebijakan privasi</a></span></label>
     </div>
 
     <div class="card-foot" style="padding-top:0">
@@ -252,8 +202,6 @@ require __DIR__ . '/../inc/header.php';
         <p class="small" style="margin:14px 0 0;color:#C9D3C3">
           <?= ($_GET['surel'] ?? '') === '1' ? 'Rincian tiket juga sudah dikirim ke ' . e($tiket['email']) . '. Cek folder Spam kalau belum masuk.' : 'Simpan kode ini. Email konfirmasi belum bisa dikirim, tapi reservasimu sudah tersimpan.' ?>
         </p>
-        <?= kotak_emisi($tiket, true) ?>
-        <?= kotak_kupon($tiket) ?>
         <div class="qr-box"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($tiket['kode'])) ?>"></div>
           <span class="small">Tunjukkan kode QR ini ke petugas loket saat tiba.</span></div>
       </div>
@@ -309,7 +257,6 @@ require __DIR__ . '/../inc/header.php';
               <?php endforeach; endif; ?>
             </ol>
             <span class="small"><?= e($keteranganStatus[$hasilCek['status']] ?? '') ?></span>
-            <?= $hasilCek['status'] !== 'Dibatalkan' ? kotak_emisi($hasilCek, false) . kotak_kupon($hasilCek) : '' ?>
 
             <?php if (in_array($hasilCek['status'], ['Menunggu', 'Dikonfirmasi'], true)): ?>
               <div class="qr-box qr-terang"><div class="qr" data-qr="<?= e(url_dasar() . '/admin/checkin?kode=' . urlencode($hasilCek['kode'])) ?>"></div>
@@ -409,34 +356,6 @@ $scriptHalaman = <<<'JS'
   [pilih, tanggal, jumlah].forEach(el => el.addEventListener('input', perbarui));
   perbarui();
 
-  // Perkiraan jejak karbon langsung saat kendaraan dan jarak diisi (rumus sama dengan server)
-  const kendaraan = document.getElementById('kendaraan'), jarak = document.getElementById('jarak_km'), infoEmisi = document.getElementById('infoEmisi');
-  const faktor = JSON.parse(kendaraan.dataset.faktor);
-  const awalEmisi = infoEmisi.textContent;
-  function hitungEmisi(nama, km, orang) {
-    const k = faktor[nama];
-    if (!k) return 0;
-    return k.per === 'kendaraan' ? k.faktor * km * 2 * Math.ceil(orang / k.isi) : k.faktor * km * 2 * orang;
-  }
-  function perbaruiEmisi() {
-    const km = Number(jarak.value), orang = Number(jumlah.value) || 1;
-    if (!kendaraan.value || !km) { infoEmisi.textContent = awalEmisi; return; }
-    const total = hitungEmisi(kendaraan.value, km, orang);
-    const bus = hitungEmisi('Bus atau elf rombongan', km, orang);
-    let teks = 'Perkiraan jejak karbon pulang pergi: <b>' + total.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg CO2e</b> (' + (total / orang).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg per orang).';
-    if (bus < total * 0.7) teks += ' Dengan bus atau elf bersama, emisinya sekitar ' + bus.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg.';
-    if (total === 0) teks = 'Perjalanan tanpa emisi. Keren!';
-    const per = total / orang, huruf = per <= 2 ? 'A' : per <= 5 ? 'B' : per <= 10 ? 'C' : per <= 20 ? 'D' : 'E';
-    const hijau = (kendaraan.dataset.hijau || '').split(',').map(x => x.trim()).filter(Boolean);
-    if (hijau.length) {
-      teks += hijau.includes(huruf)
-        ? ' <span class="eco-hadiah">Skor ' + huruf + ': kamu mendapat Tiket Hijau, kupon belanja ' + kendaraan.dataset.hadiah + ' di UMKM desa.</span>'
-        : ' <span class="small">Skor ' + huruf + '. Datang dengan bus, angkutan umum, kereta, atau berbagi kendaraan untuk mendapat Tiket Hijau.</span>';
-    }
-    infoEmisi.innerHTML = teks;
-  }
-  [kendaraan, jarak, jumlah].forEach(el => el.addEventListener('input', perbaruiEmisi));
-  perbaruiEmisi();
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>

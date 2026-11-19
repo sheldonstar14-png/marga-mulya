@@ -94,7 +94,7 @@ function wajib_super_admin(array $admin): void
 // ---------- Hak akses per menu ----------
 // Menu yang bisa diberikan ke petugas. Akun admin dan Pengaturan khusus Super admin.
 const MENU_PETUGAS = [
-    'reservasi' => 'Reservasi',
+    'reservasi' => 'Kunjungan rombongan',
     'pesan'     => 'Pesan masuk',
     'ulasan'    => 'Ulasan',
     'aspirasi'  => 'Aspirasi warga',
@@ -102,7 +102,7 @@ const MENU_PETUGAS = [
     'layanan'   => 'Layanan surat',
     'surat'     => 'Pengajuan surat & antrean',
     'bansos'    => 'Penerima bansos',
-    'faq'       => 'Asisten desa (FAQ)',
+    'asisten'   => 'Asisten desa (menu pilihan)',
     'laporan'   => 'Laporan bulanan',
     'wisata'    => 'Wisata',
     'budaya'    => 'Budaya',
@@ -125,7 +125,6 @@ const MENU_PETUGAS = [
     'darurat'   => 'Nomor darurat',
     'zona'      => 'Zona rawan bencana',
     'ulasanumkm' => 'Ulasan UMKM',
-    'pesananumkm' => 'Pesanan UMKM',
 ];
 
 // Daftar menu yang boleh dibuka seorang admin

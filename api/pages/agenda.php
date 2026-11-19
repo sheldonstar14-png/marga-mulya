@@ -114,7 +114,7 @@ require __DIR__ . '/../inc/header.php';
     </div>
   </div>
   <div>
-    <h2>Berita dan pengumuman</h2>
+    <h2 id="berita">Berita dan pengumuman</h2>
     <div class="grid">
       <?php foreach ($berita as $b): ?>
         <article class="card" id="berita-<?= (int) $b['id'] ?>">

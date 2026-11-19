@@ -594,6 +594,22 @@ INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
 UPDATE admin SET akses = CONCAT(akses, ',pengajuanumkm') WHERE akses LIKE '%umkm%' AND akses NOT LIKE '%pengajuanumkm%';
 UPDATE admin SET akses = CONCAT(akses, ',kreditfoto') WHERE akses LIKE '%galeri%' AND akses NOT LIKE '%kreditfoto%';
 
+-- ---------- Tambahan 12q: asisten desa bermenu, Tiket Hijau dihentikan ----------
+CREATE TABLE IF NOT EXISTS asisten_menu (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  induk_id INT NOT NULL DEFAULT 0,
+  judul VARCHAR(120) NOT NULL,
+  pertanyaan VARCHAR(200) NOT NULL DEFAULT '',
+  jawaban TEXT,
+  tautan VARCHAR(255) NOT NULL DEFAULT '',
+  label_tautan VARCHAR(60) NOT NULL DEFAULT '',
+  urutan INT NOT NULL DEFAULT 0,
+  aktif TINYINT NOT NULL DEFAULT 1
+);
+UPDATE pengaturan SET nilai = '0' WHERE kunci = 'tiket_hijau_aktif';
+UPDATE admin SET akses = REPLACE(akses, 'faq', 'asisten') WHERE akses LIKE '%faq%';
+UPDATE admin SET akses = REPLACE(REPLACE(akses, ',pesananumkm', ''), 'pesananumkm,', '') WHERE akses LIKE '%pesananumkm%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

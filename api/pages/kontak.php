@@ -223,7 +223,10 @@ require __DIR__ . '/../inc/header.php';
     <p><b>Email</b><br><?= e(setting('email')) ?></p>
     <p><b>WhatsApp</b><br>+<?= e(setting('wa')) ?></p>
     <a class="btn btn-wa" href="<?= e(wa_link(setting('wa'), 'Halo ' . setting('nama_desa') . ', saya ingin bertanya.')) ?>" target="_blank" rel="noopener">Chat WhatsApp desa</a>
-    <div class="peta peta-kecil" style="margin-top:18px" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Lokasi kantor desa"></div>
+    <?php $koordinat = setting('lat') . ',' . setting('lng'); ?>
+    <iframe class="peta-google" title="Peta lokasi kantor <?= e(setting('nama_desa')) ?> di Google Maps" src="https://maps.google.com/maps?q=<?= urlencode($koordinat) ?>&amp;z=15&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <a class="btn btn-ghost btn-sm" style="margin-top:10px" href="https://www.google.com/maps/dir/?api=1&amp;destination=<?= urlencode($koordinat) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
+    <p class="hint">Titik peta adalah perkiraan. Petugas bisa menggesernya lewat CMS &gt; Pengaturan.</p>
   </div>
 </div>
 
@@ -395,7 +398,7 @@ require __DIR__ . '/../inc/header.php';
   <p class="muted" style="max-width:70ch">Kami mengikuti Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi: data diambil secukupnya, dipakai sesuai tujuan, dan kamu berhak mengaturnya.</p>
   <div class="grid g3 privasi-poin">
     <div class="panel"><h3>Data yang kami simpan</h3><ul class="small">
-      <li>Reservasi: nama, WhatsApp, email, jumlah orang, kendaraan, dan perkiraan jarak.</li>
+      <li>Kunjungan rombongan: nama penanggung jawab, WhatsApp, email, dan jumlah anggota rombongan.</li>
       <li>Aspirasi dan pesan: nama dan kontak (boleh tanpa nama untuk aspirasi), serta foto laporan kalau dilampirkan.</li>
       <li>Relawan gotong royong: nama dan WhatsApp, dihapus 30 hari setelah kegiatan.</li>
       <li>Kami tidak meminta KTP, KK, atau NIK lewat website.</li></ul></div>

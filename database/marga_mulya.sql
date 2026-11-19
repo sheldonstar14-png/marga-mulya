@@ -8,6 +8,7 @@
 
 DROP TABLE IF EXISTS relawan;
 DROP TABLE IF EXISTS kredit_foto;
+DROP TABLE IF EXISTS asisten_menu;
 DROP TABLE IF EXISTS foto_unggah;
 DROP TABLE IF EXISTS pengajuan_umkm;
 DROP TABLE IF EXISTS survei;
@@ -953,6 +954,22 @@ INSERT IGNORE INTO kredit_foto (id, judul, pembuat, sumber_url, lisensi, lisensi
 (4, 'Peta dasar', 'Kontributor OpenStreetMap', 'https://www.openstreetmap.org/copyright', 'ODbL', 'https://opendatacommons.org/licenses/odbl/', 'Ditampilkan lewat Leaflet.', 4),
 (5, 'Prakiraan cuaca', 'Open-Meteo', 'https://open-meteo.com/', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/', '', 5);
 
+-- ---------- Tambahan 12q: asisten desa bermenu, Tiket Hijau dihentikan ----------
+CREATE TABLE IF NOT EXISTS asisten_menu (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  induk_id INT NOT NULL DEFAULT 0,
+  judul VARCHAR(120) NOT NULL,
+  pertanyaan VARCHAR(200) NOT NULL DEFAULT '',
+  jawaban TEXT,
+  tautan VARCHAR(255) NOT NULL DEFAULT '',
+  label_tautan VARCHAR(60) NOT NULL DEFAULT '',
+  urutan INT NOT NULL DEFAULT 0,
+  aktif TINYINT NOT NULL DEFAULT 1
+);
+UPDATE pengaturan SET nilai = '0' WHERE kunci = 'tiket_hijau_aktif';
+UPDATE admin SET akses = REPLACE(akses, 'faq', 'asisten') WHERE akses LIKE '%faq%';
+UPDATE admin SET akses = REPLACE(REPLACE(akses, ',pesananumkm', ''), 'pesananumkm,', '') WHERE akses LIKE '%pesananumkm%';
+
 -- ===== Data asli Margamulya (sama dengan data-asli-margamulya.sql) =====
 -- =========================================================
 -- DATA DESA MARGAMULYA, KECAMATAN MAUK, KABUPATEN TANGERANG (BANTEN)
@@ -984,19 +1001,19 @@ UPDATE pengaturan SET nilai = 'Kecamatan Mauk' WHERE kunci = 'kecamatan';
 UPDATE pengaturan SET nilai = 'Kabupaten Tangerang' WHERE kunci = 'kabupaten';
 UPDATE pengaturan SET nilai = 'Kantor Desa Margamulya, Kecamatan Mauk, Kabupaten Tangerang, Banten 15531' WHERE kunci = 'alamat';
 UPDATE pengaturan SET nilai = 'Selamat datang di Desa Marga Mulya' WHERE kunci = 'hero_judul';
-UPDATE pengaturan SET nilai = 'Desa tepi laut di utara Kabupaten Tangerang dengan pantai, mangrove, kebun kelapa, sawah, dan warga yang menjunjung gotong royong. Urus surat, pantau bantuan, dan belanja produk warga langsung dari sini.' WHERE kunci = 'hero_teks';
+UPDATE pengaturan SET nilai = 'Desa tepi laut di utara Kabupaten Tangerang. Warganya nelayan, petani, dan pengrajin. Urus keperluan warga, atau kenali pantai, mangrove, dan produk buatan warga kami.' WHERE kunci = 'hero_teks';
 -- Titik pusat peta: tengah wilayah Margamulya menurut peta BPS 2025 (perkiraan). Geser ke titik kantor desa yang tepat lewat CMS > Pengaturan.
 UPDATE pengaturan SET nilai = '-6.0450' WHERE kunci = 'lat';
 UPDATE pengaturan SET nilai = '106.5380' WHERE kunci = 'lng';
 UPDATE pengaturan SET nilai = 'Marga Mulya (Margamulya) adalah desa di Kecamatan Mauk, Kabupaten Tangerang, Banten, dengan kode wilayah 36.03.08.2008. Menurut BPS (Kecamatan Mauk Dalam Angka 2025), luasnya 6,14 km² dan dihuni 8.449 jiwa pada 2024, terdiri dari 4.359 laki-laki dan 4.090 perempuan di 5 RW dan 25 RT. Desa ini berbatasan langsung dengan laut di sebelah utara, berjarak 4 km dari kantor Kecamatan Mauk dan 32 km dari ibu kota Kabupaten Tangerang. Sebagian besar warga bekerja sebagai petani, nelayan, wiraswasta, dan pekerja lepas. Potensi desa meliputi sawah sekitar 330 hektare, kelapa, mangrove, hasil laut, serta kerajinan batok kelapa.' WHERE kunci = 'profil_ringkas';
 UPDATE pengaturan SET nilai = 'Nama Margamulya lahir dari musyawarah seluruh komponen desa. "Marga" berarti kelompok atau keturunan, dan "Mulya" berarti baik. Warga berharap Margamulya menjadi desa yang baik untuk ditempati dan ditinggali.' WHERE kunci = 'sejarah';
-UPDATE pengaturan SET nilai = '(ilustrasi) Terwujudnya Desa Marga Mulya yang guyub, sejahtera, dan tangguh, dengan pertanian dan pesisir yang lestari.' WHERE kunci = 'visi';
-UPDATE pengaturan SET nilai = '(ilustrasi) Menjaga lahan pertanian pangan dan meningkatkan hasil panen petani.\n(ilustrasi) Mengembangkan UMKM olahan kelapa, hasil laut, dan kerajinan batok kelapa.\n(ilustrasi) Melestarikan mangrove dan pesisir sebagai pelindung desa dan tujuan wisata edukasi.\n(ilustrasi) Memberikan pelayanan desa yang cepat, terbuka, dan mudah diakses semua warga.' WHERE kunci = 'misi';
+UPDATE pengaturan SET nilai = '(ilustrasi) Terwujudnya Desa Marga Mulya yang guyub, sejahtera, dan tangguh, dengan pesisir dan pertanian yang lestari.' WHERE kunci = 'visi';
+UPDATE pengaturan SET nilai = '(ilustrasi) Meningkatkan kesejahteraan nelayan dan pengolah hasil laut.\n(ilustrasi) Melestarikan mangrove dan pesisir sebagai pelindung desa dari rob dan abrasi.\n(ilustrasi) Mengembangkan UMKM olahan hasil laut, kelapa, dan kerajinan batok kelapa.\n(ilustrasi) Menjaga lahan pertanian pangan dan meningkatkan hasil panen petani.\n(ilustrasi) Memberikan pelayanan desa yang cepat, terbuka, dan mudah dijangkau warga.' WHERE kunci = 'misi';
 UPDATE pengaturan SET nilai = 'Laut Jawa' WHERE kunci = 'batas_utara';
 UPDATE pengaturan SET nilai = 'Desa Tanjung Anom dan Kecamatan Sukadiri' WHERE kunci = 'batas_timur';
 UPDATE pengaturan SET nilai = 'Desa Tegal Kunir Lor' WHERE kunci = 'batas_selatan';
 UPDATE pengaturan SET nilai = 'Desa Ketapang' WHERE kunci = 'batas_barat';
-UPDATE pengaturan SET nilai = 'Bawa botol minum dan wadah makan sendiri.\nJangan menginjak atau mencabut bibit mangrove.\nBuang sampah di tempatnya, terutama plastik di pantai.\nMinta izin sebelum memotret warga atau masuk ke sawah.' WHERE kunci = 'kode_etik_umum';
+UPDATE pengaturan SET nilai = 'Bawa botol minum dan wadah makan sendiri.\nJangan menginjak atau mencabut bibit mangrove.\nBuang sampah di tempatnya, terutama plastik di pantai.\nMinta izin sebelum memotret warga atau naik ke perahu nelayan.' WHERE kunci = 'kode_etik_umum';
 UPDATE pengaturan SET nilai = '(ilustrasi) Bank Sampah Margamulya buka setiap Sabtu pukul 08.00 sampai 11.00 di Balai RW 03. Sampah ditimbang, dicatat di buku tabungan, dan bisa ditukar uang atau sembako.' WHERE kunci = 'info_bank_sampah';
 UPDATE pengaturan SET nilai = 'Data asli: luas wilayah, jarak, jumlah RW dan RT, serta penduduk menurut jenis kelamin dari BPS (Kecamatan Mauk Dalam Angka 2025, data 2024); luas sawah dari pemberitaan 2023. Angka bertanda ilustrasi adalah data contoh yang mengikuti struktur Data EcoQuest IIT Challenge 2026. Perangkat desa dapat menggantinya dengan data resmi kapan saja melalui CMS.' WHERE kunci = 'catatan_data';
 UPDATE pengaturan SET nilai = '' WHERE kunci IN ('sambutan_kades', 'foto_kades');
@@ -1029,16 +1046,17 @@ INSERT INTO statistik (kategori, label, nilai, satuan, urutan, ilustrasi) VALUES
 ('Kependudukan', 'Rumah tangga (KK)', 2470, 'KK', 3, 1),
 ('Kependudukan', 'Usia kerja (18-56 tahun)', 5120, 'jiwa', 4, 1),
 ('Kependudukan', 'Pencari kerja terdaftar', 310, 'jiwa', 5, 1),
-('Mata pencaharian', 'Petani dan buruh tani', 1150, 'jiwa', 1, 1),
-('Mata pencaharian', 'Karyawan swasta dan buruh pabrik', 980, 'jiwa', 2, 1),
-('Mata pencaharian', 'Wiraswasta dan pedagang', 760, 'jiwa', 3, 1),
-('Mata pencaharian', 'Nelayan', 620, 'jiwa', 4, 1),
-('Mata pencaharian', 'Pengrajin', 140, 'jiwa', 5, 1),
-('Mata pencaharian', 'Peternak', 110, 'jiwa', 6, 1),
-('Mata pencaharian', 'Guru', 70, 'jiwa', 7, 1),
-('Mata pencaharian', 'PNS', 45, 'jiwa', 8, 1),
-('Mata pencaharian', 'TNI/Polri', 15, 'jiwa', 9, 1),
-('Mata pencaharian', 'Pekerja lepas dan lainnya', 830, 'jiwa', 10, 1),
+('Mata pencaharian', 'Nelayan dan buruh nelayan', 1240, 'jiwa', 1, 1),
+('Mata pencaharian', 'Petani dan buruh tani', 1080, 'jiwa', 2, 1),
+('Mata pencaharian', 'Karyawan swasta dan buruh pabrik', 870, 'jiwa', 3, 1),
+('Mata pencaharian', 'Wiraswasta dan pedagang', 690, 'jiwa', 4, 1),
+('Mata pencaharian', 'Pengolah hasil laut', 260, 'jiwa', 5, 1),
+('Mata pencaharian', 'Pengrajin batok kelapa', 140, 'jiwa', 6, 1),
+('Mata pencaharian', 'Peternak', 110, 'jiwa', 7, 1),
+('Mata pencaharian', 'Guru', 70, 'jiwa', 8, 1),
+('Mata pencaharian', 'PNS', 45, 'jiwa', 9, 1),
+('Mata pencaharian', 'TNI/Polri', 15, 'jiwa', 10, 1),
+('Mata pencaharian', 'Pekerja lepas dan lainnya', 600, 'jiwa', 11, 1),
 -- E. Pendidikan (total 8.449)
 ('Pendidikan penduduk', 'Belum/tidak sekolah', 1390, 'jiwa', 1, 1),
 ('Pendidikan penduduk', 'SD/sederajat', 3020, 'jiwa', 2, 1),
@@ -1070,6 +1088,8 @@ INSERT INTO statistik (kategori, label, nilai, satuan, urutan, ilustrasi) VALUES
 ('Perikanan', 'Hasil tangkapan laut', 210, 'ton/tahun', 1, 1),
 ('Perikanan', 'Bandeng tambak', 75, 'ton/tahun', 2, 1),
 ('Perikanan', 'Kelompok nelayan', 3, 'kelompok', 3, 1),
+('Perikanan', 'Perahu motor tempel', 140, 'unit', 4, 1),
+('Perikanan', 'Terasi dan ikan asin olahan warga', 18, 'ton/tahun', 5, 1),
 ('Peternakan', 'Ayam', 7800, 'ekor', 1, 1),
 ('Peternakan', 'Itik', 1900, 'ekor', 2, 1),
 ('Peternakan', 'Puyuh', 600, 'ekor', 3, 1),
@@ -1108,13 +1128,13 @@ UPDATE wisata SET slug = 'pantai-pasir-putih', nama = 'Pantai Pasir Putih Margam
   foto = '/assets/img/pantai.svg', tingkat_jalur = 'Mudah', ramah_kursi_roda = 0, ramah_lansia = 1, ada_toilet = 1,
   catatan_akses = '(ilustrasi) Jalan desa sampai area parkir, lalu berjalan di pasir sekitar 100 meter.', saat_hujan = 0
 WHERE id = 2;
-UPDATE wisata SET slug = 'sawah-jamblang', nama = 'Agro-edukasi Sawah Kelompok Tani Jamblang', jenis = 'Edukasi', harga = 15000, kuota = 60, jam_buka = '07.00 sampai 11.00',
-  ringkas = 'Belajar menanam dan memanen padi bersama Kelompok Tani Jamblang.',
-  deskripsi = 'Margamulya memiliki hamparan sawah sekitar 330 hektare dan menjadi percontohan pembenihan padi varietas Cakrabuana, padi genjah yang bisa dipanen sekitar 70 hari setelah tanam. Pengunjung bisa ikut tandur atau panen bersama petani. Paket kegiatan, harga, dan kuota di halaman ini adalah ilustrasi.',
-  fasilitas = 'Saung, Caping pinjaman, Tempat cuci kaki (ilustrasi)', tips = 'Pakai baju yang boleh kotor dan bawa baju ganti. Waktu terbaik adalah awal musim tanam atau menjelang panen.',
-  kode_etik = 'Ikuti arahan petani saat masuk ke petak sawah.\nJangan menginjak tanaman padi di luar jalur pematang.', lat = -6.0540, lng = 106.5420,
-  foto = '/assets/img/foto/2ef3e8e3.jpg', tingkat_jalur = 'Sedang', ramah_kursi_roda = 0, ramah_lansia = 1, ada_toilet = 1,
-  catatan_akses = '(ilustrasi) Pematang sawah sempit dan licin setelah hujan; lansia bisa menonton dari saung.', saat_hujan = 0
+UPDATE wisata SET slug = 'kampung-nelayan', nama = 'Wisata Kampung Nelayan (ilustrasi)', jenis = 'Edukasi', harga = 15000, kuota = 60, jam_buka = '07.00 sampai 11.00',
+  ringkas = 'Melihat perahu nelayan bersandar dan belajar mengolah ikan asin serta terasi bersama warga.',
+  deskripsi = 'Pagi hari, perahu nelayan Margamulya kembali dari melaut membawa ikan dan udang rebon. Pengunjung diajak melihat hasil tangkapan, belajar menjemur ikan asin, dan mencoba membuat terasi bersama ibu-ibu pengolah hasil laut. Paket kegiatan, harga, dan jam adalah ilustrasi.',
+  fasilitas = 'Pemandu warga, Area jemur ikan, Warung (ilustrasi)', tips = 'Datang pagi saat perahu kembali dari melaut. Pakai alas kaki yang boleh basah.',
+  kode_etik = 'Minta izin sebelum naik ke perahu atau memotret nelayan.\nJangan menginjak ikan yang sedang dijemur.', lat = -6.0320, lng = 106.5360,
+  foto = '/assets/img/perahu.svg', tingkat_jalur = 'Mudah', ramah_kursi_roda = 0, ramah_lansia = 1, ada_toilet = 1,
+  catatan_akses = '(ilustrasi) Jalan desa sampai dermaga kecil, lalu jalan kaki sekitar 50 meter.', saat_hujan = 0
 WHERE id = 1;
 UPDATE wisata SET slug = 'batok-kelapa', nama = 'Kelas Kerajinan Batok Kelapa (ilustrasi)', jenis = 'Budaya', harga = 25000, kuota = 30, jam_buka = '09.00 sampai 15.00',
   ringkas = 'Membuat mangkuk, gantungan kunci, atau briket dari batok kelapa bersama pengrajin warga.',
@@ -1140,8 +1160,8 @@ UPDATE umkm SET nama_usaha = 'Kerajinan Batok Rukun (ilustrasi)', kategori = 'Ke
   deskripsi = 'Batok kelapa dihaluskan, dipernis, lalu dibentuk menjadi mangkuk, gelas, dan gantungan kunci. Kerajinan batok kelapa adalah salah satu produk unggulan warga Margamulya.' WHERE id = 2;
 UPDATE umkm SET nama_usaha = 'Minyak Kelapa Mulya (ilustrasi)', kategori = 'Olahan kelapa', produk = 'Minyak kelapa murni (VCO)', harga = 35000, satuan = 'botol 250 ml', pemilik = 'Kelompok Wanita Tani, RW 04 (ilustrasi)', lat = -6.0480, lng = 106.5440, foto = '/assets/img/kelapa.svg',
   deskripsi = 'Minyak kelapa murni yang dibuat dari kelapa kebun warga tanpa pemanasan tinggi. Bisa untuk memasak atau perawatan kulit.' WHERE id = 3;
-UPDATE umkm SET nama_usaha = 'Beras Petani Jamblang (ilustrasi)', kategori = 'Olahan tani', produk = 'Beras dari sawah Margamulya', harga = 70000, satuan = '5 kg', pemilik = 'Kelompok Tani Jamblang (ilustrasi produk)', lat = -6.0540, lng = 106.5420,
-  deskripsi = 'Beras hasil sawah Margamulya, desa percontohan pembenihan padi Cakrabuana. Dijual langsung oleh petani sehingga harganya lebih adil.' WHERE id = 4;
+UPDATE umkm SET nama_usaha = 'Bandeng Presto Bu Nur (ilustrasi)', kategori = 'Olahan hasil laut', produk = 'Bandeng presto duri lunak', harga = 45000, satuan = '2 ekor (500 g)', pemilik = 'Bu Nur, RT 05 (ilustrasi)', lat = -6.0360, lng = 106.5350, foto = '/assets/img/ikan.svg',
+  deskripsi = 'Bandeng dari tambak pesisir dimasak presto sampai durinya lunak, jadi aman untuk anak dan lansia. Tahan dua hari di suhu ruang dan seminggu di kulkas.' WHERE id = 4;
 UPDATE umkm SET nama_usaha = 'Briket Batok Mak Ijah (ilustrasi)', kategori = 'Kerajinan', produk = 'Briket arang batok kelapa', harga = 20000, satuan = 'kg', pemilik = 'Mak Ijah, RT 07 (ilustrasi)', lat = -6.0400, lng = 106.5400, foto = '/assets/img/kegiatan.svg',
   deskripsi = 'Briket dari sisa batok kelapa, panasnya tahan lama dan asapnya sedikit. Cocok untuk bakar ikan dan sate. Pembuatan briket batok kelapa dikembangkan warga sejak program pemberdayaan 2025.' WHERE id = 5;
 UPDATE umkm SET nama_usaha = 'Rengginang Kang Ujang (ilustrasi)', kategori = 'Makanan', produk = 'Rengginang ketan rebon', harga = 20000, satuan = '300 g', pemilik = 'Kang Ujang, RT 11 (ilustrasi)', lat = -6.0500, lng = 106.5360,
@@ -1150,7 +1170,7 @@ UPDATE ulasan_umkm SET usaha = (SELECT nama_usaha FROM umkm WHERE umkm.id = ulas
 UPDATE ulasan_umkm SET komentar = 'Kerupuknya gurih dan rasa ikannya terasa. Langsung pesan lagi untuk oleh-oleh kantor.' WHERE id = 101;
 UPDATE ulasan_umkm SET komentar = 'Mangkuk batoknya halus dan unik, saya pakai untuk hampers. Ibu-ibunya ramah dan mau menyesuaikan ukuran.' WHERE id = 103;
 UPDATE ulasan_umkm SET komentar = 'Minyaknya jernih dan wangi kelapa. Saya pakai untuk memasak dan untuk kulit anak.' WHERE id = 104;
-UPDATE ulasan_umkm SET komentar = 'Berasnya pulen. Senang bisa beli langsung dari petani yang menanamnya.' WHERE id = 105;
+UPDATE ulasan_umkm SET komentar = 'Bandengnya gurih dan durinya benar-benar lunak. Anak saya suka.' WHERE id = 105;
 UPDATE ulasan_umkm SET komentar = 'Briketnya awet, dipakai bakar ikan satu sore masih menyala. Asapnya juga tidak banyak.' WHERE id = 106;
 UPDATE ulasan_umkm SET komentar = 'Rengginangnya mekar besar waktu digoreng dan rebonnya terasa. Cocok untuk teman makan.' WHERE id = 107;
 
@@ -1174,8 +1194,8 @@ INSERT INTO zona_rawan (id, nama, jenis, lat, lng, radius_m, keterangan) VALUES
 (3, 'Kawasan mangrove dan tambak (ilustrasi)', 'Rob dan abrasi', -6.0330, 106.5290, 250, 'Jalan setapak tergenang saat pasang tinggi. Datang saat air surut dan bersama pemandu.');
 
 -- ---------- Pembangunan (ilustrasi; saluran Cikait/Cikuil disebut dinormalisasi dalam berita 2023) ----------
-UPDATE pembangunan SET nama = 'Rabat beton jalan usaha tani (ilustrasi)', lokasi = 'Blok sawah RW 03', tahun = 2026, anggaran = 185000000, sumber_dana = 'Dana Desa', progres = 100, status = 'Selesai',
-  deskripsi = 'Jalan tanah di tengah sawah dibeton supaya petani bisa mengangkut gabah saat musim hujan.', lat = -6.0530, lng = 106.5400 WHERE id = 1;
+UPDATE pembangunan SET nama = 'Perbaikan tambatan perahu nelayan (ilustrasi)', lokasi = 'Pesisir utara Margamulya', tahun = 2026, anggaran = 185000000, sumber_dana = 'Dana Desa', progres = 100, status = 'Selesai',
+  deskripsi = 'Tambatan perahu diperkuat supaya perahu nelayan aman saat air pasang dan angin kencang.', lat = -6.0315, lng = 106.5355 WHERE id = 1;
 UPDATE pembangunan SET nama = 'Pemeliharaan saluran Cikait dan Cikuil (ilustrasi)', lokasi = 'Area persawahan Margamulya', tahun = 2026, anggaran = 220000000, sumber_dana = 'Dana Desa', progres = 65, status = 'Berjalan',
   deskripsi = 'Melanjutkan normalisasi saluran pembuang supaya sawah tidak tergenang dan air tetap lancar saat musim tanam.', lat = -6.0550, lng = 106.5390 WHERE id = 2;
 UPDATE pembangunan SET nama = 'Penataan bale dan warung Pantai Pasir Putih (ilustrasi)', lokasi = 'Pesisir Margamulya', tahun = 2026, anggaran = 95000000, sumber_dana = 'Pendapatan asli desa', progres = 40, status = 'Berjalan',
@@ -1185,34 +1205,35 @@ UPDATE pembangunan SET nama = 'Rumah pengolahan sampah TPS3R (ilustrasi)', lokas
 
 -- ---------- Program bantuan (ilustrasi; id tetap karena data penerima menempel) ----------
 UPDATE bantuan SET nama = 'Bantuan Langsung Tunai Dana Desa (ilustrasi)', penyelenggara = 'Pemerintah Desa Marga Mulya' WHERE id = 1;
-UPDATE bantuan SET nama = 'Bantuan benih padi dan pupuk (ilustrasi)', penyelenggara = 'Dinas Pertanian Kabupaten Tangerang', sasaran = 'Anggota kelompok tani', syarat = 'Terdaftar sebagai anggota kelompok tani\nMenggarap lahan sawah di Margamulya', jadwal = 'Pendaftaran menjelang musim tanam', cara_daftar = 'Daftar lewat ketua kelompok tani masing-masing.' WHERE id = 2;
+UPDATE bantuan SET nama = 'Bantuan alat keselamatan melaut (ilustrasi)', penyelenggara = 'Dinas Perikanan Kabupaten Tangerang', sasaran = 'Nelayan kecil yang terdaftar di kelompok nelayan', syarat = 'Terdaftar sebagai anggota kelompok nelayan\nMemiliki Kartu KUSUKA (Kartu Pelaku Usaha Kelautan dan Perikanan)', jadwal = 'Pendataan melalui ketua kelompok nelayan (ilustrasi)' WHERE id = 2;
 UPDATE bantuan SET nama = 'Pelatihan dan modal usaha olahan kelapa (ilustrasi)', penyelenggara = 'BUMDes Marga Mulya', sasaran = 'Pengrajin batok kelapa, pengolah hasil laut, dan pemuda yang ingin memulai usaha', syarat = 'Berusia 17 tahun ke atas\nBersedia mengikuti pelatihan 3 hari', jadwal = 'Dibuka dua kali setahun', cara_daftar = 'Isi formulir di kantor BUMDes atau kirim pesan lewat halaman Kontak dengan topik Layanan administrasi.' WHERE id = 3;
 
 -- ---------- Budaya dan kegiatan rutin (ilustrasi) ----------
 DELETE FROM budaya;
 INSERT INTO budaya (id, judul, waktu, isi) VALUES
-(1, 'Sedekah bumi (ilustrasi)', 'Setelah panen raya', 'Syukuran hasil panen bersama petani dan warga, ditutup makan bersama di balai desa.'),
+(1, 'Sedekah laut (ilustrasi)', 'Setahun sekali', 'Syukuran nelayan atas hasil laut, diisi doa bersama, arak-arakan perahu, dan makan bersama warga.'),
 (2, 'Gotong royong bersih pantai (ilustrasi)', 'Minggu pertama setiap bulan', 'Warga, pemuda, dan pengunjung memungut sampah plastik di pesisir lalu menyetorkannya ke bank sampah.'),
-(3, 'Tandur bareng (ilustrasi)', 'Awal musim tanam', 'Pengunjung diajak menanam padi bersama Kelompok Tani Jamblang.');
+(3, 'Tanam mangrove bersama (ilustrasi)', 'Musim hujan', 'Warga dan pengunjung menanam bibit bakau di pesisir untuk menahan abrasi.');
 
 -- ---------- Agenda (id 2 dan 4 dipakai data relawan) ----------
 DELETE FROM agenda WHERE id NOT IN (2, 4);
-UPDATE agenda SET judul = 'Kerja bakti saluran sawah (ilustrasi)', tempat = 'Saluran Cikait, area persawahan', jam = '07.00 sampai 10.00', isi = 'Membersihkan saluran pembuang sebelum musim tanam. Terbuka untuk semua warga dan pengunjung.' WHERE id = 2;
+UPDATE agenda SET judul = 'Tanam mangrove bersama (ilustrasi)', tempat = 'Pesisir utara Margamulya', jam = '07.00 sampai 10.00', isi = 'Menanam bibit bakau di titik yang rawan abrasi. Terbuka untuk warga, pelajar, dan pengunjung. Datang saat air surut.' WHERE id = 2;
 UPDATE agenda SET judul = 'Gotong royong bersih pantai (ilustrasi)', tempat = 'Pantai Pasir Putih Margamulya', jam = '06.30 sampai 09.30', isi = 'Memungut sampah plastik di pesisir dan menanam bibit mangrove. Sarung tangan dan karung disediakan.' WHERE id = 4;
 INSERT INTO agenda (id, judul, tanggal, jam, tempat, isi, relawan_kuota) VALUES
 (1, 'Posyandu RW 01 (ilustrasi)', '2026-11-21', '08.00 sampai 11.00', 'Posyandu RW 01', 'Penimbangan balita, imunisasi, dan pemberian makanan tambahan.', 0),
 (5, 'Posyandu Kampung KB Bebulak (ilustrasi)', '2026-12-05', '08.00 sampai 11.00', 'RW 03, Dusun Bebulak', 'Penimbangan balita dan penyuluhan KB.', 0),
 (101, 'Musyawarah desa penetapan penerima bantuan (ilustrasi)', '2026-11-27', '13.00 sampai 15.00', 'Balai desa', 'Pembahasan usulan penerima bantuan bersama ketua RT, RW, dan BPD.', 0),
-(102, 'Pelatihan kerajinan batok kelapa (ilustrasi)', '2026-12-02', '09.00 sampai 14.00', 'Balai desa', 'Membuat mangkuk dan briket dari batok kelapa untuk pemuda dan ibu-ibu.', 0);
+(102, 'Penyuluhan keselamatan melaut (ilustrasi)', '2026-12-02', '09.00 sampai 12.00', 'Balai desa', 'Penggunaan pelampung, membaca prakiraan gelombang, dan pendataan Kartu KUSUKA untuk nelayan.', 0),
+(103, 'Pelatihan olahan ikan untuk ibu-ibu nelayan (ilustrasi)', '2026-12-09', '09.00 sampai 14.00', 'Balai desa', 'Membuat bandeng presto, abon ikan, dan kemasan yang menarik untuk dijual.', 0);
 UPDATE relawan SET agenda_judul = (SELECT judul FROM agenda WHERE agenda.id = relawan.agenda_id);
 
 -- ---------- Berita (ilustrasi, kecuali yang menyebut sumber) ----------
 DELETE FROM berita;
 INSERT INTO berita (id, judul, tanggal, isi, foto) VALUES
 (1, 'Warung dan bale Pantai Pasir Putih direvitalisasi bersama mahasiswa', '2026-11-15', 'Pada 2025, mahasiswa Universitas Pembangunan Jaya lewat program SENANDUNG merevitalisasi warung dan bale di Pantai Pasir Putih Margamulya, termasuk 14 warung pantai, serta melatih pelaku UMKM tentang kewirausahaan dan pemasaran digital.\n\nLangkah ini menjadi awal penataan pesisir sebagai tujuan wisata warga. (Rencana lanjutan pada berita ini adalah ilustrasi.)', '/assets/img/pantai.svg'),
-(2, 'Padi Cakrabuana bisa dipanen sekitar 70 hari (ilustrasi berita)', '2026-11-11', 'Margamulya pernah menjadi percontohan pembenihan padi varietas Cakrabuana, padi genjah yang tahan hama dan bisa dipanen sekitar 70 hari setelah tanam (Jejak Kata, 2023).\n\n(ilustrasi) Kelompok tani mengajak warga dan sekolah melihat langsung proses tanam sampai panen lewat paket agro-edukasi.', '/assets/img/foto/2ef3e8e3.jpg'),
-(3, 'Pendaftaran bantuan benih padi dibuka (ilustrasi)', '2026-11-06', 'Anggota kelompok tani bisa mendaftar bantuan benih padi dan pupuk lewat ketua kelompok masing-masing sebelum musim tanam.', '/assets/img/sawah.svg'),
-(101, 'Website desa kini bisa dipakai mengajukan surat dari rumah', '2026-11-16', 'Warga Margamulya bisa mengajukan surat keterangan dari HP, memantau statusnya, lalu mengambil nomor antrean lewat QR saat datang ke kantor desa. (Tanggal peluncuran adalah ilustrasi.)', '/assets/img/foto/47c5aaa5.jpg'),
+(2, 'Pendataan Kartu KUSUKA untuk nelayan dibuka (ilustrasi)', '2026-11-11', 'Nelayan Margamulya yang belum memiliki Kartu Pelaku Usaha Kelautan dan Perikanan (KUSUKA) bisa mendaftar lewat ketua kelompok nelayan. Kartu ini menjadi syarat berbagai bantuan perikanan.\n\n(Jadwal dan teknis pendataan adalah ilustrasi.)', '/assets/img/perahu.svg'),
+(3, 'Ibu-ibu nelayan belajar membuat bandeng presto (ilustrasi)', '2026-11-06', 'Pelatihan olahan ikan diikuti ibu-ibu dari kampung nelayan. Hasilnya dijual di warung Pantai Pasir Putih dan dititipkan lewat halaman UMKM.', '/assets/img/ikan.svg'),
+(101, 'Website desa kini bisa dipakai mengajukan surat dari rumah', '2026-11-16', 'Warga Margamulya bisa mengajukan surat keterangan dari HP, memantau statusnya, lalu datang ke kantor desa saat surat sudah siap. (Tanggal peluncuran adalah ilustrasi.)', '/assets/img/foto/47c5aaa5.jpg'),
 (102, 'Pemuda belajar membuat briket dari batok kelapa (ilustrasi)', '2026-11-08', 'Sisa batok kelapa yang biasanya dibuang kini diolah menjadi briket arang. Pelatihan diikuti pemuda dan ibu-ibu dari lima RW.', '/assets/img/kegiatan.svg'),
 (103, 'Waspada rob saat bulan purnama (ilustrasi)', '2026-11-04', 'Air pasang tinggi bisa masuk ke kawasan pesisir saat bulan purnama dan angin kencang. Warga dan pengunjung diminta tidak bermain air saat ombak tinggi dan memantau peta zona rawan di website.', '/assets/img/pantai.svg'),
 (104, 'Bank sampah kumpulkan 11,9 ton sampah (ilustrasi)', '2026-10-28', 'Sampah plastik yang dikumpulkan warga tidak lagi berakhir di saluran dan pantai, tetapi ditabung di bank sampah dan bisa ditukar uang.', '/assets/img/kegiatan.svg');
@@ -1220,14 +1241,42 @@ INSERT INTO berita (id, judul, tanggal, isi, foto) VALUES
 -- ---------- Galeri ----------
 DELETE FROM galeri;
 INSERT INTO galeri (id, judul, kategori, foto) VALUES
-(105, 'Tandur bareng warga (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/2ef3e8e3.jpg'),
+(105, 'Perahu nelayan Margamulya (gambar ilustrasi)', 'Alam', '/assets/img/perahu.svg'),
 (106, 'Edukasi di posyandu (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/47c5aaa5.jpg'),
-(107, 'Jalan usaha tani dibeton (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/5dc890c1.jpg'),
-(108, 'Rengginang buatan warga (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/64cc8c9f.jpg'),
-(109, 'Beras hasil sawah (foto ilustrasi)', 'Alam', '/assets/img/foto/ee35ec90.jpg');
+(107, 'Pantai Pasir Putih (gambar ilustrasi)', 'Alam', '/assets/img/pantai.svg'),
+(108, 'Rengginang rebon buatan warga (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/64cc8c9f.jpg'),
+(109, 'Mangrove pesisir (gambar ilustrasi)', 'Alam', '/assets/img/mangrove.svg'),
+(110, 'Kerajinan batok kelapa (foto ilustrasi)', 'Kegiatan', '/assets/img/foto/70c97b14.jpg');
 
 -- ---------- FAQ ----------
 UPDATE faq SET jawaban = 'Ada. Kelas Kerajinan Batok Kelapa berlangsung di dalam ruangan, jadi tetap berjalan saat hujan. Untuk pantai dan mangrove, sebaiknya tunda kunjungan saat hujan deras atau angin kencang.' WHERE id = 21;
 UPDATE faq SET jawaban = 'Hewan peliharaan boleh dibawa ke pantai asal memakai tali dan kotorannya dibersihkan. Hewan tidak boleh masuk ke petak sawah dan area tanam mangrove.' WHERE id = 22;
 UPDATE faq SET pertanyaan = 'Apakah ada tempat makan dan toilet?', jawaban = 'Warung warga tersedia di Pantai Pasir Putih. Toilet tersedia di area pantai dan balai desa (ilustrasi).' WHERE id = 23;
 UPDATE faq SET jawaban = 'Drone tidak boleh diterbangkan di atas sawah dan permukiman tanpa izin pengelola. Minta izin ke petugas desa lebih dulu.' WHERE id = 3;
+
+-- ---------- Asisten desa: menu pilihan (ubah lewat CMS > Asisten desa) ----------
+-- Tulisan {jam_layanan}, {alamat}, {wa}, dan {email} diganti otomatis dengan isi Pengaturan.
+DELETE FROM asisten_menu;
+INSERT INTO asisten_menu (id, induk_id, judul, pertanyaan, jawaban, tautan, label_tautan, urutan, aktif) VALUES
+(1, 0, 'Layanan surat', 'Surat apa yang Anda perlukan?', '', '', '', 1, 1),
+(2, 0, 'Bantuan sosial', 'Apa yang ingin Anda ketahui soal bantuan?', '', '', '', 2, 1),
+(3, 0, 'Wisata dan kunjungan rombongan', 'Pilih informasi wisata:', '', '', '', 3, 1),
+(4, 0, 'Produk UMKM warga', 'Mau membeli atau menitipkan produk?', '', '', '', 4, 1),
+(5, 0, 'Aspirasi dan pengaduan', 'Pilih yang Anda perlukan:', '', '', '', 5, 1),
+(6, 0, 'Nomor darurat', '', 'Dalam keadaan darurat, langsung telepon:\n112 untuk semua keadaan darurat\n110 Polisi\n113 Pemadam kebakaran\n119 Ambulans\nNomor lengkap ada di halaman Kontak.', '/kontak#darurat', 'Lihat semua nomor darurat', 6, 1),
+(7, 0, 'Jam layanan dan alamat kantor desa', '', 'Kantor desa buka {jam_layanan}.\nAlamat: {alamat}\nWhatsApp: +{wa}', '/kontak', 'Buka halaman Kontak', 7, 1),
+(11, 1, 'Surat keterangan tidak mampu (SKTM)', '', 'Ajukan lewat website supaya petugas bisa menyiapkannya lebih dulu. Saat mengambil surat, bawa surat pengantar RT dan RW, KTP, dan Kartu Keluarga asli. Syarat lengkap tertulis di halaman Layanan surat.', '/data-desa?grup=Layanan+surat#surat', 'Ajukan surat sekarang', 1, 1),
+(12, 1, 'Surat keterangan domisili', '', 'Ajukan lewat website, lalu ambil di kantor desa dengan membawa surat pengantar RT dan RW serta KTP asli. Syarat lengkap tertulis di halaman Layanan surat.', '/data-desa?grup=Layanan+surat#surat', 'Ajukan surat sekarang', 2, 1),
+(13, 1, 'Surat keterangan usaha', '', 'Cocok untuk nelayan, pedagang, atau pengrajin yang butuh surat untuk pinjaman atau bantuan usaha. Ajukan lewat website, lalu bawa KTP dan foto tempat usaha saat mengambil surat.', '/data-desa?grup=Layanan+surat#surat', 'Ajukan surat sekarang', 3, 1),
+(14, 1, 'Surat pengantar nikah', '', 'Ajukan lewat website, lalu datang bersama calon pengantin membawa KTP, Kartu Keluarga, dan pas foto. Petugas akan menjelaskan langkah berikutnya ke KUA.', '/data-desa?grup=Layanan+surat#surat', 'Ajukan surat sekarang', 4, 1),
+(15, 1, 'Cek status surat saya', '', 'Masukkan kode pengajuan yang diawali SRT- di halaman Layanan surat untuk melihat apakah surat sudah siap diambil.', '/data-desa?grup=Layanan+surat&srt=#surat', 'Cek status surat', 5, 1),
+(21, 2, 'Cara cek apakah saya penerima bantuan', '', 'Buka halaman Pantau bansos, lalu ketik nama dan RT. Demi privasi, nama penerima hanya ditampilkan sebagian.', '/data-desa?grup=Pantau+bansos#cek-bansos', 'Cek penerima bantuan', 1, 1),
+(22, 2, 'Cara mengusulkan warga yang layak dibantu', '', 'Sampaikan usulan ke ketua RT atau lewat aspirasi warga dengan kategori Bantuan sosial. Usulan dibahas di musyawarah desa.', '/kontak#aspirasi', 'Kirim usulan', 2, 1),
+(23, 2, 'Bantuan untuk nelayan', '', 'Bantuan perikanan biasanya mensyaratkan Kartu KUSUKA dan keanggotaan kelompok nelayan. Tanyakan pendataan ke ketua kelompok nelayan atau kantor desa.', '/data-desa?grup=Pantau+bansos', 'Lihat program bantuan', 3, 1),
+(31, 3, 'Tempat wisata, harga, dan jam buka', '', 'Ada Pantai Pasir Putih, kawasan mangrove, kampung nelayan, dan kelas kerajinan batok kelapa. Harga dan jam buka tiap tempat ada di halaman Wisata.', '/wisata', 'Lihat semua wisata', 1, 1),
+(32, 3, 'Pesan kunjungan rombongan', '', 'Rombongan minimal 10 orang (sekolah, kampus, komunitas) sebaiknya memesan dulu supaya pemandu dan tempat disiapkan. Pengunjung perorangan dan keluarga cukup datang langsung.', '/reservasi', 'Pesan kunjungan rombongan', 2, 1),
+(33, 3, 'Waktu terbaik berkunjung dan info rob', '', 'Datang pagi atau sore supaya tidak terlalu panas. Hindari bermain air saat ombak tinggi atau bulan purnama karena air pasang bisa naik. Prakiraan cuaca ada di halaman Wisata.', '/wisata', 'Lihat prakiraan cuaca', 3, 1),
+(41, 4, 'Cara memesan produk', '', 'Pilih produk di halaman UMKM, lalu tekan Pesan lewat WhatsApp. Pesan langsung terkirim ke pembuatnya. Harga dan pembayaran disepakati dengan penjual.', '/umkm', 'Lihat produk UMKM', 1, 1),
+(42, 4, 'Cara menitipkan produk saya', '', 'Isi form Ajukan produk di halaman UMKM. Petugas desa meninjau 1 sampai 2 hari kerja, lalu produk tampil di website. Gratis.', '/umkm#ajukan', 'Ajukan produk', 2, 1),
+(51, 5, 'Kirim aspirasi atau laporan', '', 'Tulis masalahnya, misalnya jalan rusak atau lampu mati, dan lampirkan foto bila ada. Anda mendapat kode untuk memantau tindak lanjutnya.', '/kontak#aspirasi', 'Kirim aspirasi', 1, 1),
+(52, 5, 'Lihat perkembangan aspirasi warga', '', 'Semua aspirasi yang sudah diperiksa petugas tampil di Papan Aspirasi beserta statusnya.', '/kontak#papan', 'Buka Papan Aspirasi', 2, 1);

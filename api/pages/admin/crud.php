@@ -61,6 +61,11 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 if (!in_array($nilai, pilihan_dropdown($c, $nama, $opsi), true)) { $errors[] = "Pilih \"$label\" dari daftar."; break; }
                 $data[$nama] = $nilai;
                 break;
+            case 'induk': // pilihan induk dari tabel yang sama (menu bertingkat Asisten Desa)
+                $n = (int) $nilai;
+                if ($n !== 0 && ($n === $id || !q1("SELECT id FROM {$c['tabel']} WHERE id = ?", [$n]))) { $errors[] = "Pilih \"$label\" dari daftar."; break; }
+                $data[$nama] = $n;
+                break;
             case 'sdg':
                 $dipilih = array_values(array_intersect(array_keys(SDG), array_map('intval', (array) ($_POST[$nama] ?? []))));
                 if (count($dipilih) > 3) { $errors[] = "\"$label\": pilih paling banyak 3 tujuan supaya fokus."; break; }
@@ -186,6 +191,15 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
           <?php if (!empty($opsi['bisaTambah'])): ?>
             <input id="f-<?= $nama ?>-baru" name="<?= $nama ?>__baru" class="pilihan-baru" value="<?= e($nilai[$nama . '__baru'] ?? '') ?>" placeholder="Ketik pilihan baru, contoh: Edukasi" maxlength="40" style="margin-top:8px" aria-label="Pilihan baru untuk <?= e($label) ?>">
           <?php endif; ?>
+        <?php elseif ($jenis === 'induk'): ?>
+          <label for="f-<?= $nama ?>"><?= e($label) ?></label>
+          <select id="f-<?= $nama ?>" name="<?= $nama ?>">
+            <option value="0">Menu awal (pilihan utama)</option>
+            <?php foreach (q("SELECT id, judul FROM {$c['tabel']} ORDER BY urutan, id") as $opsiInduk): if ((int) $opsiInduk['id'] === (int) $id) continue; ?>
+              <option value="<?= (int) $opsiInduk['id'] ?>" <?= (int) $v === (int) $opsiInduk['id'] ? 'selected' : '' ?>><?= e($opsiInduk['judul']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <?php if (!empty($opsi['catatan'])): ?><div class="hint"><?= e($opsi['catatan']) ?></div><?php endif; ?>
         <?php elseif ($jenis === 'akses'):
           $terpilih = $v === null ? array_keys(MENU_PETUGAS) : (is_array($v) ? $v : explode(',', (string) $v)); ?>
           <fieldset class="akses-box" style="border:0;padding:0;margin:0">
@@ -193,7 +207,7 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
               <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,bansos,sampah,fasilitas,zona,laporan">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,surat,bansos,pesananumkm,faq,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,surat,bansos,asisten,darurat">Paket layanan warga</button>
               <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>
@@ -290,6 +304,7 @@ else:
                 <?php elseif ($f === 'bulan'): ?><?= tgl($v, 'bulantahun') ?>
                 <?php elseif ($f === 'persen'): ?><?= (int) $v ?>%
                 <?php elseif ($f === 'akses'): ?><?= $baris['peran'] === 'Super admin' ? 'Semua menu' : (e(implode(', ', array_map(fn($k) => MENU_PETUGAS[$k], akses_admin($baris)))) ?: '<span class="muted">Belum ada</span>') ?>
+                <?php elseif ($f === 'induk'): ?><?= (int) $v === 0 ? '<b>Menu awal</b>' : e((string) (q1("SELECT judul FROM {$c['tabel']} WHERE id = ?", [(int) $v])['judul'] ?? '-')) ?>
                 <?php elseif ($f === 'yatidak'): ?><?= $v ? 'Ya' : '<span class="status st-Dibatalkan">Disembunyikan</span>' ?>
                 <?php else: ?><?= e($v) ?><?php endif; ?>
               </td>

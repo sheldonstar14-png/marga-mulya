@@ -8,13 +8,12 @@ $jumlahPesanBaru = boleh($admin, 'pesan') ? (int) q1('SELECT COUNT(*) AS n FROM 
 $jumlahPrivasiBaru = boleh($admin, 'privasi') ? (int) q1("SELECT COUNT(*) AS n FROM permintaan_data WHERE status = 'Diterima'")['n'] : 0;
 $jumlahAspirasiBaru = boleh($admin, 'aspirasi') ? (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima'")['n'] : 0;
 $jumlahUlasanUmkm = boleh($admin, 'ulasanumkm') ? (int) q1('SELECT COUNT(*) AS n FROM ulasan_umkm WHERE tampil = 0')['n'] : 0;
-$jumlahPesananUmkm = boleh($admin, 'pesananumkm') ? (int) q1("SELECT COUNT(*) AS n FROM pesanan_umkm WHERE status = 'Baru'")['n'] : 0;
 $jumlahAjuUmkm = 0;
 try { $jumlahAjuUmkm = boleh($admin, 'pengajuanumkm') ? (int) q1("SELECT COUNT(*) AS n FROM pengajuan_umkm WHERE status = 'Menunggu'")['n'] : 0; } catch (Throwable $e) {}
 $jumlahSuratBaru = boleh($admin, 'surat') ? (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status = 'Diterima'")['n'] : 0;
 $grupMenu = [
-    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Reservasi', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'surat' => 'Pengajuan surat & antrean', 'layanan' => 'Jenis surat & syarat', 'faq' => 'Asisten desa (FAQ)', 'ulasan' => 'Ulasan'],
-    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'pengajuanumkm' => 'Pengajuan produk UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'pesananumkm' => 'Pesanan UMKM', 'agenda' => 'Agenda', 'relawan' => 'Relawan gotong royong', 'survei' => 'Survei kepuasan', 'berita' => 'Berita', 'galeri' => 'Galeri', 'kreditfoto' => 'Sumber & kredit foto'],
+    'Layanan'   => ['dashboard' => 'Dashboard', 'reservasi' => 'Kunjungan rombongan', 'pesan' => 'Pesan masuk', 'aspirasi' => 'Aspirasi warga', 'privasi' => 'Permintaan data pribadi', 'surat' => 'Pengajuan surat & antrean', 'layanan' => 'Jenis surat & syarat', 'asisten' => 'Asisten desa (menu)', 'ulasan' => 'Ulasan'],
+    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'pengajuanumkm' => 'Pengajuan produk UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'agenda' => 'Agenda', 'relawan' => 'Relawan gotong royong', 'survei' => 'Survei kepuasan', 'berita' => 'Berita', 'galeri' => 'Galeri', 'kreditfoto' => 'Sumber & kredit foto'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
     'Laporan' => ['laporan' => 'Laporan bulanan'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'bansos' => 'Penerima bansos', 'sampah' => 'Bank sampah'],
@@ -25,7 +24,7 @@ foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
     $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
     if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
-$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm, 'pesananumkm' => $jumlahPesananUmkm, 'pengajuanumkm' => $jumlahAjuUmkm];
+$badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi' => $jumlahAspirasiBaru, 'privasi' => $jumlahPrivasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm, 'pengajuanumkm' => $jumlahAjuUmkm];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -40,7 +39,7 @@ $badge = ['reservasi' => $jumlahMenunggu, 'pesan' => $jumlahPesanBaru, 'aspirasi
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <?php if (!empty($pakaiPeta)): ?><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""><?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12p">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12q">
 </head>
 <body class="cms">
 <div class="admin">

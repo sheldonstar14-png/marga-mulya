@@ -7,14 +7,18 @@ $menu  = $menu ?? '';
 $daftarMenu = [
     ''          => 'Beranda',
     'profil'    => 'Profil',
-    'data-desa' => 'Informasi Desa',
+    'layanan'   => 'Layanan',
+    'data-desa' => 'Informasi',
     'wisata'    => 'Wisata',
-    'reservasi' => 'Reservasi',
     'umkm'      => 'UMKM',
-    'agenda'    => 'Agenda & Berita',
+    'agenda'    => 'Berita',
     'galeri'    => 'Galeri',
     'kontak'    => 'Kontak',
 ];
+// "Layanan" membuka tab layanan surat di halaman Informasi desa
+$grupBuka = (string) ($_GET['grup'] ?? '');
+$menuAktif = $menu === 'data-desa' && in_array($grupBuka, ['Layanan surat', 'Pantau bansos'], true) ? 'layanan' : ($menu === 'reservasi' ? 'wisata' : $menu);
+$alamatMenuKhusus = ['layanan' => '/data-desa?grup=Layanan+surat'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -33,29 +37,27 @@ $daftarMenu = [
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Young+Serif&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <?php if (!empty($pakaiPeta)): ?>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12p">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12q">
 </head>
 <body>
 <a class="skip" href="#isi">Langsung ke isi halaman</a>
 <header class="top">
   <div class="top-in">
     <a class="brand" href="/">
-      <img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="74" height="40">
-      <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?></small></span>
+      <img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="64" height="35">
+      <span><?= e(setting('nama_desa')) ?><small><?= e(setting('kecamatan')) ?>, <?= e(setting('kabupaten')) ?></small></span>
     </a>
-    <div class="top-aksi">
-      <a class="btn-header" href="/reservasi"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Pesan kunjungan</span></a>
-      <button class="menu-btn" aria-expanded="false" aria-controls="nav" id="menuBtn">Menu</button>
-    </div>
     <nav class="nav" id="nav" aria-label="Menu utama">
       <?php foreach ($daftarMenu as $alamatMenu => $labelMenu): ?>
-        <a href="/<?= $alamatMenu ?>" class="<?= $menu === $alamatMenu ? 'on' : '' ?>"><?= e($labelMenu) ?></a>
+        <a href="<?= $alamatMenuKhusus[$alamatMenu] ?? '/' . $alamatMenu ?>" class="<?= $menuAktif === $alamatMenu ? 'on' : '' ?>" <?= $menuAktif === $alamatMenu ? 'aria-current="page"' : '' ?>><?= e($labelMenu) ?></a>
       <?php endforeach; ?>
     </nav>
+    <a class="darurat-btn" href="/kontak#darurat"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Darurat</a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="nav" id="menuBtn">Menu</button>
   </div>
 </header>
 <div class="penanda-offline" id="penandaOffline" hidden role="status">Kamu sedang offline. Yang tampil adalah salinan tersimpan, nomor darurat ada di halaman Kontak.</div>

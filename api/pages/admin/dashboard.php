@@ -37,10 +37,6 @@ foreach (q("SELECT wisata_id, tanggal, SUM(jumlah) AS n FROM reservasi WHERE sta
     $terisi[$r['wisata_id']][$r['tanggal']] = (int) $r['n'];
 }
 
-// Jejak karbon pengunjung (Fase 8): dari reservasi yang tidak dibatalkan dan punya data perjalanan
-$emisi = q1("SELECT COALESCE(SUM(emisi_kg), 0) AS kg, COALESCE(SUM(jumlah), 0) AS orang,
-    COALESCE(SUM(CASE WHEN kendaraan IN ('Bus atau elf rombongan', 'Angkutan umum', 'Kereta lalu ojek', 'Sepeda atau jalan kaki') THEN jumlah ELSE 0 END), 0) AS hijau
-    FROM reservasi WHERE status <> 'Dibatalkan' AND kendaraan <> ''");
 $aspirasiBaru = boleh($admin, 'aspirasi') ? (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima'")['n'] : null;
 
 $judulAdmin = 'Dashboard';
@@ -62,14 +58,14 @@ require __DIR__ . '/../../inc/admin-header.php';
   <?php endif; ?>
 <?php else: ?>
 <div class="stat-row">
-  <div class="stat"><span>Reservasi menunggu</span><b><?= $jumlahMenunggu ?></b></div>
+  <div class="stat"><span>Kunjungan rombongan menunggu</span><b><?= $jumlahMenunggu ?></b></div>
   <div class="stat"><span>Pengunjung 7 hari ke depan</span><b><?= $pengunjungSepekan ?></b></div>
   <div class="stat"><span>Pesan belum dibaca</span><b><?= $pesanBaru ?></b></div>
   <div class="stat"><span>Produk UMKM tampil</span><b><?= $jumlahUmkm ?></b></div>
 </div>
 <div class="stat-row">
-  <div class="stat"><span>Rata-rata jejak karbon per pengunjung</span><b><?= $emisi['orang'] ? angka(round($emisi['kg'] / $emisi['orang'], 1)) : 0 ?> kg</b><small class="muted">CO2e pulang pergi</small></div>
-  <div class="stat"><span>Datang dengan transport bersama atau tanpa emisi</span><b><?= persen_id((float) $emisi['hijau'], (float) $emisi['orang']) ?>%</b><small class="muted">bus, angkutan umum, kereta, sepeda</small></div>
+  <?php $pengajuanBaru = 0; try { $pengajuanBaru = (int) q1("SELECT COUNT(*) AS n FROM pengajuan_umkm WHERE status = 'Menunggu'")['n']; } catch (Throwable $e) {} ?>
+  <a class="stat" style="text-decoration:none;color:inherit" href="/admin/pengajuanumkm"><span>Pengajuan produk UMKM menunggu</span><b><?= $pengajuanBaru ?></b></a>
   <?php if ($aspirasiBaru !== null): ?><a class="stat" style="text-decoration:none;color:inherit" href="/admin/aspirasi?status=Diterima"><span>Aspirasi warga belum ditanggapi</span><b><?= $aspirasiBaru ?></b><small class="muted">buka menu Aspirasi</small></a><?php endif; ?>
 </div>
 

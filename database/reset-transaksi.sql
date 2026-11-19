@@ -26,21 +26,21 @@ DELETE FROM pesan;
 
 -- Contoh reservasi (hanya untuk destinasi yang masih ada)
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0426', id, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 2, 'Rizky Hidayat', '081200000006', '', 'Dibatalkan' FROM wisata WHERE slug = 'pantai-pasir-putih';
+SELECT 'MM-0426', id, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 12, 'Karang Taruna Mauk', '081200000006', '', 'Dibatalkan' FROM wisata WHERE slug = 'pantai-pasir-putih';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0427', id, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 4, 'Dinda Pramesti', '081200000001', '', 'Dikonfirmasi' FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0427', id, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 32, 'SMP Negeri 1 Mauk', '081200000001', 'Kelas 8, didampingi 4 guru', 'Dikonfirmasi' FROM wisata WHERE slug = 'kampung-nelayan';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0428', id, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 6, 'Rombongan SMA 2', '081200000002', 'Butuh pemandu', 'Menunggu' FROM wisata WHERE slug = 'pantai-pasir-putih';
+SELECT 'MM-0428', id, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 30, 'Rombongan SMA 2', '081200000002', 'Butuh pemandu', 'Menunggu' FROM wisata WHERE slug = 'pantai-pasir-putih';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
 SELECT 'MM-0429', id, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 25, 'SD Tunas Bangsa', '081200000003', 'Kelas 5, didampingi 3 guru', 'Menunggu' FROM wisata WHERE slug = 'batok-kelapa';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0430', id, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 3, 'Fajar Nugroho', '081200000004', '', 'Selesai' FROM wisata WHERE slug = 'mangrove';
+SELECT 'MM-0430', id, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 15, 'Komunitas Pecinta Mangrove', '081200000004', '', 'Selesai' FROM wisata WHERE slug = 'mangrove';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0431', id, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 2, 'Maya Anggraini', '081200000005', '', 'Menunggu' FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0431', id, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 18, 'Mahasiswa KKN', '081200000005', 'Ingin belajar mengolah ikan asin', 'Menunggu' FROM wisata WHERE slug = 'kampung-nelayan';
 
 -- Riwayat kunjungan bulan-bulan sebelumnya, supaya grafik dashboard tidak kosong saat demo
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0301', id, DATE_SUB(CURDATE(), INTERVAL 150 DAY), 38, 'Rombongan PKK Mauk', '081200000011', '', 'Selesai' FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0301', id, DATE_SUB(CURDATE(), INTERVAL 150 DAY), 38, 'Rombongan PKK Mauk', '081200000011', '', 'Selesai' FROM wisata WHERE slug = 'kampung-nelayan';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
 SELECT 'MM-0322', id, DATE_SUB(CURDATE(), INTERVAL 120 DAY), 45, 'SMP Negeri 3', '081200000012', '', 'Selesai' FROM wisata WHERE slug = 'mangrove';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
@@ -48,7 +48,7 @@ SELECT 'MM-0350', id, DATE_SUB(CURDATE(), INTERVAL 90 DAY), 50, 'Komunitas Pesep
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
 SELECT 'MM-0377', id, DATE_SUB(CURDATE(), INTERVAL 60 DAY), 30, 'Mahasiswa KKN', '081200000014', '', 'Selesai' FROM wisata WHERE slug = 'batok-kelapa';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, catatan, status)
-SELECT 'MM-0402', id, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 42, 'Keluarga Besar Wiryo', '081200000015', '', 'Selesai' FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0402', id, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 42, 'Keluarga Besar Wiryo', '081200000015', '', 'Selesai' FROM wisata WHERE slug = 'kampung-nelayan';
 
 INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 ('Andi', 'andi@contoh.id', 'Wisata', 'Apakah pantai bisa dikunjungi rombongan 40 orang?', 0),
@@ -58,13 +58,13 @@ INSERT INTO pesan (nama, kontak, topik, isi, dibaca) VALUES
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
 SELECT id, wisata_id, nama, 5, 'Anak-anak senang menanam bibit mangrove sendiri, pemandunya sabar menjelaskan.' FROM reservasi WHERE kode = 'MM-0430';
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
-SELECT id, wisata_id, nama, 5, 'Pemandangan pagi luar biasa, jalur pematang terawat dan pemandunya sabar.' FROM reservasi WHERE kode = 'MM-0301';
+SELECT id, wisata_id, nama, 5, 'Anak-anak bisa melihat langsung perahu nelayan bersandar dan belajar menjemur ikan asin. Warganya ramah.' FROM reservasi WHERE kode = 'MM-0301';
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
 SELECT id, wisata_id, nama, 4, 'Seru untuk rombongan sekolah. Parkir bus agak sempit, sebaiknya datang pagi.' FROM reservasi WHERE kode = 'MM-0322';
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
 SELECT id, wisata_id, nama, 5, 'Anginnya sejuk dan warungnya banyak pilihan ikan bakar. Datang sore paling enak.' FROM reservasi WHERE kode = 'MM-0350';
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
-SELECT id, wisata_id, nama, 5, 'Belajar menganyam langsung dari pengrajin, pengalaman yang berharga untuk mahasiswa.' FROM reservasi WHERE kode = 'MM-0377';
+SELECT id, wisata_id, nama, 5, 'Belajar membuat mangkuk batok langsung dari pengrajin, pengalaman yang berharga untuk mahasiswa.' FROM reservasi WHERE kode = 'MM-0377';
 INSERT INTO ulasan (reservasi_id, wisata_id, nama, bintang, komentar)
 SELECT id, wisata_id, nama, 4, 'Datang pagi sesuai saran cuaca di website, ternyata cerah seharian.' FROM reservasi WHERE kode = 'MM-0402';
 
@@ -93,7 +93,7 @@ UPDATE reservasi SET kupon = 'HIJAU-0429' WHERE kode = 'MM-0429' AND kupon IS NU
 
 -- ---------- Tambahan contoh (12i): semua nama dan nomor di bawah KARANGAN ----------
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
-SELECT 'MM-0201', id, DATE_SUB(CURDATE(), INTERVAL 12 DAY), 4, 'Keluarga Santoso', '081200000031', '', '', 'Selesai', 'Mobil pribadi', 35 FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0201', id, DATE_SUB(CURDATE(), INTERVAL 12 DAY), 4, 'Keluarga Santoso', '081200000031', '', '', 'Selesai', 'Mobil pribadi', 35 FROM wisata WHERE slug = 'kampung-nelayan';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
 SELECT 'MM-0202', id, DATE_SUB(CURDATE(), INTERVAL 9 DAY), 22, 'Pramuka SMP di Mauk', '081200000032', '', 'Didampingi 2 pembina', 'Selesai', 'Bus atau elf rombongan', 12 FROM wisata WHERE slug = 'batok-kelapa';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
@@ -101,7 +101,7 @@ SELECT 'MM-0203', id, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 2, 'Anisa Putri', '08
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
 SELECT 'MM-0204', id, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 5, 'Arisan RT 02 Margamulya', '081200000034', '', '', 'Selesai', 'Angkutan umum', 15 FROM wisata WHERE slug = 'mangrove';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
-SELECT 'MM-0432', id, DATE_ADD(CURDATE(), INTERVAL 9 DAY), 12, 'Komunitas Fotografi Tangerang', '081200000035', '', 'Ingin memotret matahari terbenam di pantai', 'Dikonfirmasi', 'Mobil pribadi', 45 FROM wisata WHERE slug = 'sawah-jamblang';
+SELECT 'MM-0432', id, DATE_ADD(CURDATE(), INTERVAL 9 DAY), 12, 'Komunitas Fotografi Tangerang', '081200000035', '', 'Ingin memotret matahari terbenam di pantai', 'Dikonfirmasi', 'Mobil pribadi', 45 FROM wisata WHERE slug = 'kampung-nelayan';
 INSERT INTO reservasi (kode, wisata_id, tanggal, jumlah, nama, wa, email, catatan, status, kendaraan, jarak_km)
 SELECT 'MM-0433', id, DATE_ADD(CURDATE(), INTERVAL 11 DAY), 3, 'Dewi Lestari', '081200000036', '', 'Membawa lansia, mohon info jalur', 'Menunggu', 'Angkutan umum', 25 FROM wisata WHERE slug = 'mangrove';
 

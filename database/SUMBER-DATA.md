@@ -28,6 +28,9 @@ Data yang tidak diberi tanda "(ilustrasi)" di website berasal dari sumber beriku
 - Data rinci lain di publikasi BPS 2025 (sekolah, sarana kesehatan, pertanian, bencana) hanya disajikan per kecamatan, bukan per desa, sehingga tidak dipakai untuk angka desa.
 - Kode pos: ada sumber yang menyebut 15531 dan ada yang 15532.
 
+## Catatan mata pencaharian
+Belum ada sumber yang memuat jumlah warga per pekerjaan untuk Marga Mulya. Sumber hanya menyebut jenisnya (nelayan, petani, wiraswasta, pekerja lepas, peternak, buruh pabrik). Grafik mata pencaharian di website adalah ilustrasi; ganti dengan data monografi atau profil desa dari kantor desa bila sudah didapat.
+
 ## Yang masih ilustrasi
 Semua angka statistik selain luas, penduduk menurut jenis kelamin, kepadatan, rasio jenis kelamin, RW, RT, aparat, dan luas sawah; nama perangkat desa selain kepala desa;
 visi dan misi; harga, kuota, dan jam buka wisata; nama dan harga UMKM; berita, agenda, pembangunan, program bantuan; titik koordinat peta.

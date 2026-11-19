@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $idBaru = (int) db()->lastInsertId();
         q("UPDATE pengajuan_umkm SET status = 'Diterbitkan', umkm_id = ?, catatan = ?, diperbarui_pada = CURRENT_TIMESTAMP WHERE kode = ?",
             [$idBaru, $catatan !== '' ? $catatan : 'Produkmu sudah tampil di halaman UMKM. Lokasi di peta bisa ditambahkan petugas.', $kode]);
-        redirect($kembali . '&ok=' . urlencode("$kode diterbitkan. Tambahkan titik peta dan kode Tiket Hijau di menu UMKM kalau perlu."));
+        redirect($kembali . '&ok=' . urlencode("$kode diterbitkan. Tambahkan titik peta di menu UMKM kalau perlu."));
     }
     $status = (string) ($_POST['status'] ?? '');
     if (!in_array($status, ['Menunggu', 'Ditinjau', 'Ditolak'], true)) redirect($kembali . '&gagal=' . urlencode('Status tidak valid.'));

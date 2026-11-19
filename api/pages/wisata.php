@@ -27,13 +27,13 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Wisata dan budaya</h1>
-  <p>Destinasi yang dikelola warga. Pilih destinasi untuk melihat cuaca, kuota harian, dan memesan kunjungan.</p>
+  <p>Destinasi pesisir yang dikelola warga. Pengunjung perorangan dan keluarga cukup datang langsung. Rombongan minimal 10 orang bisa <a href="/reservasi">memesan kunjungan</a> supaya pemandu disiapkan.</p>
 </div>
 <div class="wrap sec" style="padding-top:16px">
   <div class="grid g4">
     <?php foreach ($wisata as $w): ?>
       <a class="card link-card" href="/wisata/<?= e($w['slug']) ?>">
-        <div class="art"><img src="<?= e($w['foto'] ?: '/assets/img/sawah.svg') ?>" alt="<?= e($w['nama']) ?>" loading="lazy"></div>
+        <div class="art"><img src="<?= e($w['foto'] ?: '/assets/img/pantai.svg') ?>" alt="<?= e($w['nama']) ?>" loading="lazy"></div>
         <div class="card-body">
           <span class="tag"><?= e($w['jenis']) ?></span>
           <h3 style="margin:4px 0 0"><?= e($w['nama']) ?></h3>

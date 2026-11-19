@@ -36,9 +36,9 @@ if (isset($_GET['export'])) {
     header('Content-Disposition: attachment; filename="reservasi-' . date('Y-m-d') . '.csv"');
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF"); // supaya huruf tampil benar di Excel
-    fputcsv($out, ['Kode', 'Nama', 'WhatsApp', 'Email', 'Destinasi', 'Tanggal kunjungan', 'Jumlah orang', 'Status', 'Catatan', 'Kendaraan', 'Jarak sekali jalan (km)', 'Perkiraan emisi (kg CO2e)', 'Kupon Tiket Hijau', 'Kupon dipakai di', 'Dibuat']);
+    fputcsv($out, ['Kode', 'Nama', 'WhatsApp', 'Email', 'Destinasi', 'Tanggal kunjungan', 'Jumlah orang', 'Status', 'Catatan', 'Dibuat']);
     foreach ($daftar as $r) {
-        fputcsv($out, [$r['kode'], $r['nama'], $r['wa'], $r['email'], $r['wisata'], $r['tanggal'], $r['jumlah'], $r['status'], $r['catatan'], $r['kendaraan'], $r['jarak_km'], $r['emisi_kg'], $r['kupon'], $r['kupon_umkm'], $r['dibuat_pada']]);
+        fputcsv($out, [$r['kode'], $r['nama'], $r['wa'], $r['email'], $r['wisata'], $r['tanggal'], $r['jumlah'], $r['status'], $r['catatan'], $r['dibuat_pada']]);
     }
     fclose($out);
     return;

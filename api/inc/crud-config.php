@@ -82,7 +82,6 @@ $CRUD = [
             ['wa', 'Nomor WhatsApp', 'text', ['wajib' => true, 'maks' => 20, 'contoh' => '081234567890']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
             ['foto', 'Foto produk', 'foto', []],
-            ['pin_hash', 'Kode tukar Tiket Hijau', 'password', ['min' => 6, 'opsional' => true, 'catatan' => 'Berikan hanya ke pemilik usaha. Dipakai untuk menandai kupon Tiket Hijau sudah dipakai. Kosongkan kalau usaha ini tidak ikut Tiket Hijau.']],
         ],
         'baru' => ['kategori' => 'Makanan', 'harga' => 10000],
         'sebelumSimpan' => function (array &$data, ?int $id): void {
@@ -100,17 +99,6 @@ $CRUD = [
             ['bintang', 'Bintang (1 sampai 5)', 'number', ['min' => 1, 'max' => 5]],
             ['komentar', 'Ulasan', 'textarea', ['wajib' => true, 'maks' => 500]],
             ['tampil', 'Tampilkan di website', 'check', []],
-        ],
-        'tanpaTambah' => true,
-    ],
-
-    'pesananumkm' => [
-        'judul' => 'Pesanan UMKM', 'satu' => 'pesanan', 'tabel' => 'pesanan_umkm', 'urut' => "CASE status WHEN 'Baru' THEN 1 WHEN 'Diproses' THEN 2 ELSE 3 END, id DESC",
-        'catatan' => 'Pesanan dari keranjang di halaman UMKM. Pembeli juga mengirim ringkasan pesanan ke WhatsApp penjual, jadi penjual tetap menerima langsung. Halaman ini untuk memantau dan membantu penjual yang belum terbiasa dengan HP. Pembayaran langsung ke penjual.',
-        'kolom' => ['kode' => 'Kode', 'usaha' => 'Penjual', 'ringkasan' => 'Isi pesanan', 'nama' => 'Pembeli', 'wa' => 'WA pembeli', 'total' => 'Total', 'status' => 'Status'],
-        'format' => ['total' => 'rupiah'],
-        'field' => [
-            ['status', 'Status pesanan', 'select', ['pilihan' => ['Baru', 'Diproses', 'Selesai', 'Dibatalkan']]],
         ],
         'tanpaTambah' => true,
     ],
@@ -403,17 +391,20 @@ $CRUD['layanan'] = [
 ];
 
 // ---------- Tambahan Fase 10 ----------
-$CRUD['faq'] = [
-    'judul' => 'Asisten desa (FAQ)', 'satu' => 'pertanyaan', 'tabel' => 'faq', 'urut' => 'urutan, id',
-    'catatan' => 'Asisten Desa sudah otomatis menjawab soal wisata, harga, kuota, cuaca, reservasi, surat, nomor darurat, UMKM, agenda, dan anggaran dari data CMS. Tambahkan di sini pertanyaan lain yang sering ditanyakan warga atau pengunjung.',
-    'kolom' => ['urutan' => 'Urutan', 'pertanyaan' => 'Pertanyaan', 'kata_kunci' => 'Kata kunci', 'aktif' => 'Aktif'],
-    'format' => ['aktif' => 'yatidak'],
+$CRUD['asisten'] = [
+    'judul' => 'Asisten desa (menu pilihan)', 'satu' => 'pilihan', 'tabel' => 'asisten_menu', 'urut' => 'induk_id, urutan, id',
+    'catatan' => 'Asisten Desa bekerja seperti layanan telepon: pengunjung menekan nomor pilihan, lalu muncul pilihan berikutnya atau jawaban. Pilihan dengan "Induk" = Menu awal tampil pertama. Isi "Jawaban" untuk pilihan terakhir; kosongkan kalau pilihan itu hanya membuka pilihan lain. Maksimal 7 pilihan per layar supaya mudah dibaca.',
+    'kolom' => ['judul' => 'Pilihan', 'induk_id' => 'Induk', 'urutan' => 'Urutan', 'aktif' => 'Aktif'],
+    'format' => ['induk_id' => 'induk', 'aktif' => 'yatidak'],
     'field' => [
-        ['pertanyaan', 'Pertanyaan', 'text', ['wajib' => true, 'maks' => 200, 'contoh' => 'Apakah ada tempat parkir bus?']],
-        ['kata_kunci', 'Kata kunci (pisahkan koma)', 'text', ['wajib' => true, 'maks' => 255, 'contoh' => 'parkir,bus,mobil,kendaraan']],
-        ['jawaban', 'Jawaban', 'textarea', ['wajib' => true]],
-        ['urutan', 'Urutan', 'number', ['min' => 0]],
+        ['judul', 'Teks pilihan (singkat)', 'text', ['wajib' => true, 'maks' => 120, 'contoh' => 'Surat keterangan domisili']],
+        ['induk_id', 'Induk (muncul setelah pilihan ini ditekan)', 'induk', ['catatan' => 'Pilih "Menu awal" untuk pilihan utama.']],
+        ['pertanyaan', 'Pertanyaan lanjutan (opsional, tampil di atas pilihan berikutnya)', 'text', ['maks' => 200, 'contoh' => 'Surat apa yang Anda perlukan?']],
+        ['jawaban', 'Jawaban (opsional, untuk pilihan terakhir)', 'textarea', []],
+        ['tautan', 'Link tombol aksi (opsional)', 'text', ['maks' => 255, 'contoh' => '/data-desa?grup=Layanan+surat#surat']],
+        ['label_tautan', 'Teks tombol aksi (opsional)', 'text', ['maks' => 60, 'contoh' => 'Ajukan surat sekarang']],
+        ['urutan', 'Urutan', 'number', ['min' => 0, 'max' => 999]],
         ['aktif', 'Aktif', 'check', []],
     ],
-    'baru' => ['urutan' => 10, 'aktif' => 1],
+    'baru' => ['urutan' => 10, 'aktif' => 1, 'induk_id' => 0],
 ];

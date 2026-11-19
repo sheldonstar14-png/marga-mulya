@@ -35,7 +35,7 @@ require __DIR__ . '/../inc/header.php';
   <p><a href="/wisata">Semua destinasi</a></p>
   <div class="split">
     <div>
-      <div class="art" style="border-radius:var(--r-l);aspect-ratio:16/9"><img src="<?= e($w['foto'] ?: '/assets/img/sawah.svg') ?>" alt="<?= e($w['nama']) ?>"></div>
+      <div class="art" style="border-radius:var(--r-l);aspect-ratio:16/9"><img src="<?= e($w['foto'] ?: '/assets/img/pantai.svg') ?>" alt="<?= e($w['nama']) ?>"></div>
       <h1 style="margin-top:24px;margin-bottom:6px"><?= e($w['nama']) ?></h1>
       <?php if ($ringkasUlasan['n'] > 0): ?>
         <p style="margin:0 0 14px"><a href="#ulasan-pengunjung" style="text-decoration:none;color:inherit"><span class="bintang" aria-hidden="true"><?= bintang((float) $ringkasUlasan['rata']) ?></span> <b><?= number_format((float) $ringkasUlasan['rata'], 1, ',', '.') ?></b> <span class="muted">dari <?= (int) $ringkasUlasan['n'] ?> ulasan pengunjung</span></a></p>
@@ -55,7 +55,7 @@ require __DIR__ . '/../inc/header.php';
         <h3>Aksesibilitas</h3>
         <div class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></div>
         <?php if ($w['catatan_akses']): ?><p class="small" style="margin:8px 0 0"><?= e($w['catatan_akses']) ?></p><?php endif; ?>
-        <p class="small muted" style="margin:6px 0 0">Butuh bantuan khusus, misalnya pendamping atau kursi roda? Tulis di catatan saat reservasi.</p>
+        <p class="small muted" style="margin:6px 0 0">Butuh bantuan khusus, misalnya pendamping atau kursi roda? Tulis di catatan saat memesan kunjungan rombongan.</p>
       </div>
 
       <h2 style="margin-top:32px">Pilih tanggal kunjungan</h2>
@@ -108,7 +108,7 @@ require __DIR__ . '/../inc/header.php';
         <h3>Cuaca di lokasi</h3>
         <p class="wx-note">Memuat prakiraan cuaca...</p>
       </div>
-      <a class="btn btn-main" style="margin-top:14px;width:100%" id="tombolPesan" href="/reservasi?w=<?= e($w['slug']) ?>">Pesan kunjungan</a>
+      <a class="btn btn-main" style="margin-top:14px;width:100%" id="tombolPesan" href="/reservasi?w=<?= e($w['slug']) ?>">Pesan kunjungan rombongan</a>
       <a class="btn btn-ghost" style="margin-top:10px;width:100%" href="<?= e($linkArah) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
       <?php if ($w['gmaps_ulasan']): ?><p class="small" style="text-align:center;margin:8px 0 0"><a href="<?= e($w['gmaps_ulasan']) ?>" target="_blank" rel="noopener">Lihat ulasan di Google Maps</a></p><?php endif; ?>
       <div class="peta peta-kecil" style="margin-top:18px" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Lokasi <?= e($w['nama']) ?>"></div>

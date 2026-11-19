@@ -125,19 +125,27 @@ require __DIR__ . '/../inc/header.php';
   <div class="prinsip-grid">
     <article class="prinsip">
       <h3>Inovatif, tetap sederhana</h3>
-      <p>Surat online dengan antrean QR, asisten desa yang menjawab dari data resmi, dan peta yang menyorot zona rawan saat siaga cuaca. Semua nyaman di HP dan tetap bisa dibuka tanpa sinyal setelah dipasang.</p>
+      <p>Surat online, asisten desa bermenu yang jawabannya disusun petugas, dan peta yang menyorot zona rob saat siaga cuaca. Semua nyaman di HP dan tetap bisa dibuka tanpa sinyal setelah dipasang.</p>
       <a href="/data-desa?grup=Layanan+surat">Coba surat online</a>
     </article>
     <article class="prinsip">
       <h3>Tumbuh bersama</h3>
-      <p>Warga dan pengunjung bisa ikut gotong royong, menulis ulasan, menyampaikan aspirasi, dan belanja langsung dari UMKM. Setiap tindak lanjut bisa dilacak dengan kode, jadi semua pihak saling percaya.</p>
+      <p>Warga dan pengunjung bisa ikut tanam mangrove dan bersih pantai, menyampaikan aspirasi yang perkembangannya terbuka, dan menitipkan produk UMKM sendiri di website desa.</p>
       <a href="/agenda">Ikut gotong royong</a>
     </article>
     <article class="prinsip">
       <h3>Peduli pada yang paling membutuhkan</h3>
       <p>Huruf besar dan kontras tinggi untuk lansia, bahasa sehari-hari, aspirasi boleh tanpa nama, dan nama penerima bansos selalu disamarkan. Website ini tidak pernah meminta KTP, KK, atau NIK.</p>
-      <a href="/data-desa?grup=Dampak#sdgs">Lihat kontribusi pada SDGs</a>
+      <a href="/kontak#privasi">Baca kebijakan privasi</a>
     </article>
+  </div>
+  <div class="sdg-ringkas" id="sdgs">
+    <p><b>Mendukung Tujuan Pembangunan Berkelanjutan (SDGs):</b></p>
+    <ul>
+      <?php foreach ([1 => 'bantuan sosial yang terbuka', 8 => 'UMKM warga tanpa perantara', 11 => 'peta zona rawan rob dan banjir', 14 => 'mangrove dan pesisir yang lestari', 16 => 'aspirasi dan anggaran yang transparan'] as $n => $ket): ?>
+        <li><?= sdg_bulat($n) ?><span><?= e(SDG[$n][0]) ?>: <?= e($ket) ?></span></li>
+      <?php endforeach; ?>
+    </ul>
   </div>
 </div></section>
 <?php require __DIR__ . '/../inc/footer.php'; ?>
