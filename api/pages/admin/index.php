@@ -20,16 +20,11 @@ $admin = wajib_login(); // semua halaman di bawah ini wajib login
 
 $halamanAdmin = [
     'dashboard'   => 'dashboard.php',
-    'reservasi'   => 'reservasi.php',
-    'pesan'       => 'pesan.php',
     'profil'      => 'pengaturan.php',
     'pengaturan'  => 'pengaturan.php',
     'upload-sign' => 'upload-sign.php',
-    'ulasan'      => 'ulasan.php',
-    'checkin'     => 'checkin.php',
     'import-statistik' => 'import-statistik.php',
     'aspirasi'    => 'aspirasi.php',
-    'privasi'     => 'privasi.php',
     'laporan'     => 'laporan.php',
     'surat'       => 'surat.php',
     'antrean'     => 'antrean.php',
@@ -37,7 +32,7 @@ $halamanAdmin = [
     'pengajuanumkm' => 'pengajuan-umkm.php',
 ];
 // Halaman yang memakai hak akses menu lain
-$aksesDari = ['checkin' => 'reservasi', 'import-statistik' => 'statistik', 'antrean' => 'surat'];
+$aksesDari = ['import-statistik' => 'statistik', 'antrean' => 'surat'];
 
 // Cek hak akses menu ini (upload foto boleh bagi yang mengelola konten berfoto)
 $bolehBuka = $sub === 'upload-sign'

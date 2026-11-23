@@ -2,13 +2,15 @@
 // =========================================================
 // HALAMAN WISATA: daftar destinasi, peta potensi, budaya
 // =========================================================
-$wisata = q('SELECT id, slug, nama, jenis, harga, kuota, ringkas, foto, lat, lng, tingkat_jalur, ramah_lansia, ramah_kursi_roda, ada_toilet FROM wisata WHERE aktif = 1 ORDER BY id');
+$wisata = q('SELECT * FROM wisata WHERE aktif = 1 ORDER BY id');
 $rating = [];
 foreach (q('SELECT wisata_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE tampil = 1 GROUP BY wisata_id') as $r) {
     $rating[$r['wisata_id']] = $r;
 }
 $umkm   = q('SELECT nama_usaha, lat, lng FROM umkm WHERE lat IS NOT NULL AND lng IS NOT NULL');
-$budaya = q('SELECT judul, waktu, isi FROM budaya ORDER BY id');
+try { $budaya = q('SELECT * FROM budaya ORDER BY urutan, id'); } catch (Throwable $e) { $budaya = q('SELECT * FROM budaya ORDER BY id'); }
+$jenisWisata = array_values(array_unique(array_column($wisata, 'jenis')));
+$etik = kode_etik_kelompok();
 
 // Titik-titik untuk peta
 $titik = [];
@@ -20,50 +22,89 @@ foreach ($umkm as $u) {
 }
 $titik[] = ['lat' => (float) setting('lat'), 'lng' => (float) setting('lng'), 'nama' => 'Kantor ' . setting('nama_desa'), 'jenis' => 'fasilitas', 'url' => '/kontak'];
 
-$judul = 'Wisata - ' . setting('nama_desa');
+$judul = 'Wisata dan Budaya - ' . setting('nama_desa');
 $menu  = 'wisata';
 $pakaiPeta = true;
 require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Wisata dan budaya</h1>
-  <p>Destinasi pesisir yang dikelola warga. Pengunjung perorangan dan keluarga cukup datang langsung. Rombongan minimal 10 orang bisa <a href="/reservasi">memesan kunjungan</a> supaya pemandu disiapkan.</p>
+  <p>Dari pantai, mangrove, dan kampung nelayan sampai sawah, kerajinan batok kelapa, tradisi, dan kuliner warga. Pengunjung perorangan dan keluarga cukup datang langsung. Rombongan, KKN, dan penelitian <a href="/data-desa?grup=Layanan+surat&amp;izin=1#surat">mengajukan izin kunjungan</a> dulu.</p>
 </div>
-<div class="wrap sec" style="padding-top:16px">
-  <div class="grid g4">
-    <?php foreach ($wisata as $w): ?>
-      <a class="card link-card" href="/wisata/<?= e($w['slug']) ?>">
-        <div class="art"><img src="<?= e($w['foto'] ?: '/assets/img/pantai.svg') ?>" alt="<?= e($w['nama']) ?>" loading="lazy"></div>
-        <div class="card-body">
-          <span class="tag"><?= e($w['jenis']) ?></span>
-          <h3 style="margin:4px 0 0"><?= e($w['nama']) ?></h3>
-          <?php if (isset($rating[$w['id']])): ?><span class="small"><span class="bintang" aria-hidden="true">★</span> <b><?= number_format((float) $rating[$w['id']]['rata'], 1, ',', '.') ?></b> <span class="muted">(<?= (int) $rating[$w['id']]['n'] ?> ulasan)</span></span><?php endif; ?>
-          <p><?= e($w['ringkas']) ?></p>
-          <div class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></div>
-          <div class="card-foot"><span class="price"><?= rupiah($w['harga']) ?></span><span class="small muted">Kuota <?= (int) $w['kuota'] ?>/hari</span></div>
-        </div>
+<div class="wrap sec" style="padding-top:22px">
+  <?php if (count($jenisWisata) > 1): ?>
+  <nav class="chips" aria-label="Saring jenis wisata" id="saringWisata">
+    <button type="button" class="chip on" data-jenis="">Semua</button>
+    <?php foreach ($jenisWisata as $j): ?><button type="button" class="chip" data-jenis="<?= e($j) ?>"><?= e($j) ?></button><?php endforeach; ?>
+  </nav>
+  <?php endif; ?>
+  <div class="wisata-grid">
+    <?php foreach ($wisata as $w): [$nmW, $ilusW] = pisah_ilustrasi($w['nama']); ?>
+      <a class="w-kartu" href="/wisata/<?= e($w['slug']) ?>" data-jenis="<?= e($w['jenis']) ?>">
+        <span class="w-foto"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($nmW) ?>" loading="lazy"><?= tanda_ilustrasi($ilusW) ?></span>
+        <span class="w-isi">
+          <span class="chip-kecil"><?= e($w['jenis']) ?></span>
+          <b><?= e($nmW) ?></b>
+          <?php if (isset($rating[$w['id']])): ?><span class="small"><span class="bintang" aria-hidden="true">★</span> <?= number_format((float) $rating[$w['id']]['rata'], 1, ',', '.') ?> (<?= (int) $rating[$w['id']]['n'] ?> ulasan)</span><?php endif; ?>
+          <span><?= e($w['ringkas']) ?></span>
+          <span class="w-fakta"><span><b>Jam</b> <?= e($w['jam_buka']) ?></span><span><b>Tiket</b> <?= (int) $w['harga'] ? rupiah($w['harga']) : 'Gratis' ?></span></span>
+          <?php if (!empty($w['waktu_terbaik'])): ?><span class="w-waktu"><b>Waktu terbaik:</b> <?= e($w['waktu_terbaik']) ?></span><?php endif; ?>
+          <span class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></span>
+        </span>
       </a>
     <?php endforeach; ?>
   </div>
+  <?php if (setting('waktu_kunjung') !== ''): ?>
+  <div class="info-waktu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+    <p><b>Kapan sebaiknya datang?</b> <?= e(setting('waktu_kunjung')) ?> <a href="/cuaca">Lihat cuaca dan gelombang hari ini</a>.</p>
+  </div>
+  <?php endif; ?>
 </div>
 
-<div class="sec tint"><div class="wrap split">
-  <div>
-    <h2>Peta potensi desa</h2>
-    <div class="peta" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Peta destinasi, UMKM, dan kantor desa"></div>
-    <div class="legend"><span style="--c:#E2A529">Wisata</span><span style="--c:#3F7D3A">UMKM</span><span style="--c:#1E2B22">Kantor desa</span></div>
-  </div>
-  <div>
-    <h2>Budaya dan kesenian</h2>
-    <div class="agenda">
-      <?php foreach ($budaya as $b): ?>
-        <div class="panel">
-          <h3 style="margin-bottom:2px"><?= e($b['judul']) ?></h3>
-          <span class="small muted"><?= e($b['waktu']) ?></span>
-          <p style="margin:6px 0 0"><?= e($b['isi']) ?></p>
+<section class="sec sec-putih" id="budaya" aria-labelledby="judul-budaya"><div class="wrap">
+  <div class="kepala"><div><h2 id="judul-budaya">Budaya dan kesenian</h2><p>Tradisi pesisir, kesenian, dan kuliner yang masih hidup di tengah warga.</p></div></div>
+  <div class="budaya-grid">
+    <?php foreach ($budaya as $b): [$jdlB, $ilusB] = pisah_ilustrasi($b['judul']); $ilusB = $ilusB || !empty($b['ilustrasi']); ?>
+      <article class="budaya-kartu" id="budaya-<?= (int) $b['id'] ?>">
+        <div class="budaya-foto"><img src="<?= e(($b['foto'] ?? '') ?: '/assets/img/budaya-sedekah-laut.svg') ?>" alt="" loading="lazy"><?= tanda_ilustrasi($ilusB, 'Gambar ilustrasi') ?></div>
+        <div class="budaya-isi">
+          <span class="chip-kecil"><?= e($b['jenis'] ?? 'Budaya') ?></span>
+          <h3><?= e($jdlB) ?></h3>
+          <p class="small muted" style="margin:0 0 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true" style="display:inline;vertical-align:-2px"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16"/></svg> <?= e($b['waktu']) ?></p>
+          <p><?= e($b['isi']) ?></p>
         </div>
-      <?php endforeach; ?>
-    </div>
+      </article>
+    <?php endforeach; ?>
   </div>
+</div></section>
+
+<section class="sec" id="kode-etik" aria-labelledby="judul-etik"><div class="wrap">
+  <div class="kepala"><div><h2 id="judul-etik">Kode etik pengunjung</h2><p>Supaya alam tetap lestari, warga nyaman, dan kunjunganmu aman.</p></div></div>
+  <div class="etik-grid">
+    <?php foreach ($etik as $grupEtik => $aturan): ?>
+      <div class="etik-kartu"><h3><?= e($grupEtik) ?></h3><ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul></div>
+    <?php endforeach; ?>
+  </div>
+</div></section>
+
+<div class="sec sec-putih"><div class="wrap">
+  <h2>Peta potensi desa</h2>
+  <div class="peta" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Peta destinasi, UMKM, dan kantor desa"></div>
+  <div class="legend"><span style="--c:#E2A529">Wisata</span><span style="--c:#3F7D3A">UMKM</span><span style="--c:#1E2B22">Kantor desa</span></div>
 </div></div>
-<?php require __DIR__ . '/../inc/footer.php'; ?>
+<?php
+$scriptHalaman = <<<'JS'
+<script>
+(function () {
+  const nav = document.getElementById('saringWisata');
+  if (!nav) return;
+  nav.addEventListener('click', e => {
+    const b = e.target.closest('[data-jenis]'); if (!b) return;
+    nav.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+    document.querySelectorAll('.w-kartu[data-jenis]').forEach(k => { k.hidden = b.dataset.jenis !== '' && k.dataset.jenis !== b.dataset.jenis; });
+  });
+})();
+</script>
+JS;
+require __DIR__ . '/../inc/footer.php';

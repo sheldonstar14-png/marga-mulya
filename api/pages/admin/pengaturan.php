@@ -11,7 +11,12 @@ $grup = [
             'profil_ringkas' => ['Ringkasan desa (paragraf pembuka)', 'area'],
             'sejarah'        => ['Sejarah singkat', 'area'],
             'visi'           => ['Visi', 'area'],
-            'misi'           => ['Misi (satu baris satu misi)', 'area'],
+            'misi'           => ['Misi (satu baris satu misi). Tulis (ilustrasi) di depan kalau belum dari dokumen resmi desa', 'area'],
+            'sambutan_kades' => ['Sambutan kepala desa (pisahkan paragraf dengan satu baris kosong)', 'area'],
+            'sambutan_nama'  => ['Nama di bawah sambutan', 'text'],
+            'foto_kades'     => ['Foto kepala desa (opsional). Kosongkan untuk memakai gambar ilustrasi', 'foto'],
+            'foto_kades_sumber' => ['Sumber foto kepala desa', 'text'],
+            'sambutan_ilustrasi' => ['Tandai sambutan dan foto sebagai ilustrasi (lepas centang setelah memakai sambutan dan foto asli kepala desa)', 'cek'],
             'batas_utara'    => ['Batas utara', 'text'],
             'batas_timur'    => ['Batas timur', 'text'],
             'batas_selatan'  => ['Batas selatan', 'text'],
@@ -29,6 +34,8 @@ $grup = [
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
             'foto_hero'   => ['Foto beranda (opsional). Pakai foto landscape asli, misalnya pantai atau perahu nelayan. Kosongkan untuk memakai gambar ilustrasi', 'foto'],
+            'foto_hero_sumber' => ['Sumber foto beranda (siapa pemotret atau dari mana)', 'text'],
+            'foto_hero_url' => ['Link sumber foto beranda (opsional)', 'text'],
             'alamat'      => ['Alamat kantor desa', 'text'],
             'jam_layanan' => ['Jam layanan', 'text'],
             'email'       => ['Email desa', 'text'],
@@ -36,9 +43,10 @@ $grup = [
             'lat'         => ['Lintang kantor desa (latitude)', 'text'],
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
             'kredit_foto' => ['Kredit foto lama berbentuk teks (opsional). Lebih rapi pakai menu Sumber & kredit foto', 'area'],
-            'kode_etik_umum' => ['Kode etik pengunjung untuk semua destinasi (satu baris satu aturan)', 'area'],
-            'info_bank_sampah' => ['Info bank sampah: tempat dan jadwal buka', 'area'],
-            'harga_sampah' => ['Harga sampah (satu baris satu jenis, format: Jenis|Harga)', 'area'],
+            'kode_etik_lengkap' => ['Kode etik pengunjung per kelompok (satu baris satu aturan, format: Kelompok|Aturan)', 'area'],
+            'kode_etik_umum' => ['Kode etik cadangan (dipakai kalau kode etik per kelompok kosong)', 'area'],
+            'waktu_kunjung' => ['Waktu terbaik berkunjung secara umum (tampil di Wisata dan Cuaca)', 'area'],
+            'catatan_logo' => ['Catatan asal logo (tampil di kaki halaman dan daftar kredit)', 'text'],
             'catatan_data' => ['Catatan di bawah data statistik (sumber dan status data)', 'area'],
             'referensi_data_nama' => ['Nama referensi data (tampil di bawah statistik)', 'text'],
             'referensi_data_url' => ['Link referensi data, misalnya halaman publikasi BPS (tempel link lengkapnya)', 'text'],
@@ -53,10 +61,10 @@ $grup = [
 $bagianPengaturan = [
     'Status website'       => ['mode_privat'],
     'Identitas desa'       => ['nama_desa', 'kecamatan', 'kabupaten'],
-    'Beranda'              => ['hero_judul', 'hero_teks', 'foto_hero'],
+    'Beranda'              => ['hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
     'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng'],
-    'Wisata dan bank sampah' => ['kode_etik_umum', 'info_bank_sampah', 'harga_sampah'],
-    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'kredit_foto'],
+    'Wisata dan pengunjung' => ['kode_etik_lengkap', 'kode_etik_umum', 'waktu_kunjung'],
+    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'catatan_logo', 'kredit_foto'],
     'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
 ];
 $g = $grup[$sub];
@@ -70,9 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
+    foreach ($g['kunci'] as $kunci => [, $jenisK]) if ($jenisK === 'cek') $baru[$kunci] = !empty($_POST[$kunci]) ? '1' : '0';
+    if (!empty($baru['foto_hero_url']) && !preg_match('#^https?://#', $baru['foto_hero_url'])) $errors[] = 'Link sumber foto beranda harus diawali https://.';
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
     if (!empty($baru['foto_kades']) && !preg_match('#^(https://|/assets/)#', $baru['foto_kades'])) $errors[] = 'Alamat foto kepala desa harus diawali https:// atau /assets/.';
     if (!empty($baru['foto_hero']) && !preg_match('#^(https://|/assets/)#', $baru['foto_hero'])) $errors[] = 'Alamat foto beranda harus diawali https:// atau /assets/.';
@@ -117,7 +127,9 @@ $adaError = (bool) $errors;
   <?php foreach ($kunciBagian as $kunci): if (!isset($g['kunci'][$kunci])) continue; [$label, $jenis] = $g['kunci'][$kunci];
     $nilai = $_POST[$kunci] ?? str_replace('\n', "\n", setting($kunci)); ?>
     <div class="field">
-      <?php if ($jenis === 'saklar'): ?>
+      <?php if ($jenis === 'cek'): ?>
+        <label class="cek-setuju"><input type="checkbox" name="<?= $kunci ?>" value="1" <?= $nilai === '1' ? 'checked' : '' ?>> <span><?= e($label) ?></span></label>
+      <?php elseif ($jenis === 'saklar'): ?>
         <fieldset class="saklar-privat">
           <legend><?= e($label) ?></legend>
           <label class="saklar-opsi"><input type="radio" name="<?= $kunci ?>" value="0" <?= $nilai !== '1' ? 'checked' : '' ?>><span><b>Terbuka untuk publik</b><small>Siapa pun bisa membuka website. <b>Wajib dipilih sebelum dikirim ke panitia.</b></small></span></label>
@@ -126,14 +138,14 @@ $adaError = (bool) $errors;
       <?php else: ?>
       <label for="k-<?= $kunci ?>"><?= e($label) ?></label>
       <?php endif; ?>
-      <?php if ($jenis === 'saklar'): ?>
+      <?php if ($jenis === 'saklar' || $jenis === 'cek'): ?>
       <?php elseif ($jenis === 'foto'): ?>
         <div class="img-prev" id="prev-<?= $kunci ?>"><?php if ($nilai): ?><img src="<?= e($nilai) ?>" alt="Foto saat ini"><?php endif; ?></div>
         <input type="file" accept="image/jpeg,image/png,image/webp" class="unggah-foto" data-target="k-<?= $kunci ?>" data-preview="prev-<?= $kunci ?>" style="margin-top:10px" aria-label="Pilih file foto">
         <div class="hint unggah-status" id="status-k-<?= $kunci ?>">Format JPG, PNG, atau WebP, maksimal 5 MB.</div>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>" placeholder="Atau tempel alamat gambar (https://...)" style="margin-top:8px">
       <?php elseif ($jenis === 'area'): ?>
-        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum', 'sambutan_kades'], true) ? 6 : 3 ?>"><?= e($nilai) ?></textarea>
+        <textarea id="k-<?= $kunci ?>" name="<?= $kunci ?>" rows="<?= in_array($kunci, ['misi', 'kode_etik_umum', 'kode_etik_lengkap'], true) ? 8 : ($kunci === 'sambutan_kades' ? 12 : 3) ?>"><?= e($nilai) ?></textarea>
       <?php else: ?>
         <input id="k-<?= $kunci ?>" name="<?= $kunci ?>" value="<?= e($nilai) ?>">
       <?php endif; ?>

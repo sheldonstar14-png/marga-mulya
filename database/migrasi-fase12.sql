@@ -265,6 +265,57 @@ UPDATE pengaturan SET nilai = '0' WHERE kunci = 'tiket_hijau_aktif';
 UPDATE admin SET akses = REPLACE(akses, 'faq', 'asisten') WHERE akses LIKE '%faq%';
 UPDATE admin SET akses = REPLACE(REPLACE(akses, ',pesananumkm', ''), 'pesananumkm,', '') WHERE akses LIKE '%pesananumkm%';
 
+-- ---------- Tambahan 12s: desain baru, sumber foto per konten, budaya, bantuan, lembaga desa ----------
+-- Sumber foto per konten: tampil otomatis di "Sumber dan kredit foto", dikelompokkan per halaman
+ALTER TABLE wisata ADD COLUMN IF NOT EXISTS waktu_terbaik VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE wisata ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE wisata ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS izin VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS pengiriman VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE umkm ADD COLUMN IF NOT EXISTS foto_lain VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE berita ADD COLUMN IF NOT EXISTS kategori VARCHAR(40) NOT NULL DEFAULT 'Pemerintahan';
+ALTER TABLE berita ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE berita ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE galeri ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE galeri ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE pembangunan ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE pembangunan ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+-- Budaya dan kesenian: jenis, gambar, dan tanda ilustrasi
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS jenis VARCHAR(40) NOT NULL DEFAULT 'Tradisi';
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS foto VARCHAR(255) NULL;
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS sumber_foto VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS sumber_url VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS ilustrasi TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE budaya ADD COLUMN IF NOT EXISTS urutan INT NOT NULL DEFAULT 10;
+-- Program bantuan: penjelasan lengkap per program
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS kategori VARCHAR(40) NOT NULL DEFAULT 'Sosial';
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS deskripsi TEXT NULL;
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS manfaat VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS tautan VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE bantuan ADD COLUMN IF NOT EXISTS ilustrasi TINYINT NOT NULL DEFAULT 0;
+-- Pengajuan produk: sampai 3 foto, izin usaha, dan cara pengiriman
+ALTER TABLE pengajuan_umkm ADD COLUMN IF NOT EXISTS foto_ids VARCHAR(60) NOT NULL DEFAULT '';
+ALTER TABLE pengajuan_umkm ADD COLUMN IF NOT EXISTS izin VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE pengajuan_umkm ADD COLUMN IF NOT EXISTS pengiriman VARCHAR(150) NOT NULL DEFAULT '';
+-- Relawan: keahlian atau bantuan yang ditawarkan
+ALTER TABLE relawan ADD COLUMN IF NOT EXISTS peran VARCHAR(60) NOT NULL DEFAULT '';
+ALTER TABLE agenda ADD COLUMN IF NOT EXISTS perlengkapan VARCHAR(255) NOT NULL DEFAULT '';
+-- Lembaga desa dan kegiatan rutin (Data EcoQuest bagian L)
+CREATE TABLE IF NOT EXISTS lembaga (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nama VARCHAR(150) NOT NULL,
+  jenis VARCHAR(60) NOT NULL DEFAULT 'Lembaga kemasyarakatan',
+  kegiatan VARCHAR(255) NOT NULL DEFAULT '',
+  jadwal VARCHAR(150) NOT NULL DEFAULT '',
+  anggota INT NOT NULL DEFAULT 0,
+  ilustrasi TINYINT NOT NULL DEFAULT 0,
+  urutan INT NOT NULL DEFAULT 10
+);
+-- Menu yang dihentikan: kunjungan rombongan, pesan masuk, permintaan data pribadi, bank sampah, check-in
+UPDATE admin SET akses = CONCAT(akses, ',lembaga') WHERE akses IS NOT NULL AND akses LIKE '%statistik%' AND akses NOT LIKE '%lembaga%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

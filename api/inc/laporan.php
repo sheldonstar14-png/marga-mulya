@@ -14,20 +14,10 @@ function data_laporan(string $bulan): array
     $bulanLalu = date('Y-m', strtotime($awal . ' -1 month'));
     $awalLalu = $bulanLalu . '-01';
     $akhirLalu = date('Y-m-t', strtotime($awalLalu));
-    $aktif = "status IN ('Dikonfirmasi', 'Selesai')";
-
-    // Wisata: dihitung dari tanggal kunjungan di bulan itu
-    $perWisata = q("SELECT w.nama, w.harga, COUNT(r.id) AS rombongan, COALESCE(SUM(r.jumlah), 0) AS orang
-        FROM wisata w LEFT JOIN reservasi r ON r.wisata_id = w.id AND r.tanggal BETWEEN ? AND ? AND r.$aktif
-        GROUP BY w.id, w.nama, w.harga ORDER BY orang DESC", [$awal, $akhir]);
-    foreach ($perWisata as &$w) $w['pendapatan'] = (int) $w['orang'] * (int) $w['harga'];
-    unset($w);
-    $kunjungan = q1("SELECT COUNT(*) AS rombongan, COALESCE(SUM(jumlah), 0) AS orang
-        FROM reservasi WHERE tanggal BETWEEN ? AND ? AND $aktif", [$awal, $akhir]);
-    $orangLalu = (int) q1("SELECT COALESCE(SUM(jumlah), 0) AS n FROM reservasi WHERE tanggal BETWEEN ? AND ? AND $aktif", [$awalLalu, $akhirLalu])['n'];
-    $batal = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE tanggal BETWEEN ? AND ? AND status = 'Dibatalkan'", [$awal, $akhir])['n'];
-    $menunggu = (int) q1("SELECT COUNT(*) AS n FROM reservasi WHERE status = 'Menunggu'")['n'];
-    $ulasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE dibuat_pada BETWEEN ? AND ?', [$awal . ' 00:00:00', $akhir . ' 23:59:59']);
+    // Kunjungan rombongan kini diajukan lewat layanan surat "Izin kunjungan" (12s)
+    $izinKunjungan = (int) q1("SELECT COUNT(*) AS n FROM surat WHERE layanan_nama LIKE 'Izin kunjungan%' AND dibuat_pada BETWEEN ? AND ?", [$awal . ' 00:00:00', $akhir . ' 23:59:59'])['n'];
+    $izinLalu = (int) q1("SELECT COUNT(*) AS n FROM surat WHERE layanan_nama LIKE 'Izin kunjungan%' AND dibuat_pada BETWEEN ? AND ?", [$awalLalu . ' 00:00:00', $akhirLalu . ' 23:59:59'])['n'];
+    $ulasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan_umkm WHERE dibuat_pada BETWEEN ? AND ?', [$awal . ' 00:00:00', $akhir . ' 23:59:59']);
 
     // Layanan warga
     $rentang = [$awal . ' 00:00:00', $akhir . ' 23:59:59'];
@@ -35,8 +25,7 @@ function data_laporan(string $bulan): array
     $aspirasiSelesai = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Selesai' AND diperbarui_pada BETWEEN ? AND ?", $rentang)['n'];
     $aspirasiTerbuka = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status IN ('Diterima', 'Diproses')")['n'];
     $aspirasiLama = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE status = 'Diterima' AND dibuat_pada < ?", [date('Y-m-d H:i:s', strtotime('-3 days'))])['n'];
-    $pesan = (int) q1('SELECT COUNT(*) AS n FROM pesan WHERE dibuat_pada BETWEEN ? AND ?', $rentang)['n'];
-    $permintaanData = (int) q1('SELECT COUNT(*) AS n FROM permintaan_data WHERE dibuat_pada BETWEEN ? AND ?', $rentang)['n'];
+    $pertanyaan = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE kategori = 'Pertanyaan umum' AND dibuat_pada BETWEEN ? AND ?", $rentang)['n'];
     // Fase 12: surat online, antrean, bansos (angka saja, tanpa nama)
     $surat = q('SELECT layanan_nama, COUNT(*) AS n FROM surat WHERE dibuat_pada BETWEEN ? AND ? GROUP BY layanan_nama ORDER BY n DESC', $rentang);
     $suratBelum = (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status IN ('Diterima', 'Diproses')")['n'];
@@ -48,30 +37,25 @@ function data_laporan(string $bulan): array
         $bansos[] = ['nama' => $b['nama'], 'kuota' => (int) $b['kuota'], 'total' => $rb['total'], 'tahap' => $rb['tahap'],
             'bulan_ini' => (int) q1('SELECT COUNT(*) AS n FROM bansos_penerima WHERE bantuan_id = ? AND terakhir_salur BETWEEN ? AND ?', [$b['id'], $awal, $akhir])['n']];
     }
-    $pesananUmkm = q1("SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS nilai FROM pesanan_umkm WHERE status <> 'Dibatalkan' AND dibuat_pada BETWEEN ? AND ?", $rentang);
+    $produkUmkm = ['n' => 0, 'terbit' => 0];
+    try { $produkUmkm = q1("SELECT COUNT(*) AS n, COALESCE(SUM(CASE WHEN status = 'Diterbitkan' THEN 1 ELSE 0 END), 0) AS terbit FROM pengajuan_umkm WHERE dibuat_pada BETWEEN ? AND ?", $rentang); } catch (Throwable $e) {}
     $aduBansos = (int) q1("SELECT COUNT(*) AS n FROM aspirasi WHERE kategori LIKE 'Bansos%' AND dibuat_pada BETWEEN ? AND ?", $rentang)['n'];
 
     // Lingkungan dan pembangunan
-    $sampah = q('SELECT jenis, SUM(berat_kg) AS kg, SUM(nilai_rupiah) AS rp FROM sampah WHERE bulan BETWEEN ? AND ? GROUP BY jenis ORDER BY kg DESC', [$awal, $akhir]);
     $proyek = q("SELECT nama, progres, status, anggaran FROM pembangunan WHERE status <> 'Selesai' OR tahun = ? ORDER BY CASE status WHEN 'Berjalan' THEN 1 WHEN 'Perencanaan' THEN 2 ELSE 3 END, id", [(int) substr($bulan, 0, 4)]);
     $tahunApb = (int) (q1('SELECT MAX(tahun) AS t FROM apbdes')['t'] ?? 0);
     $apb = $tahunApb ? q("SELECT jenis, COALESCE(SUM(anggaran), 0) AS a, COALESCE(SUM(realisasi), 0) AS r FROM apbdes WHERE tahun = ? GROUP BY jenis", [$tahunApb]) : [];
 
-    return compact('bulan', 'awal', 'akhir', 'perWisata', 'kunjungan', 'orangLalu', 'batal', 'menunggu', 'ulasan',
-        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pesan', 'permintaanData', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'pesananUmkm', 'sampah', 'proyek', 'tahunApb', 'apb');
+    return compact('bulan', 'awal', 'akhir', 'izinKunjungan', 'izinLalu', 'ulasan',
+        'aspirasiMasuk', 'aspirasiSelesai', 'aspirasiTerbuka', 'aspirasiLama', 'pertanyaan', 'surat', 'suratBelum', 'antrean', 'bansos', 'aduBansos', 'produkUmkm', 'proyek', 'tahunApb', 'apb');
 }
 
 // Hal yang perlu diperhatikan kepala desa, disusun otomatis dari angka
 function catatan_laporan(array $d): array
 {
     $c = [];
-    $orang = (int) $d['kunjungan']['orang'];
-    if ($d['orangLalu'] > 0) {
-        $ubah = round(($orang - $d['orangLalu']) / $d['orangLalu'] * 100);
-        $c[] = $ubah >= 0 ? "Pengunjung naik $ubah% dibanding bulan sebelumnya." : 'Pengunjung turun ' . abs($ubah) . '% dibanding bulan sebelumnya.';
-    }
+    if ($d['izinKunjungan'] > 0) $c[] = "Ada {$d['izinKunjungan']} permohonan izin kunjungan rombongan, KKN, atau penelitian bulan ini (bulan lalu {$d['izinLalu']}).";
     if ($d['aspirasiLama'] > 0) $c[] = "Ada {$d['aspirasiLama']} aspirasi warga yang lebih dari 3 hari belum ditanggapi.";
-    if ($d['menunggu'] > 0) $c[] = "Ada {$d['menunggu']} reservasi yang masih menunggu konfirmasi petugas.";
     if (($d['suratBelum'] ?? 0) > 0) $c[] = "Ada {$d['suratBelum']} pengajuan surat online yang belum siap.";
     if (($d['aduBansos'] ?? 0) > 0) $c[] = "Ada {$d['aduBansos']} laporan atau usulan warga soal penerima bansos. Bahas di musyawarah desa berikutnya.";
     foreach ($d['bansos'] ?? [] as $b) {
@@ -106,9 +90,7 @@ function html_laporan(array $d): string
         . '<div style="font-size:12px;color:#475663">' . e($label) . '</div><div style="font-size:20px;font-weight:bold;margin:2px 0">' . e($nilai) . '</div>'
         . ($ket ? '<div style="font-size:11px;color:#475663">' . e($ket) . '</div>' : '') . '</td>';
 
-    $k = $d['kunjungan'];
-    $orang = (int) $k['orang'];
-    $pendapatan = array_sum(array_column($d['perWisata'], 'pendapatan'));
+    $jumlahSurat = array_sum(array_column($d['surat'], 'n'));
     $jumlahAspirasi = array_sum(array_column($d['aspirasiMasuk'], 'n'));
     $judulBulan = tgl($d['awal'], 'bulantahun');
 
@@ -118,8 +100,8 @@ function html_laporan(array $d): string
     $h .= '<p style="margin:0 0 14px;font-size:12px;color:#475663">Disusun otomatis dari data website pada ' . e(tgl(date('Y-m-d'))) . ' pukul ' . date('H.i') . ' WIB. Tidak memuat nama atau kontak warga.</p>';
 
     $h .= '<table style="width:100%;border-collapse:collapse"><tr>'
-        . $kotak('Pengunjung rombongan', angka($orang) . ' orang', (int) $k['rombongan'] . ' rombongan')
-        . $kotak('Perkiraan pendapatan tiket', rupiah_ringkas($pendapatan), 'harga tiket x pengunjung')
+        . $kotak('Pengajuan surat online', (string) $jumlahSurat, $d['suratBelum'] . ' belum siap (semua bulan)')
+        . $kotak('Izin kunjungan dan penelitian', (string) $d['izinKunjungan'], 'bulan lalu ' . $d['izinLalu'])
         . $kotak('Aspirasi warga masuk', (string) $jumlahAspirasi, $d['aspirasiSelesai'] . ' selesai bulan ini')
         . '</tr></table>';
 
@@ -127,46 +109,32 @@ function html_laporan(array $d): string
     foreach (catatan_laporan($d) as $c) $h .= '<li style="margin-bottom:4px">' . e($c) . '</li>';
     $h .= '</ul>';
 
-    $h .= '<h3 ' . $h3 . '>1. Wisata</h3>';
-    $h .= $tabel(['Destinasi', 'Reservasi', 'Pengunjung', 'Perkiraan pendapatan'],
-        array_map(fn($w) => [$w['nama'], $w['rombongan'], angka($w['orang']), rupiah($w['pendapatan'])], $d['perWisata']), [1, 2, 3]);
-    $h .= '<p style="font-size:12px;color:#475663;margin:4px 0 0">Bulan sebelumnya: ' . angka($d['orangLalu']) . ' pengunjung. Dibatalkan bulan ini: ' . $d['batal'] . ' reservasi.'
-        . ((int) $d['ulasan']['n'] ? ' Ulasan baru: ' . (int) $d['ulasan']['n'] . ', rata-rata ' . number_format((float) $d['ulasan']['rata'], 1, ',', '.') . ' dari 5.' : '') . '</p>';
-
-    $h .= '<h3 ' . $h3 . '>2. Lingkungan</h3>';
-    if ($d['sampah']) {
-        $h .= $tabel(['Bank sampah: jenis', 'Berat', 'Nilai tabungan warga'],
-            array_map(fn($s) => [$s['jenis'], angka(round((float) $s['kg'])) . ' kg', rupiah((int) $s['rp'])], $d['sampah']), [1, 2]);
-    } else {
-        $h .= '<p style="font-size:13px;color:#475663">Data bank sampah bulan ini belum diisi.</p>';
-    }
-
-    $h .= '<h3 ' . $h3 . '>3. Layanan warga</h3>';
+    $h .= '<h3 ' . $h3 . '>1. Aspirasi dan pertanyaan warga</h3>';
     $h .= $tabel(['Layanan', 'Jumlah'], [
         ['Aspirasi dan pengaduan masuk', $jumlahAspirasi],
         ['Aspirasi selesai ditindaklanjuti bulan ini', $d['aspirasiSelesai']],
         ['Aspirasi yang masih terbuka (semua bulan)', $d['aspirasiTerbuka']],
-        ['Pesan dari halaman Kontak', $d['pesan']],
-        ['Permintaan data pribadi', $d['permintaanData']],
+        ['Pertanyaan umum kepada petugas', $d['pertanyaan']],
     ], [1]);
     if ($d['aspirasiMasuk']) {
         $h .= '<p style="font-size:12px;color:#475663;margin:4px 0 0">Kategori aspirasi: ' . e(implode(', ', array_map(fn($a) => $a['kategori'] . ' (' . $a['n'] . ')', $d['aspirasiMasuk']))) . '.</p>';
     }
 
-    $h .= '<h3 ' . $h3 . '>4. Surat, antrean, dan bansos</h3>';
+    $h .= '<h3 ' . $h3 . '>2. Surat, antrean, UMKM, dan bansos</h3>';
     $h .= $tabel(['Layanan', 'Jumlah'], array_merge(
         array_map(fn($x) => ['Pengajuan ' . $x['layanan_nama'], (int) $x['n']], $d['surat']),
         [['Pengajuan surat yang belum siap (semua bulan)', $d['suratBelum']],
          ['Nomor antrean diambil di kantor desa', (int) $d['antrean']['n'] . ' dalam ' . (int) $d['antrean']['hari'] . ' hari layanan'],
          ['Laporan atau usulan soal penerima bansos', $d['aduBansos']],
-         ['Pesanan produk UMKM lewat website', (int) ($d['pesananUmkm']['n'] ?? 0) . ' pesanan, ' . rupiah((int) ($d['pesananUmkm']['nilai'] ?? 0))]]
+         ['Pengajuan produk UMKM baru', (int) ($d['produkUmkm']['n'] ?? 0) . ' diajukan, ' . (int) ($d['produkUmkm']['terbit'] ?? 0) . ' diterbitkan'],
+         ['Ulasan produk UMKM baru', (int) $d['ulasan']['n'] . ((int) $d['ulasan']['n'] ? ', rata-rata ' . number_format((float) $d['ulasan']['rata'], 1, ',', '.') . ' dari 5' : '')]]
     ), [1]);
     if ($d['bansos']) {
         $h .= $tabel(['Program bansos', 'Penerima', 'Tersalur per tahap', 'Disalurkan bulan ini'],
             array_map(fn($b) => [$b['nama'], $b['total'] . ($b['kuota'] ? ' / kuota ' . $b['kuota'] : ''), implode(', ', array_map(fn($t, $n) => "T$t: $n", array_keys($b['tahap']), $b['tahap'])), $b['bulan_ini']], $d['bansos']), [1, 3]);
     }
 
-    $h .= '<h3 ' . $h3 . '>5. Pembangunan dan anggaran</h3>';
+    $h .= '<h3 ' . $h3 . '>3. Pembangunan dan anggaran</h3>';
     if ($d['proyek']) {
         $h .= $tabel(['Proyek', 'Status', 'Progres', 'Anggaran'], array_map(fn($p) => [$p['nama'], $p['status'], (int) $p['progres'] . '%', rupiah($p['anggaran'])], $d['proyek']), [2, 3]);
     }

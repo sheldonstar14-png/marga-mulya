@@ -94,11 +94,7 @@ function wajib_super_admin(array $admin): void
 // ---------- Hak akses per menu ----------
 // Menu yang bisa diberikan ke petugas. Akun admin dan Pengaturan khusus Super admin.
 const MENU_PETUGAS = [
-    'reservasi' => 'Kunjungan rombongan',
-    'pesan'     => 'Pesan masuk',
-    'ulasan'    => 'Ulasan',
     'aspirasi'  => 'Aspirasi warga',
-    'privasi'   => 'Permintaan data pribadi',
     'layanan'   => 'Layanan surat',
     'surat'     => 'Pengajuan surat & antrean',
     'bansos'    => 'Penerima bansos',
@@ -117,10 +113,10 @@ const MENU_PETUGAS = [
     'statistik' => 'Statistik desa',
     'profil'    => 'Profil desa',
     'aparat'    => 'Perangkat desa',
+    'lembaga'   => 'Lembaga desa',
     'apbdes'    => 'APBDes',
     'pembangunan' => 'Pembangunan',
     'bantuan'   => 'Program bantuan',
-    'sampah'    => 'Bank sampah',
     'fasilitas' => 'Fasilitas umum',
     'darurat'   => 'Nomor darurat',
     'zona'      => 'Zona rawan bencana',

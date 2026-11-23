@@ -17,7 +17,7 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Galeri</h1>
-  <p>Foto kegiatan dan sudut desa.</p>
+  <p>Foto kegiatan dan sudut desa. Sumber setiap foto tertulis di bawahnya dan di daftar Sumber dan kredit foto.</p>
 </div>
 <div class="wrap sec" style="padding-top:16px">
   <nav class="chips" aria-label="Kategori foto">
@@ -31,7 +31,8 @@ require __DIR__ . '/../inc/header.php';
         <button type="button" class="buka-foto" data-src="<?= e($g['foto']) ?>" data-judul="<?= e($g['judul']) ?>" aria-label="Perbesar foto <?= e($g['judul']) ?>">
           <div class="art"><img src="<?= e($g['foto']) ?>" alt="<?= e($g['judul']) ?>" loading="lazy"></div>
         </button>
-        <figcaption><?= e($g['judul']) ?></figcaption>
+        <?php $sf = sumber_foto((string) $g['foto'], (string) ($g['sumber_foto'] ?? '')); ?>
+        <figcaption><?= e($g['judul']) ?><?php if ($sf): ?><small class="foto-sumber-kecil">Sumber: <?= !empty($g['sumber_url']) ? '<a href="' . e($g['sumber_url']) . '" target="_blank" rel="noopener nofollow">' . e($sf) . '</a>' : e($sf) ?></small><?php endif; ?></figcaption>
       </figure>
     <?php endforeach; ?>
   </div>

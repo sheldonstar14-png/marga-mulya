@@ -207,9 +207,9 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
             <legend style="font-weight:700;margin-bottom:8px"><?= e($label) ?></legend>
             <div class="chips" style="margin-bottom:10px">
               <button type="button" class="chip preset-akses" data-akses="berita,galeri">Paket jurnalis</button>
-              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,bansos,sampah,fasilitas,zona,laporan">Paket pengelola data</button>
-              <button type="button" class="chip preset-akses" data-akses="pesan,aspirasi,privasi,layanan,surat,bansos,asisten,darurat">Paket layanan warga</button>
-              <button type="button" class="chip preset-akses" data-akses="reservasi,pesan,ulasan,wisata,budaya,umkm">Paket pengelola wisata</button>
+              <button type="button" class="chip preset-akses" data-akses="statistik,profil,aparat,apbdes,pembangunan,bantuan,bansos,lembaga,fasilitas,zona,laporan">Paket pengelola data</button>
+              <button type="button" class="chip preset-akses" data-akses="aspirasi,layanan,surat,bansos,asisten,darurat">Paket layanan warga</button>
+              <button type="button" class="chip preset-akses" data-akses="wisata,budaya,umkm,pengajuanumkm,ulasanumkm,kreditfoto">Paket pengelola wisata dan UMKM</button>
               <button type="button" class="chip preset-akses" data-akses="">Kosongkan</button>
             </div>
             <div class="cek-grid">

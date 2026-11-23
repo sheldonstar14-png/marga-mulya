@@ -9,19 +9,32 @@
 // Jenis field: text, textarea, number, date, select, check, foto, peta, password
 // =========================================================
 
-$KATEGORI_STATISTIK = ['Kependudukan', 'Mata pencaharian', 'Pendidikan penduduk', 'Sekolah', 'Kesehatan', 'Fasilitas kesehatan', 'Pertanian', 'Perikanan', 'Peternakan', 'Ekonomi', 'Jalan desa', 'Lahan', 'Pemerintahan'];
+// Dua isian sumber foto, dipakai di semua menu yang punya foto. Tampil otomatis di "Sumber dan kredit foto".
+$fieldSumber = [
+    ['sumber_foto', 'Sumber foto (siapa pemotret atau dari mana fotonya)', 'text', ['maks' => 150, 'contoh' => 'Dokumentasi tim, Pinterest akun @nama, atau izin Pak Udin']],
+    ['sumber_url', 'Link sumber foto (opsional)', 'text', ['maks' => 500, 'contoh' => 'https://pin.it/...']],
+];
+$cekLink = fn(array $data) => ($data['sumber_url'] ?? '') !== '' && !preg_match('#^https?://#', $data['sumber_url']) ? 'Link sumber foto harus diawali https://.' : null;
+
+$KATEGORI_STATISTIK = ['Kependudukan', 'Mata pencaharian', 'Angkatan kerja', 'Status perkawinan', 'Pernikahan dan perceraian setahun', 'Pemeluk agama', 'Tempat ibadah', 'Kelompok seni dan budaya',
+    'Pemerintahan', 'Aparat desa menurut jenis kelamin', 'Aparat desa menurut pendidikan', 'Aparat desa menurut status', 'Aparat kecamatan',
+    'Pendidikan penduduk', 'Sekolah', 'Sekolah menurut status', 'Murid per jenjang', 'Guru per jenjang', 'Ruang kelas per jenjang', 'Pendidikan nonformal',
+    'Kesehatan', 'Fasilitas kesehatan', 'Tenaga kesehatan', 'Status gizi balita', 'Imunisasi balita', 'Keluarga berencana', 'Peserta KB menurut alat',
+    'Lahan', 'Sumber air minum keluarga', 'Jamban keluarga', 'Jenis rumah', 'Bahan bakar memasak',
+    'Perikanan', 'Pertanian', 'Pengairan sawah', 'Peternakan', 'Ekonomi', 'Industri menurut skala', 'Lembaga keuangan', 'Sarana perdagangan', 'Pajak dan listrik',
+    'Jalan desa', 'Jalan menurut kelas', 'Kondisi jalan'];
 
 $CRUD = [
     'wisata' => [
         'judul' => 'Kelola wisata', 'satu' => 'destinasi', 'tabel' => 'wisata', 'urut' => 'id',
-        'kolom' => ['foto' => 'Foto', 'nama' => 'Destinasi', 'jenis' => 'Jenis', 'harga' => 'Harga', 'kuota' => 'Kuota/hari', 'aktif' => 'Tampil'],
+        'kolom' => ['foto' => 'Foto', 'nama' => 'Destinasi', 'jenis' => 'Jenis', 'harga' => 'Harga', 'aktif' => 'Tampil'],
         'format' => ['foto' => 'foto', 'harga' => 'rupiah', 'aktif' => 'yatidak'],
         'field' => [
             ['nama', 'Nama destinasi', 'text', ['wajib' => true, 'maks' => 150]],
-            ['jenis', 'Jenis', 'select', ['pilihan' => ['Alam', 'Budaya', 'Agrowisata', 'Edukasi'], 'bisaTambah' => true]],
-            ['harga', 'Harga tiket per orang (Rp)', 'number', ['min' => 0]],
-            ['kuota', 'Kuota pengunjung per hari', 'number', ['min' => 1]],
+            ['jenis', 'Jenis', 'select', ['pilihan' => ['Alam', 'Budaya', 'Agrowisata', 'Edukasi', 'Kuliner', 'Religi'], 'bisaTambah' => true]],
+            ['harga', 'Harga tiket per orang (Rp). Isi 0 kalau gratis', 'number', ['min' => 0]],
             ['jam_buka', 'Jam buka', 'text', ['wajib' => true, 'maks' => 60, 'contoh' => '08.00 sampai 16.00']],
+            ['waktu_terbaik', 'Waktu terbaik berkunjung (opsional)', 'text', ['maks' => 255, 'contoh' => 'Pagi 06.00 sampai 09.00 saat air surut']],
             ['ringkas', 'Ringkasan (tampil di kartu)', 'text', ['wajib' => true, 'maks' => 255]],
             ['deskripsi', 'Deskripsi lengkap', 'textarea', ['wajib' => true]],
             ['fasilitas', 'Fasilitas (pisahkan dengan koma)', 'text', ['maks' => 255, 'contoh' => 'Parkir, Toilet, Warung']],
@@ -35,10 +48,11 @@ $CRUD = [
             ['catatan_akses', 'Catatan aksesibilitas (jalur, tangga, jarak dari parkir)', 'text', ['maks' => 255]],
             ['gmaps_ulasan', 'Link ulasan Google Maps (opsional, kalau destinasi sudah terdaftar di Google Maps)', 'text', ['maks' => 255, 'contoh' => 'https://g.page/r/.../review']],
             ['foto', 'Foto utama', 'foto', []],
+            ...$fieldSumber,
             ['saat_hujan', 'Tetap nyaman saat hujan (kegiatan di dalam ruangan). Disarankan otomatis saat prakiraan hujan', 'check', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
-        'baru' => ['jenis' => 'Alam', 'harga' => 10000, 'kuota' => 50, 'aktif' => 1, 'tingkat_jalur' => 'Mudah', 'ada_toilet' => 1],
+        'baru' => ['jenis' => 'Alam', 'harga' => 10000, 'aktif' => 1, 'tingkat_jalur' => 'Mudah', 'ada_toilet' => 1],
         // Sebelum disimpan: buat slug (alamat) dari nama untuk destinasi baru
         'sebelumSimpan' => function (array &$data, ?int $id): void {
             if ($id === null) {
@@ -51,20 +65,29 @@ $CRUD = [
             }
         },
         'cekSimpan' => fn(array $data, ?int $id, array $admin) => ($data['gmaps_ulasan'] ?? '') !== '' && !str_starts_with($data['gmaps_ulasan'], 'https://')
-            ? 'Link ulasan Google Maps harus diawali https://.' : null,
+            ? 'Link ulasan Google Maps harus diawali https://.' : $cekLink($data),
         'cekHapus' => fn(array $baris, array $admin) => q1('SELECT id FROM reservasi WHERE wisata_id = ?', [$baris['id']])
             ? 'Destinasi ini sudah punya data reservasi, jadi tidak bisa dihapus. Hilangkan centang "Tampilkan di website" lewat Edit untuk menyembunyikannya.'
             : null,
     ],
 
     'budaya' => [
-        'judul' => 'Budaya dan kesenian', 'satu' => 'kegiatan budaya', 'tabel' => 'budaya', 'urut' => 'id',
-        'kolom' => ['judul' => 'Nama', 'waktu' => 'Waktu'],
+        'judul' => 'Budaya dan kesenian', 'satu' => 'kegiatan budaya', 'tabel' => 'budaya', 'urut' => 'urutan, id',
+        'catatan' => 'Tampil di halaman Wisata dan budaya serta beranda. Centang "Ilustrasi" untuk isi atau gambar contoh; lepas centangnya setelah diganti cerita dan foto asli dari warga.',
+        'kolom' => ['foto' => 'Gambar', 'judul' => 'Nama', 'jenis' => 'Jenis', 'waktu' => 'Waktu'],
+        'format' => ['foto' => 'foto'],
         'field' => [
-            ['judul', 'Nama kegiatan', 'text', ['wajib' => true, 'maks' => 150]],
+            ['judul', 'Nama tradisi, kesenian, atau kuliner', 'text', ['wajib' => true, 'maks' => 150]],
+            ['jenis', 'Jenis', 'select', ['pilihan' => ['Tradisi pesisir', 'Tradisi keagamaan', 'Kesenian musik', 'Kesenian religi', 'Bela diri dan adat', 'Gotong royong', 'Kuliner'], 'bisaTambah' => true]],
             ['waktu', 'Waktu pelaksanaan', 'text', ['wajib' => true, 'maks' => 100, 'contoh' => 'Setiap bulan Desember']],
-            ['isi', 'Keterangan', 'textarea', ['wajib' => true]],
+            ['isi', 'Cerita singkat', 'textarea', ['wajib' => true]],
+            ['foto', 'Foto atau gambar', 'foto', []],
+            ...$fieldSumber,
+            ['ilustrasi', 'Ilustrasi (isi atau gambar masih contoh)', 'check', []],
+            ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
         ],
+        'baru' => ['jenis' => 'Tradisi pesisir', 'urutan' => 10, 'ilustrasi' => 0],
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => $cekLink($data),
     ],
 
     'umkm' => [
@@ -80,10 +103,14 @@ $CRUD = [
             ['satuan', 'Satuan', 'text', ['wajib' => true, 'maks' => 40, 'contoh' => '250 g, buah, botol']],
             ['pemilik', 'Pemilik dan alamat singkat', 'text', ['wajib' => true, 'maks' => 150]],
             ['wa', 'Nomor WhatsApp', 'text', ['wajib' => true, 'maks' => 20, 'contoh' => '081234567890']],
+            ['izin', 'Izin usaha (opsional)', 'text', ['maks' => 150, 'contoh' => 'PIRT 1234567890123, halal dalam proses']],
+            ['pengiriman', 'Cara pengiriman', 'text', ['maks' => 150, 'contoh' => 'Ambil di rumah, antar sekitar desa, atau kirim paket']],
             ['peta', 'Lokasi (klik peta)', 'peta', []],
             ['foto', 'Foto produk', 'foto', []],
+            ...$fieldSumber,
         ],
         'baru' => ['kategori' => 'Makanan', 'harga' => 10000],
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => $cekLink($data),
         'sebelumSimpan' => function (array &$data, ?int $id): void {
             $data['wa'] = nomor_wa($data['wa']); // simpan dalam format 62...
         },
@@ -115,6 +142,7 @@ $CRUD = [
             ['tempat', 'Tempat', 'text', ['wajib' => true, 'maks' => 150]],
             ['isi', 'Keterangan', 'textarea', ['wajib' => true]],
             ['relawan_kuota', 'Butuh relawan (orang). Isi 0 kalau tidak membuka pendaftaran relawan', 'number', ['min' => 0, 'max' => 1000]],
+            ['perlengkapan', 'Yang perlu dibawa relawan (opsional)', 'text', ['maks' => 255, 'contoh' => 'Sepatu bot, topi, botol minum']],
         ],
         'baru' => ['relawan_kuota' => 0],
         'tombolTambahan' => ['/admin/relawan', 'Lihat daftar relawan'],
@@ -151,9 +179,10 @@ $CRUD = [
         'judul' => 'Relawan gotong royong', 'satu' => 'relawan', 'tabel' => 'relawan', 'urut' => 'agenda_id DESC, id',
         'catatan' => 'Warga dan pengunjung yang mendaftar lewat tombol "Saya ikut" di halaman Agenda. Hubungi lewat WhatsApp sehari sebelum kegiatan. Data dihapus otomatis 30 hari setelah kegiatan lewat.',
         'saring' => 'agenda_judul', 'saringTurun' => false,
-        'kolom' => ['agenda_judul' => 'Kegiatan', 'nama' => 'Nama', 'asal' => 'Asal', 'wa' => 'WhatsApp'],
+        'kolom' => ['agenda_judul' => 'Kegiatan', 'nama' => 'Nama', 'peran' => 'Bisa bantu', 'asal' => 'Asal', 'wa' => 'WhatsApp'],
         'field' => [
             ['nama', 'Nama', 'text', ['wajib' => true, 'maks' => 60]],
+            ['peran', 'Bisa membantu sebagai', 'text', ['maks' => 60]],
             ['asal', 'Asal (RT, kelompok, atau pengunjung)', 'text', ['maks' => 60]],
             ['wa', 'Nomor WhatsApp', 'text', ['wajib' => true, 'maks' => 20]],
         ],
@@ -162,14 +191,19 @@ $CRUD = [
 
     'berita' => [
         'judul' => 'Kelola berita', 'satu' => 'berita', 'tabel' => 'berita', 'urut' => 'tanggal DESC, id DESC',
-        'kolom' => ['foto' => 'Foto', 'tanggal' => 'Tanggal', 'judul' => 'Judul'],
+        'catatan' => 'Tulis berita dengan pola: apa yang terjadi, kapan dan di mana, siapa yang terlibat, lalu apa yang perlu dilakukan warga. Pisahkan paragraf dengan satu baris kosong; paragraf pertama tampil sebagai ringkasan.',
+        'kolom' => ['foto' => 'Foto', 'tanggal' => 'Tanggal', 'judul' => 'Judul', 'kategori' => 'Kategori'],
         'format' => ['foto' => 'foto', 'tanggal' => 'tanggal'],
         'field' => [
             ['judul', 'Judul berita', 'text', ['wajib' => true, 'maks' => 200]],
+            ['kategori', 'Kategori', 'select', ['pilihan' => ['Pemerintahan', 'Pelayanan', 'Perikanan', 'Pertanian', 'Kesehatan', 'Lingkungan', 'Budaya', 'UMKM', 'Wisata', 'Siaga bencana'], 'bisaTambah' => true]],
             ['tanggal', 'Tanggal terbit', 'date', ['wajib' => true]],
             ['isi', 'Isi berita', 'textarea', ['wajib' => true]],
             ['foto', 'Foto (opsional)', 'foto', []],
+            ...$fieldSumber,
         ],
+        'baru' => ['kategori' => 'Pemerintahan'],
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => $cekLink($data),
     ],
 
     'galeri' => [
@@ -180,7 +214,9 @@ $CRUD = [
             ['foto', 'File foto', 'foto', ['wajib' => true]],
             ['judul', 'Keterangan foto', 'text', ['wajib' => true, 'maks' => 200]],
             ['kategori', 'Kategori', 'select', ['pilihan' => ['Alam', 'Budaya', 'Kegiatan'], 'bisaTambah' => true]],
+            ...$fieldSumber,
         ],
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => $cekLink($data),
     ],
 
     'statistik' => [
@@ -279,6 +315,7 @@ $CRUD += [
             ['deskripsi', 'Keterangan', 'textarea', ['wajib' => true]],
             ['foto', 'Foto sebelum (opsional)', 'foto', []],
             ['foto_sesudah', 'Foto sesudah atau terkini (opsional)', 'foto', []],
+            ...$fieldSumber,
             ['peta', 'Titik lokasi di peta desa (opsional)', 'peta', []],
             ['sdg', 'Tujuan SDGs yang didukung (pilih 1 sampai 3)', 'sdg', []],
         ],
@@ -295,6 +332,9 @@ $CRUD += [
         'field' => [
             ['nama', 'Nama program', 'text', ['wajib' => true, 'maks' => 150]],
             ['penyelenggara', 'Penyelenggara', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Pemerintah Desa']],
+            ['kategori', 'Jenis program', 'select', ['pilihan' => ['Sosial', 'Pendidikan', 'Kesehatan', 'Nelayan', 'Petani', 'Usaha'], 'bisaTambah' => true]],
+            ['deskripsi', 'Penjelasan singkat program', 'textarea', []],
+            ['manfaat', 'Manfaat yang diterima', 'text', ['maks' => 255, 'contoh' => 'Uang tunai Rp300.000 per bulan']],
             ['sasaran', 'Sasaran penerima', 'text', ['wajib' => true, 'maks' => 255]],
             ['syarat', 'Syarat (satu baris satu syarat)', 'textarea', ['wajib' => true]],
             ['jadwal', 'Jadwal', 'text', ['wajib' => true, 'maks' => 150, 'contoh' => 'Pendaftaran Januari sampai Februari']],
@@ -302,28 +342,30 @@ $CRUD += [
             ['kuota', 'Kuota penerima di desa', 'number', ['min' => 0, 'max' => 100000]],
             ['jumlah_tahap', 'Jumlah tahap penyaluran', 'number', ['min' => 1, 'max' => 12]],
             ['selesai', 'Tanggal program selesai (kosongkan kalau masih berjalan)', 'date', []],
+            ['tautan', 'Link situs resmi untuk cek kepesertaan (opsional)', 'text', ['maks' => 255, 'contoh' => 'https://cekbansos.kemensos.go.id']],
             ['sdg', 'Tujuan SDGs yang didukung (pilih 1 sampai 3)', 'sdg', []],
+            ['ilustrasi', 'Ilustrasi (jadwal, kuota, atau besaran masih contoh)', 'check', []],
             ['aktif', 'Tampilkan di website', 'check', []],
         ],
-        'baru' => ['aktif' => 1, 'kuota' => 0, 'jumlah_tahap' => 1],
+        'baru' => ['aktif' => 1, 'kuota' => 0, 'jumlah_tahap' => 1, 'kategori' => 'Sosial'],
+        'cekSimpan' => fn(array $data, ?int $id, array $admin) => ($data['tautan'] ?? '') !== '' && !str_starts_with($data['tautan'], 'https://') ? 'Link situs resmi harus diawali https://.' : null,
         'tombolTambahan' => ['/admin/bansos', 'Kelola penerima bansos'],
     ],
 
-    'sampah' => [
-        'judul' => 'Bank sampah', 'satu' => 'setoran', 'tabel' => 'sampah', 'urut' => 'bulan DESC, jenis',
-        'catatan' => 'Isi satu baris per jenis sampah per bulan. Tanggal cukup diisi tanggal 1 bulan itu. Jadwal buka dan daftar harga diatur Super admin di menu Pengaturan.',
-        'kolom' => ['bulan' => 'Bulan', 'jenis' => 'Jenis', 'berat_kg' => 'Berat (kg)', 'nilai_rupiah' => 'Nilai tabungan'],
-        'format' => ['bulan' => 'bulan', 'berat_kg' => 'angka', 'nilai_rupiah' => 'rupiah'],
+    'lembaga' => [
+        'judul' => 'Lembaga desa', 'satu' => 'lembaga', 'tabel' => 'lembaga', 'urut' => 'urutan, id',
+        'catatan' => 'Lembaga kemasyarakatan dan kelompok warga beserta kegiatan rutinnya. Tampil di halaman Profil.',
+        'kolom' => ['nama' => 'Lembaga', 'jenis' => 'Jenis', 'jadwal' => 'Kegiatan rutin', 'anggota' => 'Anggota'],
         'field' => [
-            ['bulan', 'Bulan (pilih tanggal 1)', 'date', ['wajib' => true]],
-            ['jenis', 'Jenis sampah', 'select', ['pilihan' => ['Plastik', 'Kertas', 'Logam', 'Organik (kompos)', 'Minyak jelantah'], 'bisaTambah' => true]],
-            ['berat_kg', 'Berat (kg)', 'number', ['min' => 0, 'desimal' => true]],
-            ['nilai_rupiah', 'Nilai tabungan warga (Rp)', 'number', ['min' => 0]],
+            ['nama', 'Nama lembaga atau kelompok', 'text', ['wajib' => true, 'maks' => 150]],
+            ['jenis', 'Jenis', 'select', ['pilihan' => ['Lembaga pemerintahan desa', 'Lembaga kemasyarakatan', 'Kepemudaan', 'Kelompok usaha', 'Kesehatan dan keluarga', 'Keamanan', 'Keagamaan', 'Ekonomi desa', 'Pariwisata'], 'bisaTambah' => true]],
+            ['kegiatan', 'Kegiatan utama', 'text', ['maks' => 255, 'wajib' => true]],
+            ['jadwal', 'Jadwal kegiatan rutin', 'text', ['maks' => 150, 'contoh' => 'Setiap Sabtu malam']],
+            ['anggota', 'Jumlah anggota (isi 0 kalau tidak tahu)', 'number', ['min' => 0, 'max' => 100000]],
+            ['ilustrasi', 'Ilustrasi (belum dikonfirmasi ke lembaga)', 'check', []],
+            ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
         ],
-        'baru' => ['bulan' => date('Y-m-01'), 'jenis' => 'Plastik', 'berat_kg' => 0, 'nilai_rupiah' => 0],
-        'sebelumSimpan' => function (array &$data, ?int $id): void {
-            $data['bulan'] = substr($data['bulan'], 0, 7) . '-01'; // selalu disimpan sebagai tanggal 1
-        },
+        'baru' => ['jenis' => 'Lembaga kemasyarakatan', 'anggota' => 0, 'urutan' => 10, 'ilustrasi' => 0],
     ],
 
     'fasilitas' => [

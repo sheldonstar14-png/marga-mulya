@@ -5,25 +5,32 @@
 //   Transparansi   : APBDes tahun terbaru (tabel apbdes)
 //   Pembangunan    : proyek desa (tabel pembangunan)
 //   Program bantuan: tabel bantuan
-//   Bank sampah    : tabel sampah + pengaturan info_bank_sampah dan harga_sampah
 // Tab dipilih lewat alamat, contoh: /data-desa?grup=Transparansi
 // =========================================================
 $grupData = [
-    'Penduduk'   => ['Kependudukan', 'Mata pencaharian'],
-    'Pendidikan' => ['Pendidikan penduduk', 'Sekolah'],
-    'Kesehatan'  => ['Kesehatan', 'Fasilitas kesehatan'],
-    'Perikanan dan pertanian' => ['Perikanan', 'Pertanian', 'Peternakan'],
-    'Ekonomi'    => ['Ekonomi', 'Jalan desa'],
+    'Penduduk'   => ['Kependudukan', 'Mata pencaharian', 'Angkatan kerja', 'Status perkawinan', 'Pernikahan dan perceraian setahun'],
+    'Agama dan budaya' => ['Pemeluk agama', 'Tempat ibadah', 'Kelompok seni dan budaya'],
+    'Pemerintahan' => ['Pemerintahan', 'Aparat desa menurut jenis kelamin', 'Aparat desa menurut pendidikan', 'Aparat desa menurut status', 'Aparat kecamatan'],
+    'Pendidikan' => ['Pendidikan penduduk', 'Sekolah', 'Sekolah menurut status', 'Murid per jenjang', 'Guru per jenjang', 'Ruang kelas per jenjang', 'Pendidikan nonformal'],
+    'Kesehatan'  => ['Kesehatan', 'Fasilitas kesehatan', 'Tenaga kesehatan', 'Status gizi balita', 'Imunisasi balita', 'Keluarga berencana', 'Peserta KB menurut alat'],
+    'Wilayah dan permukiman' => ['Lahan', 'Sumber air minum keluarga', 'Jamban keluarga', 'Jenis rumah', 'Bahan bakar memasak'],
+    'Perikanan dan pertanian' => ['Perikanan', 'Pertanian', 'Pengairan sawah', 'Peternakan'],
+    'Ekonomi'    => ['Ekonomi', 'Industri menurut skala', 'Lembaga keuangan', 'Sarana perdagangan', 'Pajak dan listrik'],
+    'Infrastruktur' => ['Jalan desa', 'Jalan menurut kelas', 'Kondisi jalan'],
 ];
 // Kategori baru yang ditambahkan admin (di luar daftar di atas) masuk ke tombol "Lainnya"
-$sudahAda = [...array_merge(...array_values($grupData)), 'Lahan', 'Pemerintahan'];
+$sudahAda = array_merge(...array_values($grupData));
 $lainnya = array_values(array_diff(array_column(q('SELECT DISTINCT kategori FROM statistik ORDER BY kategori'), 'kategori'), $sudahAda));
 if ($lainnya) {
     $grupData['Lainnya'] = $lainnya;
 }
-$grupKhusus = ['Layanan surat', 'Pantau bansos', 'Transparansi', 'Pembangunan', 'Bank sampah'];
+// Kategori yang belum ada isinya tidak ditampilkan
+$adaIsi = array_flip(array_column(q('SELECT DISTINCT kategori FROM statistik'), 'kategori'));
+foreach ($grupData as $g => $k) { $grupData[$g] = array_values(array_filter($k, fn($x) => isset($adaIsi[$x]))); if (!$grupData[$g]) unset($grupData[$g]); }
+$grupKhusus = ['Layanan surat', 'Pantau bansos', 'Transparansi', 'Pembangunan'];
 if (($_GET['grup'] ?? '') === 'Program bantuan') $_GET['grup'] = 'Pantau bansos'; // alamat lama tetap jalan
 if (($_GET['grup'] ?? '') === 'Pertanian') $_GET['grup'] = 'Perikanan dan pertanian';
+if (($_GET['grup'] ?? '') === 'Bank sampah') $_GET['grup'] = 'Wilayah dan permukiman'; // fitur bank sampah dihentikan
 $grup = $_GET['grup'] ?? 'Penduduk';
 if (!isset($grupData[$grup]) && !in_array($grup, $grupKhusus, true)) {
     $grup = 'Penduduk';
@@ -33,6 +40,8 @@ if (!isset($grupData[$grup]) && !in_array($grup, $grupKhusus, true)) {
 if ($grup === 'Layanan surat') {
     $layanan = q('SELECT * FROM layanan WHERE aktif = 1 ORDER BY urutan, id');
     $pilihLayanan = (int) ($_GET['l'] ?? ($layanan[0]['id'] ?? 0));
+    // ?izin=1: langsung pilih layanan izin kunjungan rombongan, KKN, atau penelitian
+    if (!empty($_GET['izin'])) foreach ($layanan as $l) if (stripos($l['nama'], 'izin kunjungan') === 0) $pilihLayanan = (int) $l['id'];
 } elseif ($grup === 'Kesehatan') {
     $posyandu = q("SELECT id, judul, tanggal, jam, tempat FROM agenda WHERE judul LIKE '%osyandu%' AND tanggal >= ? ORDER BY tanggal LIMIT 3", [date('Y-m-d')]);
 }
@@ -49,6 +58,9 @@ if ($grup === 'Transparansi') {
     $totalProyek = array_sum(array_map(fn($p) => (float) $p['anggaran'], $proyek));
 } elseif ($grup === 'Pantau bansos') {
     $program = q('SELECT * FROM bantuan WHERE aktif = 1 ORDER BY id');
+    $katProgram = array_values(array_unique(array_filter(array_map(fn($b) => $b['kategori'] ?? '', $program))));
+    $pilihKat = in_array($_GET['program'] ?? '', $katProgram, true) ? $_GET['program'] : '';
+    if ($pilihKat) $program = array_values(array_filter($program, fn($b) => ($b['kategori'] ?? '') === $pilihKat));
     // Cek status penerima: nama lengkap + RT harus cocok persis. Nama tampil disamarkan.
     $cekNama = trim((string) ($_GET['nama'] ?? ''));
     $cekRt = rt_baku((string) ($_GET['rt'] ?? ''));
@@ -63,31 +75,11 @@ if ($grup === 'Transparansi') {
             if (!$hasilCek) sleep(1); // perlambat percobaan menebak nama
         }
     }
-} elseif ($grup === 'Bank sampah') {
-    $akhir = q1('SELECT MAX(bulan) AS b FROM sampah')['b'] ?? null;
-    $bulanan = [];
-    $perJenis = [];
-    $totalKg = $totalRp = 0;
-    if ($akhir) {
-        for ($i = 5; $i >= 0; $i--) {
-            $bulanan[date('Y-m', strtotime(substr($akhir, 0, 7) . "-01 -$i month"))] = 0;
-        }
-        $awal = array_key_first($bulanan) . '-01';
-        foreach (q('SELECT bulan, jenis, berat_kg, nilai_rupiah FROM sampah WHERE bulan >= ?', [$awal]) as $s) {
-            $k = substr($s['bulan'], 0, 7);
-            if (isset($bulanan[$k])) $bulanan[$k] += (float) $s['berat_kg'];
-            $perJenis[$s['jenis']] = ($perJenis[$s['jenis']] ?? 0) + (float) $s['berat_kg'];
-            $totalKg += (float) $s['berat_kg'];
-            $totalRp += (int) $s['nilai_rupiah'];
-        }
-        arsort($perJenis);
-    }
-    $maksBulan = max(1, $bulanan ? max($bulanan) : 1);
 }
 
 // ---------- Layanan surat: pengajuan online dan antrean kantor desa ----------
 $errorSurat = [];
-$isiSurat = ['layanan_id' => (string) ($_GET['l'] ?? ''), 'nama' => '', 'wa' => '', 'email' => '', 'keperluan' => ''];
+$isiSurat = ['layanan_id' => (string) ($pilihLayanan ?? ($_GET['l'] ?? '')), 'nama' => '', 'wa' => '', 'email' => '', 'keperluan' => ''];
 $kodeQr = (string) ($_GET['antre'] ?? $_POST['antre'] ?? '');
 $qrSah = $kodeQr !== '' && hash_equals(kode_antrean(), $kodeQr);
 $errorAntre = '';
@@ -154,21 +146,35 @@ if (preg_match('/^(\d+)-([a-f0-9]{12})$/', $kunciTiket, $mt)) {
 $dilayani = q1("SELECT nomor FROM antrean WHERE tanggal = ? AND status = 'Dipanggil' ORDER BY dipanggil_pada DESC, nomor DESC LIMIT 1", [date('Y-m-d')]);
 $sisaAntre = (int) q1("SELECT COUNT(*) AS n FROM antrean WHERE tanggal = ? AND status = 'Menunggu'", [date('Y-m-d')])['n'];
 
-$judul = 'Informasi Desa - ' . setting('nama_desa');
+$judul = ($grup === 'Layanan surat' ? 'Layanan Surat' : ($grup === 'Pantau bansos' ? 'Bantuan Sosial' : 'Informasi Desa')) . ' - ' . setting('nama_desa');
 $menu  = 'data-desa';
 require __DIR__ . '/../inc/header.php';
 $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencanaan' => 'Dibatalkan'];
 ?>
 <div class="wrap page-title">
+  <?php if (in_array($grup, ['Layanan surat', 'Pantau bansos'], true)): ?>
+  <h1><?= $grup === 'Layanan surat' ? 'Layanan surat' : 'Bantuan sosial' ?></h1>
+  <p><?= $grup === 'Layanan surat' ? 'Ajukan surat keterangan dan izin kunjungan dari HP, lacak prosesnya, lalu cukup sekali datang ke kantor desa untuk tanda tangan.' : 'Program bantuan untuk keluarga, nelayan, petani, pelajar, dan pelaku usaha, beserta syarat, cara daftar, dan penyalurannya yang bisa dipantau terbuka.' ?></p>
+  <?php else: ?>
   <h1>Informasi desa</h1>
-  <p>Data kependudukan, pendidikan, kesehatan, dan ekonomi <?= e(setting('nama_desa')) ?>, ditambah keterbukaan anggaran, pembangunan, program bantuan, dan bank sampah.</p>
+  <p>Data kependudukan, agama, pemerintahan, pendidikan, kesehatan, permukiman, perikanan, pertanian, ekonomi, dan infrastruktur <?= e(setting('nama_desa')) ?>, ditambah layanan surat, bantuan sosial, anggaran, dan pembangunan.</p>
+  <?php endif; ?>
 </div>
 <div class="wrap sec" style="padding-top:16px">
-  <nav class="chips chips-info" aria-label="Kategori informasi">
-    <?php foreach ([...array_keys($grupData), ...$grupKhusus] as $g): ?>
-      <a class="chip <?= in_array($g, $grupKhusus, true) ? 'chip-khusus' : '' ?> <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g) ?></a>
-    <?php endforeach; ?>
-  </nav>
+  <div class="tab-info">
+    <nav class="chips chips-info" aria-label="Layanan dan keterbukaan">
+      <span class="chips-label">Layanan dan keterbukaan</span>
+      <?php foreach ($grupKhusus as $g): ?>
+        <a class="chip chip-khusus <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g === 'Transparansi' ? 'Anggaran (APBDes)' : $g) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <nav class="chips chips-info" aria-label="Data desa">
+      <span class="chips-label">Data desa</span>
+      <?php foreach (array_keys($grupData) as $g): ?>
+        <a class="chip <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g) ?></a>
+      <?php endforeach; ?>
+    </nav>
+  </div>
 
 <?php if ($grup === 'Layanan surat'):
   $indeks = survei_ringkas('surat');
@@ -184,6 +190,17 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
     </div>
   </section>
   <?php endif; ?>
+  <section class="alur" id="alur" aria-labelledby="judul-alur">
+    <h2 class="sub-judul" id="judul-alur">Alur pengajuan surat</h2>
+    <p class="muted" style="max-width:70ch">Cukup sekali datang ke kantor desa. Semua langkah di bawah bisa dilakukan dari HP, kecuali tanda tangan dan mengambil surat.</p>
+    <ol class="alur-langkah">
+      <li><b>Pilih surat dan siapkan dokumen</b><span>Pilih keperluanmu di bawah, lalu centang dokumen yang sudah siap.</span></li>
+      <li><b>Isi form online</b><span>Nama, WhatsApp, dan keperluan. Tanpa unggah KTP atau KK. Kamu mendapat kode SRT-.</span></li>
+      <li><b>Petugas menyiapkan surat</b><span>Biasanya 1 hari kerja. Kabar perkembangan dikirim ke WhatsApp atau email.</span></li>
+      <li><b>Status "Siap diambil"</b><span>Datang di jam layanan membawa dokumen asli. Pindai QR antrean di meja layanan.</span></li>
+      <li><b>Tanda tangan dan selesai</b><span>Surat diserahkan. Beri penilaian supaya layanan desa makin baik.</span></li>
+    </ol>
+  </section>
   <h2 class="sub-judul">Mau mengurus apa?</h2>
   <p class="muted" style="max-width:70ch">Pilih keperluanmu untuk melihat dokumen yang harus dibawa. Centang yang sudah siap, supaya cukup sekali datang ke kantor desa. Tidak perlu mengunggah KTP atau KK di sini.</p>
   <?php if (!$layanan): ?><p class="muted">Daftar layanan belum diisi.</p><?php else: ?>
@@ -359,12 +376,27 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
   <h2 class="sub-judul">Pantau bantuan sosial</h2>
   <p class="muted" style="max-width:70ch">Siapa pun bisa memantau apakah bantuan sudah tersalur. Warga juga bisa mengecek status dirinya, dan melaporkan kalau ada yang salah sasaran. Nama penerima di website selalu disamarkan; daftar lengkap ditempel di papan pengumuman kantor desa.</p>
 
-  <div class="grid g2" style="margin-bottom:22px">
-    <?php foreach ($program as $b): $rb = ringkas_bansos($b); ?>
-      <article class="panel bansos-prog">
-        <div class="head-row" style="margin-bottom:8px"><span class="tag"><?= e($b['penyelenggara']) ?></span><?php if ($b['selesai']): ?><span class="status st-Selesai">Program selesai</span><?php endif; ?></div>
-        <h3 style="margin:0 0 4px"><?= e($b['nama']) ?></h3>
-        <p class="small muted" style="margin:0 0 14px">Untuk: <?= e($b['sasaran']) ?></p>
+  <ol class="alur-langkah alur-bansos" aria-label="Alur bantuan sosial di desa">
+    <li><b>Usulan</b><span>Warga, RT, atau kader mengusulkan keluarga yang layak.</span></li>
+    <li><b>Musyawarah desa</b><span>Usulan dibahas terbuka dan dicocokkan dengan DTKS.</span></li>
+    <li><b>Penetapan</b><span>Daftar penerima diumumkan di papan kantor desa.</span></li>
+    <li><b>Penyaluran</b><span>Bantuan disalurkan per tahap dan dicatat di sini.</span></li>
+    <li><b>Pantau dan lapor</b><span>Siapa pun bisa memantau dan melaporkan salah sasaran.</span></li>
+  </ol>
+  <?php if ($katProgram): ?>
+  <nav class="chips" aria-label="Jenis program bantuan">
+    <a class="chip <?= $pilihKat === '' ? 'on' : '' ?>" href="/data-desa?grup=Pantau+bansos#program">Semua program</a>
+    <?php foreach ($katProgram as $kp): ?><a class="chip <?= $pilihKat === $kp ? 'on' : '' ?>" href="/data-desa?grup=Pantau+bansos&amp;program=<?= urlencode($kp) ?>#program"><?= e($kp) ?></a><?php endforeach; ?>
+  </nav>
+  <?php endif; ?>
+  <div class="grid g2" style="margin-bottom:22px" id="program">
+    <?php foreach ($program as $b): $rb = ringkas_bansos($b); [$namaProg, $ilusProg] = pisah_ilustrasi($b['nama']); $ilusProg = $ilusProg || !empty($b['ilustrasi']); ?>
+      <article class="panel bansos-prog" id="program-<?= (int) $b['id'] ?>">
+        <div class="head-row" style="margin-bottom:8px"><span class="tag"><?= e($b['penyelenggara']) ?></span><?= tanda_ilustrasi($ilusProg) ?><?php if ($b['selesai']): ?><span class="status st-Selesai">Program selesai</span><?php endif; ?></div>
+        <h3 style="margin:0 0 4px"><?= e($namaProg) ?></h3>
+        <p class="small muted" style="margin:0 0 10px">Untuk: <?= e($b['sasaran']) ?></p>
+        <?php if (!empty($b['deskripsi'])): ?><p class="small" style="margin:0 0 10px"><?= e($b['deskripsi']) ?></p><?php endif; ?>
+        <?php if (!empty($b['manfaat'])): ?><p class="bansos-manfaat"><b>Manfaat:</b> <?= e($b['manfaat']) ?></p><?php endif; ?>
         <?= sdg_lencana($b['sdg'] ?? null) ?>
         <?php if ($rb['total'] > 0): ?>
           <div class="bansos-angka">
@@ -380,9 +412,12 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
           <?php endforeach; ?>
           <p class="small" style="margin:12px 0 4px"><b>Penerima per RT</b></p>
           <div class="rt-chips"><?php foreach ($rb['per_rt'] as $r): ?><span>RT <?= e($r['rt']) ?>: <b><?= (int) $r['n'] ?></b></span><?php endforeach; ?></div>
+        <?php elseif (!empty($b['tautan'])): ?>
+          <p class="small muted">Daftar penerima program ini ditetapkan pemerintah pusat. Cek kepesertaan lewat situs resminya.</p>
         <?php else: ?>
           <p class="small muted">Daftar penerima belum diumumkan.</p>
         <?php endif; ?>
+        <?php if (!empty($b['tautan'])): ?><p style="margin:8px 0 0"><a class="small" href="<?= e($b['tautan']) ?>" target="_blank" rel="noopener">Cek di situs resmi (<?= e(parse_url($b['tautan'], PHP_URL_HOST)) ?>)</a></p><?php endif; ?>
         <details class="bansos-detail"><summary>Syarat, jadwal, dan cara daftar</summary>
           <ul class="small" style="margin:8px 0;padding-left:18px"><?php foreach (per_baris($b['syarat']) as $x): ?><li><?= e($x) ?></li><?php endforeach; ?></ul>
           <p class="small" style="margin:0 0 6px"><b>Jadwal:</b> <?= e($b['jadwal']) ?></p>
@@ -428,42 +463,6 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
       <p class="hint">Laporan boleh dikirim tanpa nama. Kamu mendapat kode ADU- untuk melacak tindak lanjutnya.</p>
     </div>
   </div>
-
-<?php elseif ($grup === 'Bank sampah'): ?>
-  <h2 class="sub-judul">Bank sampah desa</h2>
-  <?php if (!$akhir): ?>
-    <p class="muted">Data bank sampah belum diisi.</p>
-  <?php else: ?>
-    <div class="stat-row">
-      <div class="stat"><span>Sampah terkelola 6 bulan terakhir</span><b><?= angka(round($totalKg / 1000, 1)) ?> ton</b><small>tidak berakhir di sungai atau dibakar</small></div>
-      <div class="stat"><span>Tabungan warga dari sampah</span><b><?= rupiah_ringkas($totalRp) ?></b><small>dalam 6 bulan terakhir</small></div>
-      <div class="stat"><span>Jenis terbanyak</span><b style="font-size:1.4rem"><?= e(array_key_first($perJenis)) ?></b><small><?= angka(round(reset($perJenis))) ?> kg</small></div>
-    </div>
-    <div class="grid g2">
-      <div class="panel">
-        <h3>Sampah terkumpul per bulan (kg)</h3>
-        <div class="vbars">
-          <?php $k = 0; foreach ($bulanan as $bln => $kg): $k++; ?>
-            <div class="vbar <?= $k === count($bulanan) ? 'now' : '' ?>"><b><?= angka(round($kg)) ?></b><div style="height:<?= round($kg / $maksBulan * 130) ?>px"></div><span><?= tgl($bln . '-01', 'bulan') ?></span></div>
-          <?php endforeach; ?>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Per jenis sampah</h3>
-        <div class="bars"><?= bar_list(array_map(fn($j, $kg) => ['label' => $j, 'nilai' => round($kg), 'satuan' => 'kg'], array_keys($perJenis), $perJenis)) ?></div>
-      </div>
-      <div class="panel">
-        <h3>Jadwal dan tempat</h3>
-        <p><?= e(setting('info_bank_sampah')) ?></p>
-      </div>
-      <div class="panel">
-        <h3>Harga beli sampah</h3>
-        <div class="table-wrap"><table>
-          <?php foreach (pasangan(setting('harga_sampah')) as [$jenisSampah, $harga]): ?><tr><td><?= e($jenisSampah) ?></td><td class="num"><b><?= e($harga) ?></b></td></tr><?php endforeach; ?>
-        </table></div>
-      </div>
-    </div>
-  <?php endif; ?>
 
 <?php else: ?>
   <?php if ($grup === 'Kesehatan' && !empty($posyandu)): ?>

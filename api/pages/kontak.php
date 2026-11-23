@@ -2,21 +2,17 @@
 // =========================================================
 // HALAMAN KONTAK
 //   - Nomor darurat (bisa langsung ditelepon dari HP)
-//   - Pesan biasa -> tabel pesan
+//   - (12s) Form "Kirim pesan" dan "Permintaan data pribadi" dihapus: pertanyaan memakai
+//     aspirasi kategori Pertanyaan umum, hak data pribadi lewat WhatsApp atau email desa.
 //   - Aspirasi/pengaduan warga dengan kode pelacakan -> tabel aspirasi
 //     GET /kontak?adu=ADU-XXXXXX#aspirasi  -> cek perkembangan
 // =========================================================
-$topikValid = ['Pertanyaan umum', 'Wisata', 'Layanan administrasi'];
-$kategoriAspirasi = ['Infrastruktur', 'Kebersihan dan lingkungan', 'Pelayanan administrasi', 'Kesehatan', 'Keamanan dan ketertiban', 'Usulan program', 'Bansos (salah sasaran atau usulan penerima)', 'Permohonan informasi publik', 'Lainnya'];
-$jenisPermintaan = ['Salinan data', 'Perbaikan data', 'Penghapusan data', 'Tarik persetujuan'];
-$isi = ['nama' => '', 'kontak' => '', 'topik' => $topikValid[0], 'isi' => ''];
-$adu = ['nama' => '', 'wa' => '', 'email' => '', 'kategori' => $kategoriAspirasi[0], 'lokasi' => '', 'isi' => ''];
+$kategoriAspirasi = ['Pertanyaan umum', 'Infrastruktur', 'Kebersihan dan lingkungan', 'Pelayanan administrasi', 'Kesehatan', 'Keamanan dan ketertiban', 'Usulan program', 'Bansos (salah sasaran atau usulan penerima)', 'Permohonan informasi publik', 'Lainnya'];
+$adu = ['nama' => '', 'wa' => '', 'email' => '', 'kategori' => $kategoriAspirasi[1], 'lokasi' => '', 'isi' => ''];
 // Tombol dari tab Pantau bansos membawa ?kategori=Bansos supaya kategorinya langsung terpilih
 if (($_GET['kategori'] ?? '') === 'Bansos') $adu['kategori'] = 'Bansos (salah sasaran atau usulan penerima)';
-$errors = [];
+if (($_GET['kategori'] ?? '') === 'Pertanyaan') $adu['kategori'] = 'Pertanyaan umum';
 $errorAdu = [];
-$minta = ['jenis' => $jenisPermintaan[0], 'nama' => '', 'kontak' => '', 'kode_terkait' => '', 'rincian' => ''];
-$errorMinta = [];
 $anonim = !empty($_POST['anonim']);
 
 // ---------- Aspirasi warga dikirim ----------
@@ -59,29 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'aspiras
     }
 }
 
-// ---------- Pesan biasa dikirim ----------
-// ---------- Permintaan data pribadi ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'data') {
-    foreach ($minta as $k => $_) {
-        $minta[$k] = trim((string) ($_POST[$k] ?? ''));
-    }
-    $minta['kode_terkait'] = strtoupper($minta['kode_terkait']);
-    if (!empty($_POST['website'])) $errorMinta[] = 'Permintaan tidak dapat diproses.';
-    if (!in_array($minta['jenis'], $jenisPermintaan, true)) $errorMinta[] = 'Pilih jenis permintaan dari daftar.';
-    if (mb_strlen($minta['nama']) < 2 || mb_strlen($minta['nama']) > 150) $errorMinta[] = 'Isi nama sesuai data yang pernah kamu kirim.';
-    if (mb_strlen($minta['kontak']) < 5 || mb_strlen($minta['kontak']) > 150) $errorMinta[] = 'Isi email atau nomor WhatsApp yang dulu kamu pakai, supaya datanya bisa dicocokkan.';
-    if ($minta['kode_terkait'] !== '' && !preg_match('/^(MM|ADU)-[A-Z0-9]{3,8}$/', $minta['kode_terkait'])) $errorMinta[] = 'Kode terkait diawali MM- (reservasi) atau ADU- (aspirasi).';
-    if (mb_strlen($minta['rincian']) < 10 || mb_strlen($minta['rincian']) > 2000) $errorMinta[] = 'Jelaskan permintaanmu 10 sampai 2.000 huruf.';
-    if (!$errorMinta) {
-        $kode = kode_unik('DATA', 'permintaan_data');
-        q('INSERT INTO permintaan_data (kode, jenis, nama, kontak, kode_terkait, rincian) VALUES (?, ?, ?, ?, ?, ?)',
-            [$kode, $minta['jenis'], $minta['nama'], $minta['kontak'], $minta['kode_terkait'], $minta['rincian']]);
-        require_once __DIR__ . '/../inc/email.php';
-        email_permintaan_data($kode);
-        redirect('/kontak?data=' . urlencode($kode) . '&baru=1#privasi');
-    }
-}
-
 // ---------- Penilaian kepuasan setelah aspirasi selesai ----------
 $errorSurveiAdu = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'survei') {
@@ -105,25 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'dukung'
     redirect('/kontak?' . http_build_query($balik + ['didukung' => $idDukung]) . '#adu-' . $idDukung);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !in_array($_POST['aksi'] ?? '', ['aspirasi', 'data', 'dukung', 'survei'], true)) {
-    foreach ($isi as $k => $_) {
-        $isi[$k] = trim((string) ($_POST[$k] ?? ''));
-    }
-    if (!empty($_POST['website'])) $errors[] = 'Pesan tidak dapat diproses.';
-    if (mb_strlen($isi['nama']) < 2 || mb_strlen($isi['nama']) > 150) $errors[] = 'Isi nama (2 sampai 150 huruf).';
-    if (mb_strlen($isi['kontak']) < 5 || mb_strlen($isi['kontak']) > 150) $errors[] = 'Isi email atau nomor WhatsApp supaya kami bisa membalas.';
-    if (!in_array($isi['topik'], $topikValid, true)) $errors[] = 'Pilih topik dari daftar.';
-    if (mb_strlen($isi['isi']) < 5 || mb_strlen($isi['isi']) > 2000) $errors[] = 'Isi pesan 5 sampai 2.000 huruf.';
-    if (empty($_POST['setuju_data'])) $errors[] = 'Centang persetujuan penggunaan data supaya kami bisa membalas.';
-
-    if (!$errors) {
-        q('INSERT INTO pesan (nama, kontak, topik, isi) VALUES (?, ?, ?, ?)', [$isi['nama'], $isi['kontak'], $isi['topik'], $isi['isi']]);
-        redirect('/kontak?terkirim=1');
-    }
-}
-
-$kodeData = strtoupper(trim((string) ($_GET['data'] ?? '')));
-$hasilData = $kodeData !== '' ? q1('SELECT kode, jenis, status, tanggapan, dibuat_pada FROM permintaan_data WHERE kode = ?', [$kodeData]) : null;
 $hariSimpan = max(30, (int) setting('simpan_data_hari'));
 $darurat = q('SELECT nama, nomor, keterangan FROM darurat ORDER BY urutan, id');
 $kodeCek = strtoupper(trim((string) ($_GET['adu'] ?? '')));
@@ -193,36 +147,21 @@ require __DIR__ . '/../inc/header.php';
 </div>
 <?php endif; ?>
 
-<div class="wrap sec split" style="padding-top:24px">
-  <form class="panel" method="post" action="/kontak">
-    <h2 style="font-size:1.35rem">Kirim pesan</h2>
-    <?php if (isset($_GET['terkirim'])): ?>
-      <div class="alert alert-ok" role="status">Pesan terkirim. Petugas desa akan membalas di jam layanan.</div>
-    <?php endif; ?>
-    <?php if ($errors): ?>
-      <div class="alert alert-err" role="alert"><b>Pesan belum terkirim:</b><ul><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul></div>
-    <?php endif; ?>
-    <div class="field"><label for="nama">Nama</label><input id="nama" name="nama" value="<?= e($isi['nama']) ?>" maxlength="150" required></div>
-    <div class="field"><label for="kontak">Email atau WhatsApp</label><input id="kontak" name="kontak" value="<?= e($isi['kontak']) ?>" maxlength="150" required></div>
-    <div class="field"><label for="topik">Topik</label>
-      <select id="topik" name="topik">
-        <?php foreach ($topikValid as $t): ?><option <?= $t === $isi['topik'] ? 'selected' : '' ?>><?= e($t) ?></option><?php endforeach; ?>
-      </select>
-      <div class="hint">Mau melapor masalah atau mengusulkan program? Pakai <a href="#aspirasi">form aspirasi warga</a> supaya bisa dilacak.</div>
-    </div>
-    <div class="field"><label for="isi">Pesan</label><textarea id="isi" name="isi" rows="5" maxlength="2000" required><?= e($isi['isi']) ?></textarea></div>
-    <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required id="setuju-pesan"> <span>Saya setuju data ini dipakai desa untuk menanggapi permintaan saya, sesuai <a href="#privasi">kebijakan privasi</a>.</span></label>
-    <div class="hp" aria-hidden="true"><label for="website">Jangan diisi</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
-    <button class="btn btn-main" type="submit">Kirim pesan</button>
-  </form>
-
+<div class="wrap sec split" style="padding-top:24px" id="peta">
   <div class="panel">
     <h3>Kantor <?= e(setting('nama_desa')) ?></h3>
     <p><?= e(setting('alamat')) ?><br><?= e(setting('kecamatan')) ?>, <?= e(setting('kabupaten')) ?></p>
     <p><b>Jam layanan</b><br><?= e(setting('jam_layanan')) ?></p>
     <p><b>Email</b><br><?= e(setting('email')) ?></p>
     <p><b>WhatsApp</b><br>+<?= e(setting('wa')) ?></p>
-    <a class="btn btn-wa" href="<?= e(wa_link(setting('wa'), 'Halo ' . setting('nama_desa') . ', saya ingin bertanya.')) ?>" target="_blank" rel="noopener">Chat WhatsApp desa</a>
+    <div class="actions">
+      <a class="btn btn-wa" href="<?= e(wa_link(setting('wa'), 'Halo ' . setting('nama_desa') . ', saya ingin bertanya.')) ?>" target="_blank" rel="noopener">Chat WhatsApp desa</a>
+      <a class="btn btn-ghost" href="/kontak?kategori=Pertanyaan#aspirasi">Tulis pertanyaan</a>
+    </div>
+    <p class="hint">Pertanyaan yang perlu jawaban tertulis bisa dikirim lewat form aspirasi dengan kategori <b>Pertanyaan umum</b>. Kamu mendapat kode lacak dan jawabannya dikirim ke WhatsApp atau email.</p>
+  </div>
+  <div class="panel">
+    <h3>Lokasi kantor desa</h3>
     <?php $koordinat = setting('lat') . ',' . setting('lng'); ?>
     <iframe class="peta-google" title="Peta lokasi kantor <?= e(setting('nama_desa')) ?> di Google Maps" src="https://maps.google.com/maps?q=<?= urlencode($koordinat) ?>&amp;z=15&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     <a class="btn btn-ghost btn-sm" style="margin-top:10px" href="https://www.google.com/maps/dir/?api=1&amp;destination=<?= urlencode($koordinat) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
@@ -233,7 +172,7 @@ require __DIR__ . '/../inc/header.php';
 <div class="sec tint" id="aspirasi"><div class="wrap">
   <div class="head-row" style="align-items:flex-end">
     <div>
-      <h2>Aspirasi dan pengaduan warga</h2>
+      <h2>Aspirasi, pertanyaan, dan pengaduan warga</h2>
       <p class="muted" style="margin:4px 0 0">Laporan bisa dilengkapi foto. Perkembangannya tampil terbuka di <a href="#papan">Papan Aspirasi</a> dan dikirim ke email atau WhatsApp kamu.</p>
     </div>
     <?php if ($jumlahAspirasi): ?><p class="small" style="margin:0"><b><?= $jumlahSelesai ?></b> dari <?= $jumlahAspirasi ?> aspirasi sudah selesai ditindaklanjuti</p><?php endif; ?>
@@ -247,7 +186,7 @@ require __DIR__ . '/../inc/header.php';
       <?php endif; ?>
       <div class="field"><label for="a-kategori">Kategori</label>
         <select id="a-kategori" name="kategori"><?php foreach ($kategoriAspirasi as $k): ?><option <?= $k === $adu['kategori'] ? 'selected' : '' ?>><?= e($k) ?></option><?php endforeach; ?></select>
-        <div class="hint">Ingin meminta salinan dokumen desa, misalnya rincian anggaran? Pilih <b>Permohonan informasi publik</b>.</div>
+        <div class="hint">Ingin bertanya kepada petugas? Pilih <b>Pertanyaan umum</b>. Ingin meminta salinan dokumen desa, misalnya rincian anggaran? Pilih <b>Permohonan informasi publik</b>.</div>
       </div>
       <div class="field"><label for="a-lokasi">Lokasi (opsional)</label><input id="a-lokasi" name="lokasi" value="<?= e($adu['lokasi']) ?>" maxlength="150" placeholder="Contoh: jalan depan SD, RW 03"></div>
       <div class="field"><label for="a-isi">Ceritakan aspirasi atau masalahnya</label><textarea id="a-isi" name="isi" rows="5" maxlength="2000" required placeholder="Apa yang terjadi, sejak kapan, dan apa harapanmu"><?= e($adu['isi']) ?></textarea></div>
@@ -398,12 +337,12 @@ require __DIR__ . '/../inc/header.php';
   <p class="muted" style="max-width:70ch">Kami mengikuti Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi: data diambil secukupnya, dipakai sesuai tujuan, dan kamu berhak mengaturnya.</p>
   <div class="grid g3 privasi-poin">
     <div class="panel"><h3>Data yang kami simpan</h3><ul class="small">
-      <li>Kunjungan rombongan: nama penanggung jawab, WhatsApp, email, dan jumlah anggota rombongan.</li>
-      <li>Aspirasi dan pesan: nama dan kontak (boleh tanpa nama untuk aspirasi), serta foto laporan kalau dilampirkan.</li>
+      <li>Pengajuan surat dan izin kunjungan: nama, WhatsApp, email (opsional), dan keperluan.</li>
+      <li>Aspirasi dan pertanyaan: nama dan kontak (boleh tanpa nama untuk aspirasi), serta foto laporan kalau dilampirkan.</li>
       <li>Relawan gotong royong: nama dan WhatsApp, dihapus 30 hari setelah kegiatan.</li>
       <li>Kami tidak meminta KTP, KK, atau NIK lewat website.</li></ul></div>
     <div class="panel"><h3>Untuk apa dan berapa lama</h3><ul class="small">
-      <li>Hanya untuk mengurus reservasi, membalas pesan, dan menindaklanjuti aspirasi.</li>
+      <li>Hanya untuk mengurus surat, menjawab pertanyaan, dan menindaklanjuti aspirasi.</li>
       <li>Tidak dijual dan tidak dibagikan untuk iklan.</li>
       <li>Nama dan kontak dihapus otomatis <?= $hariSimpan ?> hari setelah urusan selesai. Angka statistik tanpa nama tetap disimpan.</li></ul></div>
     <div class="panel"><h3>Hakmu</h3><ul class="small">
@@ -413,43 +352,10 @@ require __DIR__ . '/../inc/header.php';
       <li>Penanggung jawab: <?= e(setting('kontak_privasi')) ?>.</li></ul></div>
   </div>
 
-  <div class="split" style="margin-top:20px">
-    <form class="panel" method="post" action="/kontak#privasi">
-      <h3>Ajukan permintaan data pribadi</h3>
-      <input type="hidden" name="aksi" value="data">
-      <?php if ($errorMinta): ?>
-        <div class="alert alert-err" role="alert"><b>Permintaan belum terkirim:</b><ul><?php foreach ($errorMinta as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul></div>
-      <?php endif; ?>
-      <div class="field"><label for="d-jenis">Jenis permintaan</label>
-        <select id="d-jenis" name="jenis"><?php foreach ($jenisPermintaan as $j): ?><option <?= $j === $minta['jenis'] ? 'selected' : '' ?>><?= e($j) ?></option><?php endforeach; ?></select></div>
-      <div class="grid g2" style="gap:12px">
-        <div class="field"><label for="d-nama">Nama</label><input id="d-nama" name="nama" value="<?= e($minta['nama']) ?>" maxlength="150" required></div>
-        <div class="field"><label for="d-kontak">Email atau WhatsApp yang dulu dipakai</label><input id="d-kontak" name="kontak" value="<?= e($minta['kontak']) ?>" maxlength="150" required></div>
-      </div>
-      <div class="field"><label for="d-kode">Kode reservasi atau aspirasi (opsional)</label><input id="d-kode" name="kode_terkait" value="<?= e($minta['kode_terkait']) ?>" maxlength="20" placeholder="Contoh: MM-0427 atau ADU-7KQ2PA"></div>
-      <div class="field"><label for="d-rincian">Jelaskan permintaanmu</label><textarea id="d-rincian" name="rincian" rows="3" maxlength="2000" required placeholder="Contoh: Tolong hapus nama dan nomor WhatsApp saya dari reservasi bulan lalu."><?= e($minta['rincian']) ?></textarea></div>
-      <div class="hp" aria-hidden="true"><label for="website3">Jangan diisi</label><input id="website3" name="website" tabindex="-1" autocomplete="off"></div>
-      <button class="btn btn-dark" type="submit">Kirim permintaan</button>
-      <p class="hint">Petugas mencocokkan data lewat kontak dan kode yang kamu tulis, lalu mengabari hasilnya.</p>
-    </form>
-    <div class="panel">
-      <h3>Lacak permintaan</h3>
-      <form method="get" action="/kontak#privasi" class="grid" style="grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end">
-        <div><label for="data">Kode permintaan</label><input id="data" name="data" value="<?= e($kodeData) ?>" placeholder="Contoh: DATA-4KX9PQ"></div>
-        <button class="btn btn-dark" type="submit">Lacak</button>
-      </form>
-      <?php if ($kodeData !== ''): ?>
-        <?php if ($hasilData): ?>
-          <div role="status" style="margin-top:14px">
-            <?php if (isset($_GET['baru'])): ?><div class="alert alert-ok">Permintaan terkirim. Simpan kode <b><?= e($hasilData['kode']) ?></b>.</div><?php endif; ?>
-            <p style="margin:0"><b><?= e($hasilData['kode']) ?></b> <span class="tag"><?= e($hasilData['jenis']) ?></span> <span class="status st-<?= e(['Diterima' => 'Menunggu', 'Diproses' => 'Dikonfirmasi', 'Selesai' => 'Selesai', 'Ditolak' => 'Dibatalkan'][$hasilData['status']] ?? 'Menunggu') ?>"><?= e($hasilData['status']) ?></span></p>
-            <?php if ($hasilData['tanggapan']): ?><div class="hasil-adu"><div class="tanggapan"><b>Tanggapan petugas</b><p><?= nl2br(e($hasilData['tanggapan'])) ?></p></div></div><?php endif; ?>
-          </div>
-        <?php else: ?>
-          <div class="alert alert-err" role="alert" style="margin-top:14px">Kode <?= e($kodeData) ?> tidak ditemukan.</div>
-        <?php endif; ?>
-      <?php endif; ?>
-    </div>
+  <div class="panel hak-data" style="margin-top:20px">
+    <h3>Cara memakai hak atas data pribadimu</h3>
+    <p>Kirim permintaanmu lewat <a href="<?= e(wa_link(setting('wa'), 'Halo petugas ' . setting('nama_desa') . ', saya ingin mengajukan permintaan data pribadi: (salinan / perbaikan / penghapusan / tarik persetujuan). Kode terkait: ')) ?>" target="_blank" rel="noopener">WhatsApp desa</a><?php if (setting('email') !== ''): ?> atau email <a href="mailto:<?= e(setting('email')) ?>"><?= e(setting('email')) ?></a><?php endif; ?>. Sebutkan jenis permintaan (salinan, perbaikan, penghapusan, atau tarik persetujuan), nama yang dulu dipakai, dan kode terkait bila ada, misalnya kode surat SRT- atau aspirasi ADU-.</p>
+    <p style="margin:0">Petugas mencocokkan data lewat nomor atau email yang sama dengan yang dulu kamu pakai, lalu menindaklanjutinya sesuai UU Pelindungan Data Pribadi dan mengabari hasilnya. Kamu juga bisa datang langsung ke kantor desa di jam layanan.</p>
   </div>
 </div></div>
 <?php

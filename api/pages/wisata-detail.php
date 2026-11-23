@@ -12,18 +12,12 @@ if (!$w) {
 }
 $fasilitas = array_filter(array_map('trim', explode(',', $w['fasilitas'])));
 $titik = [['lat' => (float) $w['lat'], 'lng' => (float) $w['lng'], 'nama' => $w['nama'], 'jenis' => 'pilih']];
-$aturan = kode_etik($w);
 $ringkasUlasan = q1('SELECT COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE wisata_id = ? AND tampil = 1', [$w['id']]);
 $daftarUlasan = q('SELECT nama, bintang, komentar, dibuat_pada FROM ulasan WHERE wisata_id = ? AND tampil = 1 ORDER BY id DESC LIMIT 6', [$w['id']]);
 $linkArah = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($w['lat'] . ',' . $w['lng']);
 
-// Kalender ketersediaan 14 hari mulai besok
-$hariKalender = array_map(fn($i) => date('Y-m-d', strtotime("+$i day")), range(1, 14));
-$terisi = [];
-foreach (q("SELECT tanggal, SUM(jumlah) AS n FROM reservasi WHERE wisata_id = ? AND status <> 'Dibatalkan' AND tanggal BETWEEN ? AND ? GROUP BY tanggal", [$w['id'], $hariKalender[0], end($hariKalender)]) as $r) {
-    $terisi[$r['tanggal']] = (int) $r['n'];
-}
-$namaHariPendek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+[$namaW, $ilusW] = pisah_ilustrasi($w['nama']);
+$etik = kode_etik_kelompok($w);
 
 $judul = $w['nama'] . ' - ' . setting('nama_desa');
 $menu  = 'wisata';
@@ -35,8 +29,9 @@ require __DIR__ . '/../inc/header.php';
   <p><a href="/wisata">Semua destinasi</a></p>
   <div class="split">
     <div>
-      <div class="art" style="border-radius:var(--r-l);aspect-ratio:16/9"><img src="<?= e($w['foto'] ?: '/assets/img/pantai.svg') ?>" alt="<?= e($w['nama']) ?>"></div>
-      <h1 style="margin-top:24px;margin-bottom:6px"><?= e($w['nama']) ?></h1>
+      <div class="art detail-foto" style="border-radius:var(--r-l);aspect-ratio:16/9;position:relative"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($namaW) ?>"><?= tanda_ilustrasi($ilusW) ?></div>
+      <span class="chip-kecil" style="margin-top:22px;display:inline-block"><?= e($w['jenis']) ?></span>
+      <h1 style="margin-top:8px;margin-bottom:6px"><?= e($namaW) ?></h1>
       <?php if ($ringkasUlasan['n'] > 0): ?>
         <p style="margin:0 0 14px"><a href="#ulasan-pengunjung" style="text-decoration:none;color:inherit"><span class="bintang" aria-hidden="true"><?= bintang((float) $ringkasUlasan['rata']) ?></span> <b><?= number_format((float) $ringkasUlasan['rata'], 1, ',', '.') ?></b> <span class="muted">dari <?= (int) $ringkasUlasan['n'] ?> ulasan pengunjung</span></a></p>
       <?php endif; ?>
@@ -44,8 +39,8 @@ require __DIR__ . '/../inc/header.php';
       <div class="facts">
         <div class="fact"><span>Tiket per orang</span><b><?= rupiah($w['harga']) ?></b></div>
         <div class="fact"><span>Jam buka</span><b><?= e($w['jam_buka']) ?></b></div>
-        <div class="fact"><span>Kuota harian</span><b><?= (int) $w['kuota'] ?> orang</b></div>
       </div>
+      <?php if (!empty($w['waktu_terbaik'])): ?><div class="info-waktu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg><p><b>Waktu terbaik berkunjung:</b> <?= e($w['waktu_terbaik']) ?></p></div><?php endif; ?>
       <?php if ($fasilitas): ?>
         <h3>Fasilitas</h3>
         <div class="chips"><?php foreach ($fasilitas as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div>
@@ -55,29 +50,11 @@ require __DIR__ . '/../inc/header.php';
         <h3>Aksesibilitas</h3>
         <div class="akses-label"><?php foreach (label_akses($w) as [$kelas, $teks]): ?><span class="<?= $kelas ?>"><?= e($teks) ?></span><?php endforeach; ?></div>
         <?php if ($w['catatan_akses']): ?><p class="small" style="margin:8px 0 0"><?= e($w['catatan_akses']) ?></p><?php endif; ?>
-        <p class="small muted" style="margin:6px 0 0">Butuh bantuan khusus, misalnya pendamping atau kursi roda? Tulis di catatan saat memesan kunjungan rombongan.</p>
+        <p class="small muted" style="margin:6px 0 0">Butuh bantuan khusus, misalnya pendamping atau kursi roda? Hubungi WhatsApp desa sebelum datang, atau tulis di permohonan izin kunjungan rombongan.</p>
       </div>
 
-      <h2 style="margin-top:32px">Pilih tanggal kunjungan</h2>
-      <p class="muted">Sisa kuota 14 hari ke depan. Klik tanggal untuk langsung memesan. Ikon cuaca muncul untuk tanggal yang sudah ada prakiraannya.</p>
-      <div class="kalender" id="kalender" data-lat="<?= e($w['lat']) ?>" data-lng="<?= e($w['lng']) ?>">
-        <?php foreach ($hariKalender as $t):
-          $sisa = max(0, $w['kuota'] - ($terisi[$t] ?? 0));
-          $rasio = 1 - $sisa / max(1, $w['kuota']);
-          $kelas = $sisa === 0 ? 'q-full' : ($rasio >= .5 ? 'q-mid' : 'q-ok');
-          $isi = '<span>' . $namaHariPendek[(int) date('w', strtotime($t))] . '</span><b>' . tgl($t, 'tanggal') . '</b><span>' . tgl($t, 'bulan') . '</span>'
-               . '<span class="kal-cuaca" data-tgl="' . $t . '"></span><span>' . ($sisa === 0 ? 'Penuh' : 'Sisa ' . $sisa) . '</span>'; ?>
-          <?php if ($sisa === 0): ?>
-            <div class="kal <?= $kelas ?>" aria-label="<?= tgl($t, 'hari') ?>, kuota penuh"><?= $isi ?></div>
-          <?php else: ?>
-            <a class="kal <?= $kelas ?>" href="/reservasi?w=<?= e($w['slug']) ?>&amp;t=<?= $t ?>" aria-label="Pesan untuk <?= tgl($t, 'hari') ?>, sisa <?= $sisa ?> orang"><?= $isi ?></a>
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </div>
-      <div class="legend-kal"><span style="--c:#DCEFD8">Masih longgar</span><span style="--c:#FCEFCF">Terisi lebih dari separuh</span><span style="--c:#F6DCD6">Penuh</span></div>
-
-      <h2 id="ulasan-pengunjung" style="margin-top:32px">Ulasan pengunjung</h2>
       <?php if ($daftarUlasan): ?>
+      <h2 id="ulasan-pengunjung" style="margin-top:32px">Ulasan pengunjung</h2>
         <div class="grid">
           <?php foreach ($daftarUlasan as $u): ?>
             <div class="panel" style="padding:16px 18px">
@@ -87,52 +64,35 @@ require __DIR__ . '/../inc/header.php';
             </div>
           <?php endforeach; ?>
         </div>
-      <?php else: ?>
-        <p class="muted">Belum ada ulasan. Pengunjung bisa memberi ulasan setelah berkunjung, lewat kode reservasinya.</p>
       <?php endif; ?>
 
-      <?php if ($aturan): ?>
-        <div class="etik-box">
-          <h3>Kode etik pengunjung</h3>
-          <p class="small muted">Kuota harian <?= (int) $w['kuota'] ?> orang adalah batas daya tampung, supaya alam dan warga di sekitar <?= e($w['nama']) ?> tetap terjaga.</p>
-          <ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul>
+      <div class="etik-box" id="kode-etik">
+        <h2 style="margin:0 0 6px;font-size:1.4rem">Kode etik pengunjung</h2>
+        <p class="small muted">Bantu menjaga <?= e($namaW) ?> tetap lestari dan warga sekitar tetap nyaman.</p>
+        <div class="etik-grid etik-kecil">
+          <?php foreach ($etik as $grupEtik => $aturan): ?><div><h3><?= e($grupEtik) ?></h3><ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul></div><?php endforeach; ?>
         </div>
-      <?php endif; ?>
+      </div>
     </div>
 
     <aside>
       <div class="wx" style="box-shadow:none;border:1px solid var(--line)"
            data-cuaca data-lat="<?= e($w['lat']) ?>" data-lng="<?= e($w['lng']) ?>"
            data-jenis="<?= e($w['jenis']) ?>" data-nama="<?= e($w['nama']) ?>"
-           data-judul="Cuaca di lokasi" data-tombol="tombolPesan">
+           data-judul="Cuaca di lokasi">
         <h3>Cuaca di lokasi</h3>
         <p class="wx-note">Memuat prakiraan cuaca...</p>
       </div>
-      <a class="btn btn-main" style="margin-top:14px;width:100%" id="tombolPesan" href="/reservasi?w=<?= e($w['slug']) ?>">Pesan kunjungan rombongan</a>
+      <div class="panel datang-box">
+        <h3>Mau datang?</h3>
+        <p class="small">Perorangan dan keluarga cukup datang langsung di jam buka. Rombongan 10 orang atau lebih, KKN, dan penelitian ajukan izin kunjungan dulu supaya pemandu disiapkan.</p>
+        <a class="btn btn-main btn-penuh" href="/data-desa?grup=Layanan+surat&amp;izin=1#surat">Ajukan izin kunjungan rombongan</a>
+        <a class="btn btn-ghost btn-penuh" href="<?= e(wa_link(setting('wa'), 'Halo ' . setting('nama_desa') . ', saya ingin bertanya tentang kunjungan ke ' . $namaW . '.')) ?>" target="_blank" rel="noopener">Tanya lewat WhatsApp</a>
+      </div>
       <a class="btn btn-ghost" style="margin-top:10px;width:100%" href="<?= e($linkArah) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
       <?php if ($w['gmaps_ulasan']): ?><p class="small" style="text-align:center;margin:8px 0 0"><a href="<?= e($w['gmaps_ulasan']) ?>" target="_blank" rel="noopener">Lihat ulasan di Google Maps</a></p><?php endif; ?>
       <div class="peta peta-kecil" style="margin-top:18px" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Lokasi <?= e($w['nama']) ?>"></div>
     </aside>
   </div>
 </div>
-<?php
-// Tambahkan ikon cuaca ke kalender untuk tanggal yang sudah ada prakiraannya
-$scriptHalaman = <<<'JS'
-<script>
-(function () {
-  const kal = document.getElementById('kalender');
-  if (!kal || typeof ambilCuaca === 'undefined') return;
-  ambilCuaca(kal.dataset.lat, kal.dataset.lng).then(data => {
-    kal.querySelectorAll('[data-tgl]').forEach(el => {
-      const h = data.hari.find(x => x.tgl === el.dataset.tgl);
-      if (!h) return;
-      const [nama, jenis] = infoCuaca(h.kode);
-      el.innerHTML = ikonCuaca(jenis);
-      el.title = nama + ', peluang hujan ' + h.hujan + '%';
-    });
-  }).catch(() => {});
-})();
-</script>
-JS;
-require __DIR__ . '/../inc/footer.php';
-?>
+<?php require __DIR__ . '/../inc/footer.php'; ?>

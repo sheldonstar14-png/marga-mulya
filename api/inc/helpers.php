@@ -539,10 +539,7 @@ function kontribusi_sdg(?array $d = null): array
 
     $zona = (int) ($aman(fn() => q1('SELECT COUNT(*) AS n FROM zona_rawan')['n']) ?? 0);
     if ($zona) $tambah(11, (string) $zona, 'zona rawan bencana dipetakan dan disorot saat siaga cuaca');
-    $kuotaWisata = (int) q1('SELECT COALESCE(SUM(kuota), 0) AS n FROM wisata WHERE aktif = 1')['n'];
-    if ($kuotaWisata) $tambah(11, angka($kuotaWisata), 'kuota pengunjung per hari supaya desa tidak terlalu padat');
 
-    if ($d['sampah_kg'] > 0) $tambah(12, angka(round($d['sampah_kg'] / 1000, 1)) . ' ton', 'sampah dikelola bank sampah dalam 12 bulan');
 
     $mangrove = (int) q1("SELECT COUNT(*) AS n FROM agenda WHERE judul LIKE '%angrove%'")['n'];
     if ($mangrove) $tambah(14, (string) $mangrove, 'kegiatan tanam mangrove untuk menahan abrasi pesisir');
@@ -734,3 +731,138 @@ function tautan_referensi(): string
     return '<p class="referensi"><span>Sumber: ' . e(setting('referensi_data_nama')) . '</span> <a href="' . e($url) . '" target="_blank" rel="noopener">Lihat referensi<span class="sr-only"> (membuka situs BPS)</span></a></p>';
 }
 
+
+// ---------- Tambahan 12s: kredit foto per halaman, sambutan, cuaca, lembaga ----------
+
+// Sumber foto: kalau kolom sumber kosong, isi otomatis untuk gambar bawaan dan foto kiriman warga
+function sumber_foto(string $foto, string $sumber = ''): string
+{
+    if (trim($sumber) !== '') return trim($sumber);
+    if (str_starts_with($foto, '/assets/img/') && str_ends_with($foto, '.svg')) return 'Ilustrasi vektor buatan tim website (bukan foto asli)';
+    if (str_starts_with($foto, '/foto?')) return 'Foto kiriman pemilik usaha lewat form Ajukan produk';
+    return '';
+}
+
+// Daftar kredit dikelompokkan per halaman, sesuai tempat foto tampil. Dipakai dialog "Sumber dan kredit foto".
+function kredit_per_halaman(): array
+{
+    static $hasil = null;
+    if ($hasil !== null) return $hasil;
+    $h = [];
+    $aman = function (callable $f) { try { return $f(); } catch (Throwable $e) { return []; } };
+    $tambah = function (string $hal, string $lokasi, string $judul, string $foto, string $sumber = '', string $url = '') use (&$h) {
+        if (trim($foto) === '') return;
+        $h[$hal][] = ['lokasi' => $lokasi, 'judul' => $judul, 'sumber' => sumber_foto($foto, $sumber), 'url' => preg_match('#^https?://#', $url) ? $url : ''];
+    };
+    // Semua halaman
+    $h['Semua halaman'][] = ['lokasi' => 'Kiri atas dan kaki halaman', 'judul' => 'Logo ' . setting('nama_desa'), 'sumber' => setting('catatan_logo', 'Dibuat tim dengan bantuan AI, bukan logo resmi pemerintah desa'), 'url' => ''];
+    $h['Semua halaman'][] = ['lokasi' => 'Bagian atas beranda dan kaki halaman', 'judul' => 'Ilustrasi panorama laut, mangrove, dan sawah', 'sumber' => sumber_foto('/assets/img/panorama.svg'), 'url' => ''];
+    // Beranda
+    $tambah('Beranda', 'Panel judul beranda', 'Foto utama beranda', setting('foto_hero'), setting('foto_hero_sumber'), setting('foto_hero_url'));
+    $tambah('Beranda dan Profil', 'Sambutan kepala desa', 'Foto kepala desa', setting('foto_kades'), setting('foto_kades_sumber'));
+    // Wisata dan budaya
+    foreach ($aman(fn() => q('SELECT nama, foto, sumber_foto, sumber_url FROM wisata WHERE aktif = 1 ORDER BY id')) as $r)
+        $tambah('Wisata dan budaya', 'Kartu dan halaman destinasi', $r['nama'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+    foreach ($aman(fn() => q('SELECT judul, foto, sumber_foto, sumber_url FROM budaya ORDER BY urutan, id')) as $r)
+        $tambah('Wisata dan budaya', 'Bagian Budaya dan kesenian', $r['judul'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+    // UMKM
+    foreach ($aman(fn() => q('SELECT produk, nama_usaha, foto, foto_lain, sumber_foto, sumber_url FROM umkm ORDER BY id')) as $r) {
+        $tambah('Produk UMKM', 'Kartu produk', $r['produk'] . ' (' . $r['nama_usaha'] . ')', (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+    }
+    // Kabar desa
+    foreach ($aman(fn() => q('SELECT judul, foto, sumber_foto, sumber_url FROM berita ORDER BY tanggal DESC, id DESC')) as $r)
+        $tambah('Kabar desa (berita)', 'Foto berita', $r['judul'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+    foreach ($aman(fn() => q('SELECT judul, kategori, foto, sumber_foto, sumber_url FROM galeri ORDER BY id DESC')) as $r)
+        $tambah('Galeri', 'Galeri, kategori ' . $r['kategori'], $r['judul'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+    foreach ($aman(fn() => q('SELECT nama, foto, foto_sesudah, sumber_foto, sumber_url FROM pembangunan ORDER BY tahun DESC, id DESC')) as $r) {
+        $tambah('Informasi: pembangunan', 'Foto sebelum', $r['nama'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
+        $tambah('Informasi: pembangunan', 'Foto sesudah atau terkini', $r['nama'], (string) $r['foto_sesudah'], $r['sumber_foto'], $r['sumber_url']);
+    }
+    // Sumber lain dari menu Sumber & kredit foto (data, peta, cuaca, dsb.)
+    foreach (daftar_kredit() as $k) {
+        $h['Data, peta, dan aset lain'][] = ['lokasi' => $k['keterangan'] ?: 'Seluruh website', 'judul' => $k['judul'], 'sumber' => $k['pembuat'], 'url' => $k['sumber_url'], 'lisensi' => $k['lisensi'], 'lisensi_url' => $k['lisensi_url']];
+    }
+    return $hasil = $h;
+}
+
+// Pisahkan tanda "(ilustrasi)" dari teks: ['teks bersih', true kalau bertanda ilustrasi]
+function pisah_ilustrasi(string $teks): array
+{
+    $ada = (bool) preg_match('/\(ilustrasi\)/i', $teks);
+    return [trim(preg_replace('/\s*\(ilustrasi\)\s*/i', ' ', $teks)), $ada];
+}
+
+function tanda_ilustrasi(bool $ada, string $teks = 'Ilustrasi'): string
+{
+    return $ada ? '<span class="tanda-ilus" title="Contoh, bukan data atau dokumentasi resmi desa">' . e($teks) . '</span>' : '';
+}
+
+// Paragraf dari teks CMS (mengenali baris kosong, baik baris baru asli maupun tulisan \n)
+function paragraf_teks(string $teks): array
+{
+    $teks = str_replace(['\\n', "\r"], ["\n", ''], trim($teks));
+    return array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $teks))));
+}
+
+// Kartu sambutan kepala desa (desain 12s). $ringkas = hanya paragraf pembuka dan kalimat penutup.
+function sambutan_html(bool $ringkas): string
+{
+    $par = paragraf_teks(setting('sambutan_kades'));
+    if (!$par) return '';
+    $nama = setting('sambutan_nama', 'Kepala ' . setting('nama_desa'));
+    $ilus = setting('sambutan_ilustrasi', '1') === '1';
+    $foto = setting('foto_kades');
+    $tampil = $ringkas ? array_slice($par, 1, 2) : $par;
+    if (!$tampil) $tampil = [$par[0]];
+    $h = '<article class="sambutan-a" id="sambutan">';
+    $h .= '<div class="sambutan-foto">' . ($foto ? '<img src="' . e($foto) . '" alt="' . ($ilus ? 'Gambar ilustrasi kepala desa' : 'Foto ' . e($nama)) . '" loading="lazy" width="280" height="280">' : '') . ($ilus ? '<small>Gambar ilustrasi</small>' : '') . '</div>';
+    $h .= '<div class="sambutan-isi"><span class="label-kecil">Sambutan Kepala Desa</span><blockquote>';
+    foreach ($tampil as $i => $p) $h .= '<p>' . ($i === 0 ? '&ldquo;' : '') . nl2br(e($p)) . ($i === count($tampil) - 1 ? '&rdquo;' : '') . '</p>';
+    $h .= '</blockquote><p class="sambutan-nama"><b>' . e($nama) . '</b>' . ($ilus ? ' <span class="muted">(ilustrasi)</span>' : '') . '</p>';
+    if ($ringkas) $h .= '<p class="sambutan-aksi"><a href="/profil#sambutan">Baca sambutan lengkap</a><a href="/profil#visi">Visi dan misi desa</a></p>';
+    return $h . '</div></article>';
+}
+
+// Ambang gelombang yang dipakai kelompok nelayan (dipakai juga di cuaca.js)
+const AMBANG_GELOMBANG = [1.25, 2.5];
+
+function lembaga_desa(): array
+{
+    try { return q('SELECT * FROM lembaga ORDER BY urutan, id'); } catch (Throwable $e) { return []; }
+}
+
+// Kode etik lengkap per kelompok: ['Jaga alam' => [...], ...]. Aturan khusus destinasi masuk kelompok "Khusus di sini".
+function kode_etik_kelompok(?array $wisata = null): array
+{
+    $k = [];
+    if ($wisata) foreach (per_baris((string) ($wisata['kode_etik'] ?? '')) as $a) $k['Khusus di ' . $wisata['nama']][] = $a;
+    foreach (per_baris(setting('kode_etik_lengkap')) as $baris) {
+        [$grup, $aturan] = array_pad(explode('|', $baris, 2), 2, '');
+        if ($aturan === '') { $aturan = $grup; $grup = 'Aturan umum'; }
+        $k[trim($grup)][] = trim($aturan);
+    }
+    if (count($k) <= ($wisata && !empty($wisata['kode_etik']) ? 1 : 0)) foreach (per_baris(setting('kode_etik_umum')) as $a) $k['Aturan umum'][] = $a;
+    return $k;
+}
+
+// Kantor desa buka atau tutup sekarang (perkiraan dari teks jam layanan, contoh "Senin sampai Jumat, 08.00 sampai 15.00")
+function status_kantor(): array
+{
+    $jam = jam_agenda(setting('jam_layanan'));
+    $hari = (int) date('N');
+    $kerja = $hari <= 5;
+    if (!$jam) return [null, setting('jam_layanan')];
+    $kini = date('Hi');
+    $buka = $kerja && $kini >= $jam[0] && $kini < $jam[1];
+    $tutup = substr($jam[1], 0, 2) . '.' . substr($jam[1], 2);
+    $bukaJam = substr($jam[0], 0, 2) . '.' . substr($jam[0], 2);
+    return [$buka, $buka ? 'Tutup pukul ' . $tutup . ' WIB' : ($kerja && $kini < $jam[0] ? 'Buka hari ini pukul ' . $bukaJam . ' WIB' : 'Buka lagi hari kerja pukul ' . $bukaJam . ' WIB')];
+}
+
+// Semua id foto sebuah pengajuan produk (foto_ids baru 12s, atau foto_id lama)
+function foto_pengajuan(array $p): array
+{
+    $ids = array_values(array_filter(array_map('intval', explode(',', (string) ($p['foto_ids'] ?? '')))));
+    if (!$ids && !empty($p['foto_id'])) $ids = [(int) $p['foto_id']];
+    return array_slice($ids, 0, 3);
+}

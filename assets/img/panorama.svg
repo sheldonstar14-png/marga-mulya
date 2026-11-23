@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMax slice">
+  <!-- Panorama Marga Mulya: laut dan perahu (kiri), mangrove, pantai dan kelapa, sawah dan rumah warga (kanan) -->
+  <circle cx="930" cy="70" r="34" fill="#F5A25A" opacity=".9"/>
+  <!-- laut -->
+  <path d="M0 150 H560 V240 H0Z" fill="#1E8C93"/>
+  <path d="M0 150 H560 V166 H0Z" fill="#46A9AE"/>
+  <path d="M20 182c14-6 28-6 42 0s28 6 42 0M150 200c14-6 28-6 42 0s28 6 42 0M300 178c14-6 28-6 42 0s28 6 42 0M420 206c14-6 28-6 42 0" stroke="#BFE6E6" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- perahu nelayan -->
+  <g transform="translate(150 118)">
+    <path d="M0 34 H120 L104 52 H14 Z" fill="#0B3C5D"/>
+    <path d="M6 40 H114" stroke="#F08A3C" stroke-width="4"/>
+    <path d="M58 34 V-6" stroke="#0B3C5D" stroke-width="3"/>
+    <path d="M60 -4 L92 28 H60 Z" fill="#F3EFE6"/>
+    <path d="M58 -6 l14 4 -14 4z" fill="#F08A3C"/>
+  </g>
+  <g transform="translate(380 140) scale(.6)">
+    <path d="M0 34 H120 L104 52 H14 Z" fill="#0B3C5D"/>
+    <path d="M58 34 V0" stroke="#0B3C5D" stroke-width="4"/>
+    <path d="M60 2 L88 30 H60 Z" fill="#F3EFE6"/>
+  </g>
+  <!-- pantai -->
+  <path d="M520 150 C560 146 600 152 640 150 L700 240 H520 Z" fill="#EAD9B5"/>
+  <!-- mangrove -->
+  <g fill="#2F6E58">
+    <ellipse cx="560" cy="132" rx="30" ry="20"/><ellipse cx="590" cy="122" rx="26" ry="22"/><ellipse cx="618" cy="134" rx="24" ry="16"/>
+  </g>
+  <path d="M566 150 l-6 14 M574 150 l2 16 M596 144 l-8 20 M600 144 l6 20 M612 148 l4 14" stroke="#5B4632" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- kelapa -->
+  <g transform="translate(668 64)">
+    <path d="M10 120 C14 80 6 40 16 6" stroke="#6B5338" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M16 6 C0 -2 -16 4 -24 16 M16 6 C28 -6 44 -4 54 6 M16 6 C8 14 2 26 0 36 M16 6 C30 12 38 22 40 34 M16 6 C14 -8 20 -16 28 -20" stroke="#3E8A5A" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- daratan dan sawah -->
+  <path d="M640 150 C760 140 900 146 1200 136 V240 H700 Z" fill="#9CC27A"/>
+  <path d="M700 172 C820 166 980 170 1200 160 M720 194 C850 188 1000 192 1200 182 M740 216 C880 212 1030 214 1200 206" stroke="#7FAE5E" stroke-width="3" fill="none"/>
+  <g stroke="#5E9450" stroke-width="2" stroke-linecap="round">
+    <path d="M790 176v-8M806 176v-8M822 175v-8M838 175v-8M854 175v-8M870 174v-8M886 174v-8M902 174v-8"/>
+    <path d="M800 199v-8M816 199v-8M832 198v-8M848 198v-8M864 198v-8M880 198v-8M896 197v-8M912 197v-8"/>
+  </g>
+  <!-- rumah warga dan balai desa -->
+  <g transform="translate(990 92)">
+    <path d="M0 46 L30 22 L60 46 V72 H0 Z" fill="#F3EFE6"/><path d="M-4 48 L30 18 L64 48" fill="none" stroke="#C0603A" stroke-width="7" stroke-linejoin="round"/>
+    <rect x="24" y="52" width="12" height="20" fill="#0B3C5D"/>
+  </g>
+  <g transform="translate(1080 100)">
+    <path d="M0 40 L24 22 L48 40 V64 H0 Z" fill="#F3EFE6"/><path d="M-4 42 L24 18 L52 42" fill="none" stroke="#C0603A" stroke-width="6" stroke-linejoin="round"/>
+    <rect x="18" y="46" width="11" height="18" fill="#0B3C5D"/>
+  </g>
+  <path d="M1150 112 c10-24 30-24 34 0 c4 12-36 12-34 0z" fill="#3E8A5A"/><path d="M1166 120 v20" stroke="#6B5338" stroke-width="4"/>
+</svg>

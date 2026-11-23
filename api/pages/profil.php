@@ -47,22 +47,26 @@ require __DIR__ . '/../inc/header.php';
 </div>
 
 
-<div class="wrap sec grid g2" style="padding-top:24px">
-  <div class="panel">
-    <h3>Sejarah singkat</h3>
-    <p><?= e(setting('sejarah')) ?></p>
-    <h3>Visi</h3>
-    <p><?= e(setting('visi')) ?></p>
+<div class="wrap sec" style="padding-top:28px">
+  <?= sambutan_html(false) ?>
+</div>
+
+<div class="wrap sec profil-grid" style="padding-top:0">
+  <div class="panel" id="visi">
+    <?php [$visi, $ilusVisi] = pisah_ilustrasi(setting('visi'));
+      $misiList = array_map(fn($m) => pisah_ilustrasi($m), per_baris(setting('misi')));
+      $ilusMisi = $ilusVisi || array_filter(array_column($misiList, 1)); ?>
+    <div class="head-row" style="margin-bottom:6px"><h2 style="margin:0;font-size:1.5rem">Visi dan misi</h2><?= tanda_ilustrasi((bool) $ilusMisi, 'Ilustrasi, menunggu dokumen RPJMDes') ?></div>
+    <p class="visi-teks">&ldquo;<?= e($visi) ?>&rdquo;</p>
     <h3>Misi</h3>
-    <ol style="padding-left:20px;margin:0">
-      <?php foreach (per_baris(setting('misi')) as $misi): ?>
-        <li><?= e($misi) ?></li>
-      <?php endforeach; ?>
+    <ol class="misi-daftar">
+      <?php foreach ($misiList as [$misi]): ?><li><?= e($misi) ?></li><?php endforeach; ?>
     </ol>
   </div>
-
   <div class="panel">
-    <h3>Batas wilayah</h3>
+    <h2 style="font-size:1.5rem">Sejarah singkat</h2>
+    <?php foreach (paragraf_teks(setting('sejarah')) as $p): ?><p><?= e($p) ?></p><?php endforeach; ?>
+    <h3 style="margin-top:18px">Batas wilayah</h3>
     <div class="table-wrap">
       <table>
         <tr><th>Arah</th><th>Berbatasan dengan</th></tr>
@@ -71,12 +75,15 @@ require __DIR__ . '/../inc/header.php';
         <?php endforeach; ?>
       </table>
     </div>
-    <h3 style="margin-top:22px">Penggunaan lahan</h3>
+  </div>
+
+  <div class="panel">
+    <h3>Penggunaan lahan</h3>
     <div class="bars"><?= bar_list(statistik('Lahan')) ?></div>
     <?= tautan_referensi() ?>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="perangkat">
     <h3>Perangkat desa</h3>
     <div class="table-wrap">
       <table>
@@ -86,13 +93,27 @@ require __DIR__ . '/../inc/header.php';
         <?php endforeach; ?>
       </table>
     </div>
-  </div>
-
-  <div class="panel">
-    <h3>Pemerintahan dan keamanan</h3>
+    <h3 style="margin-top:20px">Pemerintahan dan keamanan</h3>
     <div class="bars"><?= bar_list(statistik('Pemerintahan')) ?></div>
+    <p class="small" style="margin:10px 0 0"><a href="/data-desa?grup=Pemerintahan">Data aparat desa dan kecamatan lengkap</a></p>
   </div>
 </div>
+
+<?php $lembaga = lembaga_desa(); if ($lembaga): ?>
+<section class="sec sec-putih" id="lembaga" aria-labelledby="judul-lembaga"><div class="wrap">
+  <div class="kepala"><div><h2 id="judul-lembaga">Lembaga desa dan kegiatan rutin</h2><p>Kelompok warga yang menggerakkan kegiatan desa sehari-hari.</p></div></div>
+  <div class="lembaga-grid">
+    <?php foreach ($lembaga as $l): ?>
+      <article class="lembaga-kartu">
+        <span class="chip-kecil"><?= e($l['jenis']) ?></span>
+        <h3><?= e($l['nama']) ?> <?= tanda_ilustrasi((bool) $l['ilustrasi']) ?></h3>
+        <p><?= e($l['kegiatan']) ?></p>
+        <dl><div><dt>Jadwal</dt><dd><?= e($l['jadwal']) ?></dd></div><?php if ((int) $l['anggota']): ?><div><dt>Anggota</dt><dd><?= angka($l['anggota']) ?> orang</dd></div><?php endif; ?></dl>
+      </article>
+    <?php endforeach; ?>
+  </div>
+</div></section>
+<?php endif; ?>
 <?php if ($titikPeta): ?>
 <div class="sec tint" id="peta-desa"><div class="wrap">
   <h2 id="fasilitas">Peta desa</h2>

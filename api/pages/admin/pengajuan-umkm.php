@@ -17,13 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($aksi === 'terbitkan') {
         if ($p['status'] === 'Diterbitkan') redirect($kembali . '&gagal=' . urlencode('Produk ini sudah diterbitkan.'));
-        $foto = '';
-        if ($p['foto_id']) {
-            q('UPDATE foto_unggah SET publik = 1 WHERE id = ?', [(int) $p['foto_id']]);
-            $foto = '/foto?id=' . (int) $p['foto_id'];
-        }
-        q('INSERT INTO umkm (nama_usaha, kategori, produk, harga, satuan, pemilik, wa, foto, deskripsi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [$p['nama_usaha'], $p['kategori'], $p['produk'], (int) $p['harga'], $p['satuan'], $p['pemilik'], $p['wa'], $foto ?: null, $p['deskripsi']]);
+        // Foto utama + sampai 2 foto tambahan (12s). Foto baru bisa dilihat publik setelah diterbitkan.
+        $idFoto = foto_pengajuan($p);
+        foreach ($idFoto as $fid) q('UPDATE foto_unggah SET publik = 1 WHERE id = ?', [$fid]);
+        $foto = $idFoto ? '/foto?id=' . $idFoto[0] : '';
+        $fotoLain = implode(',', array_map(fn($fid) => '/foto?id=' . $fid, array_slice($idFoto, 1)));
+        q('INSERT INTO umkm (nama_usaha, kategori, produk, harga, satuan, pemilik, wa, foto, deskripsi, izin, pengiriman, foto_lain, sumber_foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$p['nama_usaha'], $p['kategori'], $p['produk'], (int) $p['harga'], $p['satuan'], $p['pemilik'], $p['wa'], $foto ?: null, $p['deskripsi'], (string) ($p['izin'] ?? ''), (string) ($p['pengiriman'] ?? ''), $fotoLain, $idFoto ? 'Foto kiriman ' . $p['pemilik'] . ' (pemilik usaha)' : '']);
         $idBaru = (int) db()->lastInsertId();
         q("UPDATE pengajuan_umkm SET status = 'Diterbitkan', umkm_id = ?, catatan = ?, diperbarui_pada = CURRENT_TIMESTAMP WHERE kode = ?",
             [$idBaru, $catatan !== '' ? $catatan : 'Produkmu sudah tampil di halaman UMKM. Lokasi di peta bisa ditambahkan petugas.', $kode]);
@@ -62,11 +62,12 @@ require __DIR__ . '/../../inc/admin-header.php';
         <span class="status st-<?= $warna[$p['status']] ?? 'Menunggu' ?>"><?= e($p['status']) ?></span>
       </summary>
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px">
-        <?php if ($p['foto_id']): ?><a href="/foto?id=<?= (int) $p['foto_id'] ?>" target="_blank"><img src="/foto?id=<?= (int) $p['foto_id'] ?>" alt="Foto produk" width="160" height="120" style="object-fit:cover;border-radius:12px"></a><?php endif; ?>
+        <?php foreach (foto_pengajuan($p) as $fid): ?><a href="/foto?id=<?= $fid ?>" target="_blank"><img src="/foto?id=<?= $fid ?>" alt="Foto produk" width="120" height="90" style="object-fit:cover;border-radius:12px"></a><?php endforeach; ?>
         <div style="flex:1;min-width:240px">
           <p style="margin:0"><b><?= e($p['nama_usaha']) ?></b>, <?= e($p['pemilik']) ?></p>
           <p class="small muted" style="margin:2px 0 6px"><?= rupiah((int) $p['harga']) ?> / <?= e($p['satuan']) ?> | WA <?= e($p['wa']) ?> | Diajukan <?= tgl(substr((string) $p['dibuat_pada'], 0, 10)) ?></p>
           <?php if ($p['deskripsi']): ?><p class="small" style="margin:0"><?= e($p['deskripsi']) ?></p><?php endif; ?>
+          <?php if (!empty($p['izin']) || !empty($p['pengiriman'])): ?><p class="small" style="margin:6px 0 0"><?= !empty($p['izin']) ? '<b>Izin:</b> ' . e($p['izin']) . ' ' : '' ?><?= !empty($p['pengiriman']) ? '<b>Pengiriman:</b> ' . e($p['pengiriman']) : '' ?></p><?php endif; ?>
         </div>
       </div>
       <?php if ($p['status'] !== 'Diterbitkan'): ?>

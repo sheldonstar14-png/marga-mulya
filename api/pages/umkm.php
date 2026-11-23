@@ -33,7 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ulasan'
 // ---------- Pengajuan produk baru oleh warga ----------
 // Warga mengisi form, petugas meninjau di CMS > Pengajuan produk, lalu menerbitkannya ke daftar UMKM.
 $errorAju = [];
-$isiAju = ['nama_usaha' => '', 'kategori' => KATEGORI_UMKM[0], 'produk' => '', 'harga' => '', 'satuan' => '', 'pemilik' => '', 'wa' => '', 'deskripsi' => ''];
+$isiAju = ['nama_usaha' => '', 'kategori' => KATEGORI_UMKM[0], 'produk' => '', 'harga' => '', 'satuan' => '', 'pemilik' => '', 'wa' => '', 'deskripsi' => '', 'izin' => ''];
+$PILIHAN_KIRIM = ['Ambil di rumah penjual', 'Antar sekitar desa', 'Kirim paket ke luar desa', 'Titip di warung pantai'];
+$kirimAju = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ajukan') {
     foreach ($isiAju as $k => $_) $isiAju[$k] = trim((string) ($_POST[$k] ?? ''));
     $waAju = nomor_wa($isiAju['wa']);
@@ -46,14 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'ajukan'
     if (mb_strlen($isiAju['pemilik']) < 3 || mb_strlen($isiAju['pemilik']) > 150) $errorAju[] = 'Isi nama pemilik dan RT.';
     if (!preg_match('/^628\d{7,11}$/', $waAju)) $errorAju[] = 'Nomor WhatsApp belum benar. Contoh: 081234567890.';
     if (mb_strlen($isiAju['deskripsi']) > 600) $errorAju[] = 'Cerita produk maksimal 600 huruf.';
+    if (mb_strlen($isiAju['izin']) > 150) $errorAju[] = 'Keterangan izin usaha maksimal 150 huruf.';
+    $kirimAju = array_values(array_intersect($PILIHAN_KIRIM, (array) ($_POST['kirim'] ?? [])));
+    if (!$kirimAju) $errorAju[] = 'Pilih minimal satu cara pembeli menerima produk.';
     if (empty($_POST['setuju_data'])) $errorAju[] = 'Centang persetujuan supaya nomor WhatsApp bisa ditampilkan untuk pembeli.';
     [$fotoAju, $errFoto] = siapkan_foto_aspirasi($_FILES['foto'] ?? []);
     $errorAju = array_merge($errorAju, $errFoto);
     if (!$errorAju) {
-        $fotoId = $fotoAju ? simpan_foto_unggah($fotoAju[0]) : null;
+        // Sampai 3 foto (diperkecil dan dibersihkan dari data lokasi), baru tampil setelah diterbitkan petugas
+        $idFoto = array_map(fn($f) => simpan_foto_unggah($f), $fotoAju);
         $kodeAju = kode_unik('PRD', 'pengajuan_umkm');
-        q('INSERT INTO pengajuan_umkm (kode, nama_usaha, kategori, produk, harga, satuan, pemilik, wa, deskripsi, foto_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [$kodeAju, $isiAju['nama_usaha'], $isiAju['kategori'], $isiAju['produk'], (int) $isiAju['harga'], $isiAju['satuan'], $isiAju['pemilik'], $waAju, $isiAju['deskripsi'], $fotoId]);
+        q('INSERT INTO pengajuan_umkm (kode, nama_usaha, kategori, produk, harga, satuan, pemilik, wa, deskripsi, foto_id, foto_ids, izin, pengiriman) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$kodeAju, $isiAju['nama_usaha'], $isiAju['kategori'], $isiAju['produk'], (int) $isiAju['harga'], $isiAju['satuan'], $isiAju['pemilik'], $waAju, $isiAju['deskripsi'], $idFoto[0] ?? null, implode(',', $idFoto), $isiAju['izin'], implode(', ', $kirimAju)]);
         redirect('/umkm?cek=' . urlencode($kodeAju) . '&baru=1#ajukan');
     }
 }
@@ -90,14 +96,22 @@ require __DIR__ . '/../inc/header.php';
     <?php foreach ($umkm as $u):
       $pesan = 'Halo ' . $u['nama_usaha'] . ', saya lihat di website ' . setting('nama_desa') . '. Saya ingin pesan ' . $u['produk'] . ' (' . rupiah((int) $u['harga']) . ' / ' . $u['satuan'] . '). Apakah masih tersedia?'; ?>
       <div class="card" id="umkm-<?= (int) $u['id'] ?>">
-        <div class="art"><img src="<?= e($u['foto'] ?: '/assets/img/kirab.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"></div>
+        <?php [$usahaU, $ilusU] = pisah_ilustrasi($u['nama_usaha']); $fotoLain = array_filter(explode(',', (string) ($u['foto_lain'] ?? ''))); ?>
+        <div class="art" style="position:relative"><img src="<?= e($u['foto'] ?: '/assets/img/ikan.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"><?= tanda_ilustrasi($ilusU) ?></div>
+        <?php if ($fotoLain): ?><div class="foto-lain"><?php foreach (array_merge([$u['foto']], $fotoLain) as $fl): ?><button type="button" data-ganti-foto="<?= e($fl) ?>" aria-label="Lihat foto lain <?= e($u['produk']) ?>"><img src="<?= e($fl) ?>" alt="" loading="lazy" width="56" height="42"></button><?php endforeach; ?></div><?php endif; ?>
         <div class="card-body">
           <span class="tag"><?= e($u['kategori']) ?></span>
           <h3 style="margin:4px 0 0"><?= e($u['produk']) ?></h3>
-          <p style="margin-bottom:6px"><?= e($u['nama_usaha']) ?>, <?= e($u['pemilik']) ?></p>
+          <p style="margin-bottom:6px"><?= e($usahaU) ?>, <?= e($u['pemilik']) ?></p>
           <?php $nu = $nilaiUmkm[(int) $u['id']] ?? null; ?>
           <p class="small" style="margin:0 0 8px"><?php if ($nu): ?><span class="bintang" aria-hidden="true"><?= bintang((int) round($nu['rata'])) ?></span> <b><?= str_replace('.', ',', (string) round((float) $nu['rata'], 1)) ?></b> <span class="muted">dari <?= (int) $nu['n'] ?> ulasan</span><span class="sr-only">Nilai <?= round((float) $nu['rata'], 1) ?> dari 5</span><?php else: ?><span class="muted">Belum ada ulasan</span><?php endif; ?></p>
           <?php if (!empty($u['deskripsi'])): ?><p class="small"><?= e($u['deskripsi']) ?></p><?php endif; ?>
+          <?php if (!empty($u['izin']) || !empty($u['pengiriman'])): ?>
+            <ul class="umkm-info">
+              <?php if (!empty($u['izin'])): ?><li><b>Izin:</b> <?= e($u['izin']) ?></li><?php endif; ?>
+              <?php if (!empty($u['pengiriman'])): ?><li><b>Pengiriman:</b> <?= e($u['pengiriman']) ?></li><?php endif; ?>
+            </ul>
+          <?php endif; ?>
           <?php foreach (array_slice($ulasanTerbaru[(int) $u['id']] ?? [], 0, 2) as $ul): ?>
             <blockquote class="ulasan-mini"><span class="bintang" aria-label="<?= (int) $ul['bintang'] ?> bintang"><?= bintang((int) $ul['bintang']) ?></span> <?= e($ul['komentar']) ?> <cite><?= e($ul['nama']) ?></cite></blockquote>
           <?php endforeach; ?>
@@ -130,11 +144,15 @@ require __DIR__ . '/../inc/header.php';
   <div class="ajukan-kiri">
     <h2 id="judul-ajukan">Punya produk? Ajukan di sini</h2>
     <p>Nelayan, pengolah ikan, pengrajin batok, atau pembuat kue rumahan di Marga Mulya bisa menitipkan produknya di website desa, gratis.</p>
-    <ol class="langkah-aju">
-      <li>Isi data produk dan foto yang jelas.</li>
-      <li>Petugas desa meninjau, biasanya 1 sampai 2 hari kerja.</li>
-      <li>Produk tampil di halaman ini, dan pesanan masuk langsung ke WhatsApp-mu.</li>
+    <ol class="alur-langkah alur-aju">
+      <li><b>Siapkan bahan</b><span>Nama produk, harga, satuan, nomor WhatsApp, dan 1 sampai 3 foto yang terang.</span></li>
+      <li><b>Isi form di samping</b><span>Kamu langsung mendapat kode PRD- untuk mengecek status.</span></li>
+      <li><b>Ditinjau petugas</b><span>Biasanya 1 sampai 2 hari kerja. Kalau ada yang kurang, catatannya muncul di Cek pengajuan.</span></li>
+      <li><b>Tampil di website</b><span>Pesanan masuk langsung ke WhatsApp-mu. Gratis, tanpa potongan.</span></li>
     </ol>
+    <details class="tips-aju"><summary>Tips foto produk yang menarik</summary>
+      <ul class="small"><li>Foto di dekat jendela pada siang hari, tanpa lampu kilat.</li><li>Pakai alas polos, misalnya kain atau papan.</li><li>Foto pertama: produk utuh dengan kemasan. Foto kedua dan ketiga: isi, ukuran, atau saat dipakai.</li><li>Bersihkan lensa kamera HP dan jangan memotret wajah orang lain tanpa izin.</li></ul>
+    </details>
     <div class="panel" id="cek-ajuan">
       <h3 style="margin:0 0 8px">Cek pengajuan</h3>
       <form method="get" action="/umkm#cek-ajuan" class="grid" style="grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end">
@@ -174,13 +192,18 @@ require __DIR__ . '/../inc/header.php';
       <div class="field"><label for="aj-wa">WhatsApp untuk pesanan</label><input id="aj-wa" name="wa" value="<?= e($isiAju['wa']) ?>" inputmode="tel" required placeholder="08xxxxxxxxxx"></div>
     </div>
     <div class="field"><label for="aj-desk">Cerita singkat produk (opsional)</label><textarea id="aj-desk" name="deskripsi" rows="3" maxlength="600" placeholder="Bahan dari mana, cara membuat, keunggulannya"><?= e($isiAju['deskripsi']) ?></textarea></div>
-    <div class="field foto-lapor"><label for="aj-foto">Foto produk (opsional, 1 foto)</label><input id="aj-foto" name="foto[]" type="file" accept="image/jpeg,image/png,image/webp"><div class="hint">Foto diperkecil otomatis dan data lokasi di dalamnya dihapus.</div></div>
+    <div class="field"><label for="aj-izin">Izin usaha (opsional)</label><input id="aj-izin" name="izin" value="<?= e($isiAju['izin']) ?>" maxlength="150" placeholder="Contoh: PIRT 1234567890123, sertifikat halal, atau belum ada"></div>
+    <fieldset class="field pilih-kirim"><legend>Cara pembeli menerima produk</legend>
+      <?php foreach ($PILIHAN_KIRIM as $pk): ?><label class="cek"><input type="checkbox" name="kirim[]" value="<?= e($pk) ?>" <?= in_array($pk, $kirimAju, true) || (!$kirimAju && $pk === $PILIHAN_KIRIM[0]) ? 'checked' : '' ?>> <?= e($pk) ?></label><?php endforeach; ?>
+    </fieldset>
+    <div class="field foto-lapor"><label for="a-foto">Foto produk (opsional, sampai 3 foto)</label><input id="a-foto" name="foto[]" type="file" accept="image/jpeg,image/png,image/webp" multiple><div class="hint">Foto pertama menjadi foto utama. Foto diperkecil otomatis dan data lokasi di dalamnya dihapus.</div><div class="foto-pratinjau" id="fotoPratinjau" aria-live="polite"></div></div>
     <label class="cek-setuju"><input type="checkbox" name="setuju_data" value="1" required> <span>Saya pemilik usaha ini dan setuju nama usaha serta nomor WhatsApp ditampilkan untuk pembeli setelah diterbitkan.</span></label>
     <div class="hp" aria-hidden="true"><label>Jangan diisi<input name="website" tabindex="-1" autocomplete="off"></label></div>
     <button class="btn btn-main" type="submit">Kirim pengajuan</button>
   </form>
 </section>
 <?php
-$scriptHalaman = $errorAju ? '<script>document.addEventListener("DOMContentLoaded",function(){var a=document.getElementById("ajukan");a&&a.scrollIntoView()})</script>' : '';
+$scriptHalaman = '<script src="/assets/js/foto-lapor.js" defer></script>' . ($errorAju ? '<script>document.addEventListener("DOMContentLoaded",function(){var a=document.getElementById("ajukan");a&&a.scrollIntoView()})</script>' : '')
+  . '<script>document.querySelectorAll("[data-ganti-foto]").forEach(function(b){b.addEventListener("click",function(){var k=b.closest(".card").querySelector(".art img");k.src=b.dataset.gantiFoto;})});</script>';
 require __DIR__ . '/../inc/footer.php';
 ?>

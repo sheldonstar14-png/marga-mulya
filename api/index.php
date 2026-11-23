@@ -33,7 +33,13 @@ if ($path === 'manifest.webmanifest') {
         'name' => $namaApp, 'short_name' => mb_strimwidth(str_replace('Desa ', '', $namaApp), 0, 12, ''),
         'description' => 'Wisata, layanan warga, dan informasi ' . $namaApp,
         'lang' => 'id', 'start_url' => '/?pwa=1', 'scope' => '/', 'display' => 'standalone',
-        'background_color' => '#F7F4EC', 'theme_color' => '#0B3C5D',
+        'background_color' => '#F4F7F9', 'theme_color' => '#0B3C5D',
+        // Pintasan saat ikon aplikasi ditekan lama (Android)
+        'shortcuts' => [
+            ['name' => 'Ajukan surat', 'url' => '/data-desa?grup=Layanan+surat#surat'],
+            ['name' => 'Nomor darurat', 'url' => '/kontak#darurat'],
+            ['name' => 'Cuaca darat dan laut', 'url' => '/cuaca'],
+        ],
         'icons' => [
             ['src' => '/assets/img/ikon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
             ['src' => '/assets/img/ikon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
@@ -49,12 +55,11 @@ $rute = [
     'profil'    => 'profil',
     'data-desa' => 'data',
     'wisata'    => 'wisata',
-    'reservasi' => 'reservasi',
+    'cuaca'     => 'cuaca',
     'umkm'      => 'umkm',
     'agenda'    => 'agenda',
     'galeri'    => 'galeri',
     'kontak'    => 'kontak',
-    'kuota'     => 'kuota',   // bukan halaman: data sisa kuota (JSON) untuk form reservasi
     'asisten'   => 'asisten', // bukan halaman: jawaban Asisten Desa (JSON)
     'unduh-data' => 'unduh-data', // bukan halaman: unduhan CSV statistik desa untuk umum
     'foto-aspirasi' => 'foto-aspirasi', // bukan halaman: foto laporan warga dari database
@@ -62,6 +67,10 @@ $rute = [
     'laporan-otomatis' => 'laporan-otomatis', // bukan halaman: dipanggil Vercel Cron tiap tanggal 1
 ];
 
+// Fitur kunjungan rombongan dihentikan (12s): alamat lama diarahkan ke layanan izin kunjungan
+if ($depan === 'reservasi' || $depan === 'kuota') {
+    redirect('/data-desa?grup=Layanan+surat&izin=1#surat');
+}
 if ($depan === 'admin') {
     $halaman = 'admin/index';   // semua alamat /admin/... diatur oleh pages/admin/index.php
 } elseif ($depan === 'wisata' && isset($parts[1])) {

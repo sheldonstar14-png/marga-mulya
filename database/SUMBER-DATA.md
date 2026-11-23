@@ -34,3 +34,17 @@ Belum ada sumber yang memuat jumlah warga per pekerjaan untuk Marga Mulya. Sumbe
 ## Yang masih ilustrasi
 Semua angka statistik selain luas, penduduk menurut jenis kelamin, kepadatan, rasio jenis kelamin, RW, RT, aparat, dan luas sawah; nama perangkat desa selain kepala desa;
 visi dan misi; harga, kuota, dan jam buka wisata; nama dan harga UMKM; berita, agenda, pembangunan, program bantuan; titik koordinat peta.
+
+## Tambahan Fase 12s (isi-tambahan.sql)
+- Statistik baru mengikuti Data EcoQuest A sampai M (agama, aparat desa dan kecamatan, status perkawinan,
+  guru/murid/ruang kelas, tenaga kesehatan, gizi dan imunisasi balita, air minum, jamban, jenis rumah,
+  bahan bakar, KB, pengairan sawah, industri, lembaga keuangan, sarana perdagangan, PBB dan listrik,
+  kelas dan kondisi jalan, kelompok seni). SEMUANYA ILUSTRASI (kolom ilustrasi = 1) sampai diganti data kantor desa.
+- Lembaga desa: Kelompok Tani Jamblang dan Kampung KB Bebulak bersumber dari berita/BKKBN; kegiatan dan
+  jumlah anggota tetap ilustrasi. Lembaga lain ilustrasi.
+- Budaya dan kesenian baru (gambang kromong, marawis, silat dan palang pintu, panen bandeng, muludan, kuliner):
+  jenis kesenian yang umum di pesisir Tangerang, tetapi keberadaannya di Margamulya BELUM dikonfirmasi (ilustrasi).
+- Program bantuan nasional (PKH, Sembako, PIP, PBI JKN, KUSUKA, asuransi nelayan, pupuk bersubsidi): penjelasan
+  umum; jadwal, kuota, dan besaran di desa adalah ilustrasi. Cek kepesertaan resmi: cekbansos.kemensos.go.id.
+- Sambutan dan visi misi kepala desa: ilustrasi, menunggu dokumen RPJMDes dan sambutan asli.
+- Ambang gelombang (1,25 m dan 2,5 m) mengikuti kategori gelombang yang umum dipakai BMKG.
