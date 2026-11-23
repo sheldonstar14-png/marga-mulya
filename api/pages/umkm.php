@@ -102,7 +102,7 @@ require __DIR__ . '/../inc/header.php';
         <div class="card-body">
           <span class="tag"><?= e($u['kategori']) ?></span>
           <h3 style="margin:4px 0 0"><?= e($u['produk']) ?></h3>
-          <p style="margin-bottom:6px"><?= e($usahaU) ?>, <?= e($u['pemilik']) ?></p>
+          <p class="umkm-pemilik"><?= e($usahaU) ?>, <?= e(pisah_ilustrasi($u['pemilik'])[0]) ?></p>
           <?php $nu = $nilaiUmkm[(int) $u['id']] ?? null; ?>
           <p class="small" style="margin:0 0 8px"><?php if ($nu): ?><span class="bintang" aria-hidden="true"><?= bintang((int) round($nu['rata'])) ?></span> <b><?= str_replace('.', ',', (string) round((float) $nu['rata'], 1)) ?></b> <span class="muted">dari <?= (int) $nu['n'] ?> ulasan</span><span class="sr-only">Nilai <?= round((float) $nu['rata'], 1) ?> dari 5</span><?php else: ?><span class="muted">Belum ada ulasan</span><?php endif; ?></p>
           <?php if (!empty($u['deskripsi'])): ?><p class="small"><?= e($u['deskripsi']) ?></p><?php endif; ?>

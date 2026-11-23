@@ -162,18 +162,18 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
 </div>
 <div class="wrap sec" style="padding-top:16px">
   <div class="tab-info">
-    <nav class="chips chips-info" aria-label="Layanan dan keterbukaan">
-      <span class="chips-label">Layanan dan keterbukaan</span>
+    <nav class="tab-baris" aria-label="Layanan dan keterbukaan">
+      <span class="chips-label">Layanan dan keterbukaan</span><div class="chips">
       <?php foreach ($grupKhusus as $g): ?>
         <a class="chip chip-khusus <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g === 'Transparansi' ? 'Anggaran (APBDes)' : $g) ?></a>
       <?php endforeach; ?>
-    </nav>
-    <nav class="chips chips-info" aria-label="Data desa">
-      <span class="chips-label">Data desa</span>
+    </div></nav>
+    <nav class="tab-baris" aria-label="Data desa">
+      <span class="chips-label">Data desa</span><div class="chips">
       <?php foreach (array_keys($grupData) as $g): ?>
         <a class="chip <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g) ?></a>
       <?php endforeach; ?>
-    </nav>
+    </div></nav>
   </div>
 
 <?php if ($grup === 'Layanan surat'):
@@ -352,13 +352,13 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
       <article class="card proyek">
         <?php if ($p['foto'] || $p['foto_sesudah']): ?>
           <div class="proyek-foto <?= $p['foto'] && $p['foto_sesudah'] ? 'dua' : '' ?>">
-            <?php if ($p['foto']): ?><figure><img src="<?= e($p['foto']) ?>" alt="Sebelum: <?= e($p['nama']) ?>" loading="lazy"><figcaption>Sebelum</figcaption></figure><?php endif; ?>
-            <?php if ($p['foto_sesudah']): ?><figure><img src="<?= e($p['foto_sesudah']) ?>" alt="Sesudah: <?= e($p['nama']) ?>" loading="lazy"><figcaption><?= $p['status'] === 'Selesai' ? 'Sesudah' : 'Terkini' ?></figcaption></figure><?php endif; ?>
+            <?php if ($p['foto']): ?><figure><img src="<?= e($p['foto']) ?>" alt="Foto sebelum pembangunan" loading="lazy"><figcaption>Sebelum</figcaption></figure><?php endif; ?>
+            <?php if ($p['foto_sesudah']): ?><figure><img src="<?= e($p['foto_sesudah']) ?>" alt="Foto sesudah pembangunan" loading="lazy"><figcaption><?= $p['status'] === 'Selesai' ? 'Sesudah' : 'Terkini' ?></figcaption></figure><?php endif; ?>
           </div>
         <?php endif; ?>
         <div class="card-body">
           <div class="judul-status">
-            <h3 style="margin:0"><?= e($p['nama']) ?></h3>
+            <?php [$namaP, $ilusP] = pisah_ilustrasi($p['nama']); ?><h3 style="margin:0"><?= e($namaP) ?> <?= tanda_ilustrasi($ilusP) ?></h3>
             <span class="status st-<?= $warnaStatus[$p['status']] ?? 'Menunggu' ?>"><?= e($p['status']) ?></span>
           </div>
           <p class="small muted" style="margin:0"><?= e($p['lokasi']) ?>, tahun <?= (int) $p['tahun'] ?></p>
@@ -471,7 +471,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
       <p class="small muted" style="margin-top:0">Simpan ke kalender HP supaya tidak lupa membawa balita menimbang dan imunisasi.</p>
       <?php foreach ($posyandu as $a): ?>
         <div class="posyandu-baris">
-          <div><b><?= e($a['judul']) ?></b><br><span class="small muted"><?= tgl($a['tanggal'], 'hari') ?>, <?= e($a['jam']) ?>, <?= e($a['tempat']) ?></span></div>
+          <div><?php [$jdlPos, $ilusPos] = pisah_ilustrasi($a['judul']); ?><b><?= e($jdlPos) ?></b> <?= tanda_ilustrasi($ilusPos) ?><br><span class="small muted"><?= tgl($a['tanggal'], 'hari') ?>, <?= e($a['jam']) ?>, <?= e($a['tempat']) ?></span></div>
           <a class="btn btn-ghost btn-sm" href="/agenda?ics=<?= (int) $a['id'] ?>">Tambah ke kalender</a>
         </div>
       <?php endforeach; ?>

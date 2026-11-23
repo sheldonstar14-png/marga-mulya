@@ -4,7 +4,7 @@
   <div class="kaki-badan">
     <div class="wrap kaki-isi">
       <div class="kaki-identitas">
-        <a class="brand brand-kaki" href="/"><span class="brand-kotak"><img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="64" height="35" loading="lazy"></span><span class="brand-teks"><b><?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small>Kab. <?= e(setting('kabupaten')) ?></small></span></a>
+        <a class="brand brand-kaki" href="/"><span class="brand-kotak"><img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="64" height="35" loading="lazy"></span><span class="brand-teks"><b><?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small><?= e(nama_kabupaten()) ?></small></span></a>
         <p>Portal resmi layanan dan informasi publik <?= e(setting('nama_desa')) ?>, <?= e(setting('kecamatan')) ?>. Dikelola perangkat desa bersama warga.</p>
         <button type="button" class="btn btn-sm pasang-btn" id="pasangBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Pasang di HP, bisa dibuka tanpa sinyal</button>
       </div>

@@ -74,11 +74,11 @@ $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="cu
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <?php if (!empty($pakaiPeta)): ?>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12s2">
 </head>
 <body class="publik">
 <a class="skip" href="#isi">Langsung ke isi halaman</a>
@@ -94,7 +94,7 @@ $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="cu
   <div class="top-in">
     <a class="brand" href="/" aria-label="<?= e(setting('nama_desa')) ?>, ke beranda">
       <span class="brand-kotak"><img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="64" height="35"></span>
-      <span class="brand-teks"><b><?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small>Kab. <?= e(setting('kabupaten')) ?></small></span>
+      <span class="brand-teks"><b><?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small><?= e(nama_kabupaten()) ?></small></span>
     </a>
     <nav class="nav" id="nav" aria-label="Menu utama">
       <?php foreach ($daftarMenu as $kunci => [$label, $alamat, $sub]): $aktif = $menuAktif === $kunci; ?>

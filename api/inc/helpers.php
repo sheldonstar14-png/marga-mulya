@@ -86,6 +86,9 @@ function bar_list(array $rows): string
     $total = array_sum($nilai);
     $warna = fn(int $i) => $i < 6 ? 'var(--seri-' . ($i + 1) . ')' : 'var(--seri-lain)';
     $html = '';
+    // Kalau semua baris ilustrasi, cukup satu tanda di atas (tidak diulang per baris)
+    $semuaIlus = count(array_filter($rows, fn($r) => !empty($r['ilustrasi']))) === count($rows);
+    if ($semuaIlus) $html .= '<p class="ilus-semua"><span class="tanda-ilus">Ilustrasi</span> Angka contoh, menunggu data resmi kantor desa.</p>';
     if ($komposisi) {
         $html .= '<div class="komposisi" role="img" aria-label="Komposisi: ' . e(implode(', ', array_map(fn($r) => $r['label'] . ' ' . persen_id((float) $r['nilai'], $total) . ' persen', $rows))) . '">';
         foreach ($rows as $i => $r) {
@@ -97,7 +100,7 @@ function bar_list(array $rows): string
     }
     foreach ($rows as $i => $r) {
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
-        $tanda = !empty($r['ilustrasi']) ? ' <span class="ilus" title="Data contoh, bukan data resmi">(ilustrasi)</span>' : '';
+        $tanda = !empty($r['ilustrasi']) && !$semuaIlus ? ' <span class="ilus" title="Data contoh, bukan data resmi">(ilustrasi)</span>' : '';
         $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . $tanda . '</span>'
             . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%;background:' . $warna($i) . '"></div></div>'
             . '<b>' . angka($r['nilai']) . ($r['satuan'] === '%' ? '%' : ' ' . e($r['satuan'])) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
@@ -835,7 +838,7 @@ function lembaga_desa(): array
 function kode_etik_kelompok(?array $wisata = null): array
 {
     $k = [];
-    if ($wisata) foreach (per_baris((string) ($wisata['kode_etik'] ?? '')) as $a) $k['Khusus di ' . $wisata['nama']][] = $a;
+    if ($wisata) foreach (per_baris((string) ($wisata['kode_etik'] ?? '')) as $a) $k['Khusus di ' . pisah_ilustrasi($wisata['nama'])[0]][] = $a;
     foreach (per_baris(setting('kode_etik_lengkap')) as $baris) {
         [$grup, $aturan] = array_pad(explode('|', $baris, 2), 2, '');
         if ($aturan === '') { $aturan = $grup; $grup = 'Aturan umum'; }
@@ -865,4 +868,12 @@ function foto_pengajuan(array $p): array
     $ids = array_values(array_filter(array_map('intval', explode(',', (string) ($p['foto_ids'] ?? '')))));
     if (!$ids && !empty($p['foto_id'])) $ids = [(int) $p['foto_id']];
     return array_slice($ids, 0, 3);
+}
+
+// Nama kabupaten untuk logo: "Tangerang", "Kab. Tangerang", atau "Kabupaten Tangerang" -> "Kabupaten Tangerang"
+function nama_kabupaten(): string
+{
+    $k = trim(setting('kabupaten'));
+    if (preg_match('/^(kota)\s/i', $k)) return $k;
+    return 'Kabupaten ' . trim(preg_replace('/^(kabupaten|kab\.?)\s*/i', '', $k));
 }

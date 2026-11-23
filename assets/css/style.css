@@ -1667,3 +1667,99 @@ footer.kaki a{color:#fff}
   .nav{top:70px;padding:12px 20px 40px;border-top:1px solid var(--line)}
 }
 @media (max-width:560px){.nav{top:70px}}
+
+/* =====================================================================
+   12s-2: perapian UI. Satu keluarga huruf (Plus Jakarta Sans) supaya angka
+   tidak bergaya "nol bergaris", agenda dan berita memakai kartu baru,
+   tab informasi rata dalam dua baris, kode etik rapi.
+   ===================================================================== */
+:root{--body:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;--head:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif}
+body{font-family:var(--body);font-size:17px;line-height:1.65;font-variant-numeric:lining-nums}
+b,strong{font-weight:700}
+.btn,input,select,textarea,button{font-family:var(--body)}
+.small{font-size:.9rem}
+
+/* Kabar desa: agenda (kiri) dan berita (kanan) */
+.kabar-dua{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
+@media (max-width:980px){.kabar-dua{grid-template-columns:1fr}}
+.kabar-dua h2{font-size:1.7rem;margin:0 0 14px}
+.agd-daftar{display:grid;gap:14px}
+.agd{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 10px 26px -24px rgba(11,60,93,.5)}
+.agd-tgl{align-self:start;text-align:center;background:#FFF1E4;border-radius:14px;padding:8px 0;line-height:1.1}
+.agd-tgl small{display:block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#C96A1F}
+.agd-tgl b{display:block;font-size:1.6rem;font-weight:800;color:var(--ink)}
+.agd-tgl span{display:block;font-size:.75rem;color:var(--muted)}
+.agd-isi h3{font-size:1.12rem;line-height:1.35;margin:0 0 6px;font-weight:800}
+.agd-meta{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.88rem;color:var(--muted)}
+.agd-meta li{display:inline-flex;align-items:center;gap:6px}
+.agd-meta li:first-child{display:none}
+.agd-meta svg{flex:none}
+.agd-teks{margin:0 0 8px;font-size:.96rem;color:var(--ink);max-width:none}
+.agd-aksi{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0;font-size:.9rem}
+.agd-aksi a{font-weight:700}
+.agd .relawan-kotak{margin:14px 0 0;background:var(--toska-m);border:0;border-radius:16px;padding:14px 16px}
+.agd .relawan-judul{margin:0 0 4px;font-size:.95rem}
+.agd .relawan-form summary{margin-top:10px;display:inline-flex;list-style:none}
+.agd .relawan-form summary::-webkit-details-marker{display:none}
+.agd .relawan-form[open] summary{display:none}
+.agd .relawan-form form{margin-top:10px}
+@media (max-width:520px){.agd{grid-template-columns:52px minmax(0,1fr);padding:14px;gap:12px}.agd .relawan-kotak{margin-left:-64px}}
+.chips-geser{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:thin}
+.chips-geser .chip{flex:none}
+.kolom-berita .grid{gap:18px}
+.berita-kartu{border-radius:20px}
+.berita-foto{aspect-ratio:16/9;max-height:300px;overflow:hidden}
+.berita-foto img{width:100%;height:100%;object-fit:cover}
+.berita-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 6px;font-size:.85rem;color:var(--muted)}
+.berita-meta span+span::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:#B5C0C7;vertical-align:middle;margin-right:10px}
+.berita-judul{font-size:1.25rem;line-height:1.35;margin:0 0 8px;font-weight:800}
+.berita-kartu .card-body>.tanda-ilus{margin:-2px 0 10px}
+.berita-kartu .card-body p{font-size:.97rem}
+.berita-lanjut summary{font-weight:700;color:var(--navy);cursor:pointer}
+
+/* Tanda ilustrasi: selalu pil kecil, tidak pernah melebar */
+.tanda-ilus{display:inline-block!important;width:auto!important;font-size:.72rem!important;font-weight:700;line-height:1.5;padding:1px 8px!important;white-space:nowrap;vertical-align:middle}
+h3 .tanda-ilus{margin-left:6px;vertical-align:3px}
+
+/* Tab informasi: label di kiri, pilihan rata di kanan */
+.tab-info{gap:12px}
+.tab-baris{display:grid;grid-template-columns:210px minmax(0,1fr);gap:10px;align-items:start}
+.tab-baris .chips-label{min-width:0;padding-top:12px;margin:0}
+.tab-baris .chips{margin:0}
+@media (max-width:760px){.tab-baris{grid-template-columns:1fr;gap:6px}.tab-baris .chips-label{padding-top:0}.tab-baris .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}.tab-baris .chip{flex:none}}
+
+/* Kode etik */
+.etik-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1000px){.etik-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.etik-grid{grid-template-columns:1fr}}
+.etik-kartu .etik,.etik-kecil .etik{padding:0;gap:10px}
+.etik-kartu .etik li,.etik-kecil .etik li{font-size:.95rem;line-height:1.5;margin:0}
+.etik li::before{width:20px;height:20px}
+.etik-rombongan{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px;background:#fff;border:1px solid var(--line);border-left:5px solid var(--navy);border-radius:16px;padding:16px 20px}
+.etik-rombongan svg{flex:none;color:var(--navy)}
+.etik-rombongan p{flex:1;min-width:240px;margin:0;max-width:none}
+
+/* Kartu proyek pembangunan */
+.proyek .judul-status{align-items:flex-start;gap:12px}
+.proyek h3{font-size:1.12rem;line-height:1.35}
+
+/* Kaki halaman: panorama utuh, tidak terpotong di layar lebar */
+.kaki-ilu{height:auto;background:#9CC27A;line-height:0}
+.kaki-ilu img{height:clamp(90px,11vw,190px);object-fit:cover;object-position:center 70%}
+.hero-gambar img{object-position:center 70%}
+.berita-meta{align-items:center}
+.card-body>.tanda-ilus,.w-isi>.tanda-ilus{align-self:flex-start}
+.berita-foto img[src$=".svg"]{object-position:center 70%}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:820px){.g2{grid-template-columns:1fr}}
+.umkm-pemilik{margin:0 0 6px;font-size:.92rem;color:var(--muted)}
+.pilih-kirim{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pilih-kirim legend{grid-column:1/-1}
+.pilih-kirim .cek{margin:0;padding:8px 10px;font-size:.92rem;min-height:0}
+@media (max-width:520px){.pilih-kirim{grid-template-columns:1fr}}
+.etik-grid.etik-kecil{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 26px}
+@media (max-width:620px){.etik-grid.etik-kecil{grid-template-columns:1fr}}
+.etik-box{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 24px}
+.ilus-semua{margin:-4px 0 12px;font-size:.84rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+@media (max-width:560px){.brand-teks small{white-space:nowrap;font-size:.56rem;letter-spacing:.06em}}
+.berita-meta .tanda-ilus::before{display:none!important}

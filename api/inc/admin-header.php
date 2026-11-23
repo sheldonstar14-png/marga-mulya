@@ -34,9 +34,9 @@ $badge = ['aspirasi' => $jumlahAspirasiBaru, 'surat' => $jumlahSuratBaru, 'ulasa
   <title><?= e($judulAdmin ?? 'CMS') ?> - CMS <?= e(setting('nama_desa')) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <?php if (!empty($pakaiPeta)): ?><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""><?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12s2">
 </head>
 <body class="cms">
 <?php

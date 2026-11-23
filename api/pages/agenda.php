@@ -77,17 +77,25 @@ require __DIR__ . '/../inc/header.php';
   <h1>Kabar desa</h1>
   <p>Berita dan pengumuman dari pemerintah desa, agenda kegiatan warga, dan ajakan menjadi relawan gotong royong.</p>
 </div>
-<div class="wrap sec grid g2" style="padding-top:16px">
-  <div>
+<div class="wrap sec kabar-dua" style="padding-top:28px">
+  <div class="kolom-agenda">
     <h2>Agenda kegiatan</h2>
     <details class="cara-baca" style="margin-bottom:14px"><summary>Cara ikut jadi relawan</summary>
       <ol class="small" style="margin:8px 0 0;padding-left:1.2em"><li>Pilih kegiatan yang punya tombol <b>Saya ikut</b>.</li><li>Isi nama dan WhatsApp, pilih bantuan yang bisa kamu berikan.</li><li>Panitia mengabari lewat WhatsApp sehari sebelum kegiatan. Simpan jadwalnya ke kalender HP.</li><li>Datang tepat waktu dengan perlengkapan yang disebutkan. Pengunjung dari luar desa juga boleh ikut.</li></ol>
     </details>
-    <div class="agenda">
-      <?php foreach ($agenda as $a): ?>
-        <div class="ag" id="agenda-<?= (int) $a['id'] ?>">
-          <div class="ag-date"><b><?= tgl($a['tanggal'], 'tanggal') ?></b><?= tgl($a['tanggal'], 'bulan') ?></div>
-          <div><?php [$jdlAg, $ilusAg] = pisah_ilustrasi($a['judul']); ?><h3><?= e($jdlAg) ?> <?= tanda_ilustrasi($ilusAg) ?></h3><p><?= e($a['tempat']) ?>, <?= e($a['jam']) ?></p><p><?= e($a['isi']) ?></p><a class="small" href="/agenda?ics=<?= (int) $a['id'] ?>">Tambah ke kalender HP</a>
+    <div class="agd-daftar">
+      <?php $hariPendek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']; foreach ($agenda as $a): [$jdlAg, $ilusAg] = pisah_ilustrasi($a['judul']); $tA = strtotime($a['tanggal']); ?>
+        <article class="agd" id="agenda-<?= (int) $a['id'] ?>">
+          <div class="agd-tgl" aria-hidden="true"><small><?= strtoupper(tgl($a['tanggal'], 'bulan')) ?></small><b><?= tgl($a['tanggal'], 'tanggal') ?></b><span><?= $hariPendek[(int) date('w', $tA)] ?></span></div>
+          <div class="agd-isi">
+            <h3><?= e($jdlAg) ?></h3>
+            <ul class="agd-meta">
+              <li><span class="sr-only">Tanggal: </span><?= tgl($a['tanggal'], 'hari') ?></li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><?= e($a['jam']) ?></li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/></svg><?= e($a['tempat']) ?></li>
+            </ul>
+            <p class="agd-teks"><?= e($a['isi']) ?></p>
+            <p class="agd-aksi"><a href="/agenda?ics=<?= (int) $a['id'] ?>">Tambah ke kalender HP</a><?= tanda_ilustrasi($ilusAg) ?></p>
             <?php if ((int) $a['relawan_kuota'] > 0):
               $kuotaR = (int) $a['relawan_kuota']; $ikutR = (int) $a['ikut']; $penuh = $ikutR >= $kuotaR;
               $formIni = (int) $isiRelawan['agenda'] === (int) $a['id']; ?>
@@ -120,15 +128,15 @@ require __DIR__ . '/../inc/header.php';
               </div>
             <?php endif; ?>
           </div>
-        </div>
+        </article>
       <?php endforeach; ?>
       <?php if (!$agenda): ?><p class="muted">Belum ada agenda yang akan datang.</p><?php endif; ?>
     </div>
   </div>
-  <div>
+  <div class="kolom-berita">
     <h2 id="berita">Berita dan pengumuman</h2>
     <?php if (count($katBerita) > 1): ?>
-    <nav class="chips" aria-label="Saring kategori berita" id="saringBerita">
+    <nav class="chips chips-geser" aria-label="Saring kategori berita" id="saringBerita">
       <button type="button" class="chip on" data-kat="">Semua</button>
       <?php foreach ($katBerita as $kb): ?><button type="button" class="chip" data-kat="<?= e($kb) ?>"><?= e($kb) ?></button><?php endforeach; ?>
     </nav>
@@ -136,10 +144,10 @@ require __DIR__ . '/../inc/header.php';
     <div class="grid">
       <?php foreach ($berita as $b): [$jdlB, $ilusB] = pisah_ilustrasi($b['judul']); $paragraf = paragraf_teks($b['isi']); $menit = max(1, (int) round(str_word_count(strip_tags($b['isi'])) / 180)); ?>
         <article class="card berita-kartu" id="berita-<?= (int) $b['id'] ?>" data-kat="<?= e($b['kategori'] ?? '') ?>">
-          <?php if ($b['foto']): ?><figure class="art" style="margin:0;position:relative"><img src="<?= e($b['foto']) ?>" alt="" loading="lazy"><?= tanda_ilustrasi($ilusB) ?><?php $sf = sumber_foto((string) $b['foto'], (string) ($b['sumber_foto'] ?? '')); if ($sf): ?><figcaption class="foto-sumber">Foto: <?= e($sf) ?></figcaption><?php endif; ?></figure><?php endif; ?>
+          <?php if ($b['foto']): ?><figure class="art berita-foto" style="margin:0;position:relative"><img src="<?= e($b['foto']) ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/img/panorama.svg'"><?= tanda_ilustrasi($ilusB) ?><?php $sf = sumber_foto((string) $b['foto'], (string) ($b['sumber_foto'] ?? '')); if ($sf): ?><figcaption class="foto-sumber">Foto: <?= e($sf) ?></figcaption><?php endif; ?></figure><?php endif; ?>
           <div class="card-body">
-            <span class="small muted"><?php if (!empty($b['kategori'])): ?><b class="berita-kat"><?= e($b['kategori']) ?></b> &middot; <?php endif; ?><?= tgl($b['tanggal']) ?> &middot; <?= $menit ?> menit baca</span>
-            <h3 style="margin:4px 0 6px"><?= e($jdlB) ?> <?= !$b['foto'] ? tanda_ilustrasi($ilusB) : '' ?></h3>
+            <p class="berita-meta"><?php if (!empty($b['kategori'])): ?><b class="berita-kat"><?= e($b['kategori']) ?></b><?php endif; ?><span><?= tgl($b['tanggal']) ?></span><span><?= $menit ?> menit baca</span><?= !$b['foto'] ? tanda_ilustrasi($ilusB) : '' ?></p>
+            <h3 class="berita-judul"><?= e($jdlB) ?></h3>
             <p><?= nl2br(e($paragraf[0] ?? '')) ?></p>
             <?php if (count($paragraf) > 1): ?>
               <details class="berita-lanjut"><summary>Baca selengkapnya<span class="sr-only">: <?= e($jdlB) ?></span></summary>

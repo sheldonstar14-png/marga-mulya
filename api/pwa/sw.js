@@ -7,9 +7,9 @@
 // - Halaman CMS (/admin) dan kiriman form tidak pernah disimpan.
 // Naikkan angka VERSI kalau CSS atau JS berubah besar.
 // =========================================================
-const VERSI = 'mm-v12s-1';
+const VERSI = 'mm-v12s-2';
 const HALAMAN = ['/', '/kontak', '/data-desa?grup=Layanan+surat', '/data-desa?grup=Pantau+bansos', '/wisata', '/umkm', '/profil', '/cuaca', '/agenda'];
-const ASET = ['/assets/css/style.css?v=12s', '/assets/js/akses.js?v=12s', '/assets/js/asisten.js?v=12s', '/assets/js/cuaca.js?v=12s',
+const ASET = ['/assets/css/style.css?v=12s2', '/assets/js/akses.js?v=12s', '/assets/js/asisten.js?v=12s', '/assets/js/cuaca.js?v=12s',
   '/assets/img/favicon.png', '/assets/img/ikon-192.png', '/assets/img/logo-mark.png?v=2', '/assets/img/panorama.svg', '/assets/img/kades.svg', '/asisten'];
 
 self.addEventListener('install', e => {

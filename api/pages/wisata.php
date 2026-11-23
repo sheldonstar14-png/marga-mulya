@@ -82,10 +82,17 @@ require __DIR__ . '/../inc/header.php';
 <section class="sec" id="kode-etik" aria-labelledby="judul-etik"><div class="wrap">
   <div class="kepala"><div><h2 id="judul-etik">Kode etik pengunjung</h2><p>Supaya alam tetap lestari, warga nyaman, dan kunjunganmu aman.</p></div></div>
   <div class="etik-grid">
-    <?php foreach ($etik as $grupEtik => $aturan): ?>
+    <?php $etikKhusus = []; foreach ($etik as $grupEtik => $aturan): if (stripos($grupEtik, 'rombongan') === 0) { $etikKhusus = $aturan; continue; } ?>
       <div class="etik-kartu"><h3><?= e($grupEtik) ?></h3><ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul></div>
     <?php endforeach; ?>
   </div>
+  <?php if ($etikKhusus): ?>
+  <div class="etik-rombongan">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 20c0-2 1-4 3-4s3 1.5 3 4"/></svg>
+    <p><b>Datang rombongan, KKN, atau penelitian?</b> <?= e(implode(' ', $etikKhusus)) ?></p>
+    <a class="btn btn-navy btn-sm" href="/data-desa?grup=Layanan+surat&amp;izin=1#surat">Ajukan izin kunjungan</a>
+  </div>
+  <?php endif; ?>
 </div></section>
 
 <div class="sec sec-putih"><div class="wrap">

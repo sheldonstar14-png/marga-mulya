@@ -70,7 +70,7 @@ require __DIR__ . '/../inc/header.php';
         <h2 style="margin:0 0 6px;font-size:1.4rem">Kode etik pengunjung</h2>
         <p class="small muted">Bantu menjaga <?= e($namaW) ?> tetap lestari dan warga sekitar tetap nyaman.</p>
         <div class="etik-grid etik-kecil">
-          <?php foreach ($etik as $grupEtik => $aturan): ?><div><h3><?= e($grupEtik) ?></h3><ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul></div><?php endforeach; ?>
+          <?php foreach ($etik as $grupEtik => $aturan): if (stripos($grupEtik, 'rombongan') === 0) continue; ?><div><h3><?= e($grupEtik) ?></h3><ul class="etik"><?php foreach ($aturan as $a): ?><li><?= e($a) ?></li><?php endforeach; ?></ul></div><?php endforeach; ?>
         </div>
       </div>
     </div>
