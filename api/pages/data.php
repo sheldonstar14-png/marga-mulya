@@ -339,7 +339,7 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
         </div>
       <?php endforeach; ?>
     </div>
-    <p class="hint">Batang hijau menunjukkan anggaran yang sudah terpakai atau diterima. Ada pertanyaan soal anggaran? Sampaikan lewat <a href="/kontak#aspirasi">aspirasi warga</a>.</p>
+    <p class="hint">Bagian batang yang berwarna biru tua menunjukkan anggaran yang sudah terpakai atau diterima; sisanya yang abu-abu muda belum terealisasi. Ada pertanyaan soal anggaran? Sampaikan lewat <a href="/kontak#aspirasi">aspirasi warga</a>.</p>
   <?php endif; ?>
 
 <?php elseif ($grup === 'Pembangunan'): ?>

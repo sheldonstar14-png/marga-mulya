@@ -877,3 +877,46 @@ function nama_kabupaten(): string
     if (preg_match('/^(kota)\s/i', $k)) return $k;
     return 'Kabupaten ' . trim(preg_replace('/^(kabupaten|kab\.?)\s*/i', '', $k));
 }
+
+// ---------- Tambahan 12s3: semua peta memakai Google Maps ----------
+// Alamat sematan Google Maps untuk satu titik (tanpa API key)
+function gmaps_embed(float $lat, float $lng, int $zoom = 16): string
+{
+    return 'https://maps.google.com/maps?q=' . rawurlencode($lat . ',' . $lng) . '&z=' . $zoom . '&output=embed';
+}
+function gmaps_rute(float $lat, float $lng): string
+{
+    return 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($lat . ',' . $lng);
+}
+
+// Peta Google + daftar lokasi. Menekan nama lokasi memindahkan peta ke titik itu.
+// $grup = ['Wisata' => [['nama'=>..,'ket'=>..,'lat'=>..,'lng'=>..,'url'=>..,'warna'=>..,'zona'=>bool], ...], ...]
+// Kalau Pengaturan "gmaps_mymaps" diisi (peta Google My Maps buatan tim), peta awal menampilkan semua titik sekaligus.
+function peta_google(string $id, array $grup, string $judul): string
+{
+    $grup = array_filter($grup);
+    $mymaps = setting('gmaps_mymaps');
+    $awal = preg_match('#^https://(www\.)?google\.com/maps/d/(u/\d+/)?(embed|viewer)\?mid=#', $mymaps)
+        ? str_replace('/viewer?', '/embed?', $mymaps)
+        : gmaps_embed((float) setting('lat'), (float) setting('lng'), 14);
+    $h = '<div class="gpeta" id="' . e($id) . '">';
+    $h .= '<div class="gpeta-peta"><iframe title="' . e($judul) . '" src="' . e($awal) . '" data-awal="' . e($awal) . '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>'
+        . '<p class="gpeta-pilihan" aria-live="polite">Menampilkan: wilayah ' . e(setting('nama_desa')) . '</p></div>';
+    $h .= '<div class="gpeta-daftar">';
+    if (count($grup) > 1) {
+        $h .= '<div class="chips chips-geser gpeta-lapis" role="group" aria-label="Saring lokasi"><button type="button" class="chip on" data-lapis="" aria-pressed="true">Semua</button>';
+        foreach ($grup as $nama => $isi) $h .= '<button type="button" class="chip" data-lapis="' . e($nama) . '" aria-pressed="false">' . e($nama) . ' <span class="small">(' . count($isi) . ')</span></button>';
+        $h .= '</div>';
+    }
+    foreach ($grup as $nama => $isi) {
+        $h .= '<section data-lapis-item="' . e($nama) . '"><h3 class="gpeta-grup">' . e($nama) . '</h3><ul>';
+        foreach ($isi as $t) {
+            [$namaT] = pisah_ilustrasi($t['nama']);
+            $h .= '<li' . (!empty($t['zona']) ? ' class="gpeta-zona"' : '') . '><button type="button" class="gpeta-titik" data-src="' . e(gmaps_embed((float) $t['lat'], (float) $t['lng'], !empty($t['zona']) ? 16 : 17)) . '" data-nama="' . e($namaT) . '">'
+                . '<i style="background:' . e($t['warna'] ?? '#1E8C93') . '" aria-hidden="true"></i><span><b>' . e($namaT) . '</b>' . ($t['ket'] ? '<small>' . e($t['ket']) . '</small>' : '') . '</span></button>'
+                . '<span class="gpeta-aksi">' . (!empty($t['url']) ? '<a href="' . e($t['url']) . '">Detail</a>' : '') . '<a href="' . e(gmaps_rute((float) $t['lat'], (float) $t['lng'])) . '" target="_blank" rel="noopener">Rute</a></span></li>';
+        }
+        $h .= '</ul></section>';
+    }
+    return $h . '</div></div>';
+}

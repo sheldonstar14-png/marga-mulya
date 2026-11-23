@@ -122,7 +122,6 @@ $titik = [['lat' => (float) setting('lat'), 'lng' => (float) setting('lng'), 'na
 
 $judul = 'Kontak - ' . setting('nama_desa');
 $menu  = 'kontak';
-$pakaiPeta = true;
 require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
@@ -131,20 +130,26 @@ require __DIR__ . '/../inc/header.php';
 </div>
 
 <?php if ($darurat): ?>
-<div class="wrap" id="darurat" style="padding-top:8px">
-  <div class="darurat">
-    <h2>Nomor darurat</h2>
-    <div class="darurat-grid">
-      <?php foreach ($darurat as $d): ?>
-        <a class="darurat-item" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $d['nomor'])) ?>">
-          <b><?= e($d['nomor']) ?></b>
-          <span><?= e($d['nama']) ?></span>
-          <?php if ($d['keterangan']): ?><small><?= e($d['keterangan']) ?></small><?php endif; ?>
-        </a>
-      <?php endforeach; ?>
-    </div>
+<section class="wrap darurat-a" id="darurat" aria-labelledby="judul-darurat">
+  <div class="darurat-kepala">
+    <h2 id="judul-darurat">Nomor darurat</h2>
+    <p>Tekan kartu untuk langsung menelepon dari HP. Nomor 112 bebas pulsa untuk semua keadaan darurat. Halaman ini tetap bisa dibuka tanpa internet setelah website dipasang di HP.</p>
   </div>
-</div>
+  <div class="darurat-kartu">
+    <?php foreach ($darurat as $d): ?>
+      <a class="darurat-item" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $d['nomor'])) ?>">
+        <span class="darurat-nomor"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><?= e($d['nomor']) ?></span>
+        <b><?= e($d['nama']) ?></b>
+        <small><?= e($d['keterangan'] ?: 'Tekan untuk menelepon') ?></small>
+      </a>
+    <?php endforeach; ?>
+    <a class="darurat-item darurat-desa" href="<?= e(wa_link(setting('wa'), 'Halo petugas ' . setting('nama_desa') . ', saya perlu bantuan segera: ')) ?>" target="_blank" rel="noopener">
+      <span class="darurat-nomor"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>WA desa</span>
+      <b>Petugas <?= e(setting('nama_desa')) ?></b>
+      <small>Banjir, rob, pohon tumbang, atau warga butuh bantuan. Di luar jam kantor, tetap hubungi 112.</small>
+    </a>
+  </div>
+</section>
 <?php endif; ?>
 
 <div class="wrap sec split" style="padding-top:24px" id="peta">

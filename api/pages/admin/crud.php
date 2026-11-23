@@ -79,7 +79,7 @@ function ambil_isian(array $c, ?int $id, array &$errors): array
                 $lat = trim((string) ($_POST['lat'] ?? ''));
                 $lng = trim((string) ($_POST['lng'] ?? ''));
                 if ($lat === '' && $lng === '' && !in_array($c['tabel'], ['wisata', 'zona_rawan'], true)) { $data['lat'] = null; $data['lng'] = null; break; }
-                if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) { $errors[] = 'Pilih lokasi dengan klik peta, atau isi lintang dan bujur dengan benar.'; break; }
+                if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) { $errors[] = 'Tempel koordinat dari Google Maps, atau isi lintang dan bujur dengan benar.'; break; }
                 $data['lat'] = round((float) $lat, 6);
                 $data['lng'] = round((float) $lng, 6);
                 break;
@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $aksi = $_GET['aksi'] ?? '';
-$pakaiPeta = in_array($aksi, ['tambah', 'edit'], true) && in_array('peta', array_column($c['field'], 2), true);
+$pakaiPeta = false; // 12s3: pilih lokasi memakai Google Maps, tanpa Leaflet
 $judulAdmin = $c['judul'];
 $menuAdmin = $kunciCrud;
 require __DIR__ . '/../../inc/admin-header.php';
@@ -237,13 +237,21 @@ if (in_array($aksi, ['tambah', 'edit'], true)):
         <?php elseif ($jenis === 'peta'):
           $lat = $nilai['lat'] ?? ''; $lng = $nilai['lng'] ?? ''; ?>
           <label><?= e($label) ?></label>
-          <div class="peta peta-kecil peta-pilih" data-lat="<?= e($lat) ?>" data-lng="<?= e($lng) ?>"
-               data-pusat-lat="<?= e(setting('lat')) ?>" data-pusat-lng="<?= e(setting('lng')) ?>" role="region" aria-label="Peta untuk memilih lokasi"></div>
-          <div class="grid g2" style="gap:12px;margin-top:10px">
-            <div><label for="lat" class="small">Lintang (latitude)</label><input id="lat" name="lat" value="<?= e($lat) ?>" inputmode="decimal"></div>
-            <div><label for="lng" class="small">Bujur (longitude)</label><input id="lng" name="lng" value="<?= e($lng) ?>" inputmode="decimal"></div>
+          <div class="pilih-lokasi" data-pusat-lat="<?= e(setting('lat')) ?>" data-pusat-lng="<?= e(setting('lng')) ?>">
+            <ol class="small langkah-lokasi">
+              <li>Buka <a href="https://www.google.com/maps/@<?= e(($lat ?: setting('lat')) . ',' . ($lng ?: setting('lng'))) ?>,16z" target="_blank" rel="noopener">Google Maps</a>, cari tempatnya, lalu tekan lama (HP) atau klik kanan (laptop) tepat di titiknya.</li>
+              <li>Salin angka koordinat yang muncul, misalnya <code>-6.045123, 106.538456</code>, atau salin tautan tempatnya.</li>
+              <li>Tempel di kotak di bawah. Lintang dan bujur terisi otomatis, dan peta pratinjau ikut berpindah.</li>
+            </ol>
+            <label for="tempel-lokasi" class="small">Tempel koordinat atau tautan Google Maps</label>
+            <input id="tempel-lokasi" class="tempel-lokasi" placeholder="-6.045123, 106.538456" autocomplete="off">
+            <div class="grid g2" style="gap:12px;margin-top:10px">
+              <div><label for="lat" class="small">Lintang (latitude)</label><input id="lat" name="lat" value="<?= e($lat) ?>" inputmode="decimal"></div>
+              <div><label for="lng" class="small">Bujur (longitude)</label><input id="lng" name="lng" value="<?= e($lng) ?>" inputmode="decimal"></div>
+            </div>
+            <iframe class="peta-google pratinjau-lokasi" title="Pratinjau lokasi di Google Maps" src="<?= e(gmaps_embed((float) ($lat ?: setting('lat')), (float) ($lng ?: setting('lng')), $lat ? 17 : 14)) ?>" loading="lazy"></iframe>
+            <div class="hint">Titik merah di pratinjau menunjukkan lokasi yang akan disimpan. Cuaca destinasi mengikuti titik ini.</div>
           </div>
-          <div class="hint">Klik peta untuk memindahkan titik. Cuaca destinasi mengikuti titik ini.</div>
         <?php elseif ($jenis === 'foto'): ?>
           <label for="f-<?= $nama ?>"><?= e($label) ?></label>
           <div class="img-prev" id="prev-<?= $nama ?>"><?php if ($v): ?><img src="<?= e($v) ?>" alt="Foto saat ini"><?php endif; ?></div>

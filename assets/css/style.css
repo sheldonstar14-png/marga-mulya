@@ -1763,3 +1763,52 @@ h3 .tanda-ilus{margin-left:6px;vertical-align:3px}
 .ilus-semua{margin:-4px 0 12px;font-size:.84rem;color:var(--muted);display:flex;gap:8px;align-items:center}
 @media (max-width:560px){.brand-teks small{white-space:nowrap;font-size:.56rem;letter-spacing:.06em}}
 .berita-meta .tanda-ilus::before{display:none!important}
+/* 12s3: panorama kaki halaman versi lebar, tidak terpotong di layar besar */
+.kaki-ilu{background:#DCEFF2}
+.kaki-ilu img{display:block;width:100%;height:clamp(110px,10.5vw,200px);object-fit:cover;object-position:center bottom}
+.etik li::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E8C93' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.6 2.6L16 9.6'/%3E%3C/svg%3E") center/contain no-repeat}
+/* Nomor darurat (12s3) */
+.darurat-a{margin-top:24px}
+.darurat-a .darurat-kepala{display:flex;gap:8px 24px;align-items:baseline;flex-wrap:wrap;margin-bottom:14px}
+.darurat-a h2{margin:0;color:#9E2A1E;font-size:1.6rem}
+.darurat-a .darurat-kepala p{margin:0;color:var(--muted);font-size:.95rem;flex:1;min-width:260px}
+.darurat-kartu{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.darurat-a .darurat-item{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #F1C9C2;border-radius:18px;padding:16px 18px;text-decoration:none;color:var(--ink);min-height:150px;transition:border-color .15s}
+.darurat-a .darurat-item:hover{border-color:#C62828}
+.darurat-nomor{display:inline-flex;align-items:center;gap:8px;font:800 1.6rem/1.1 var(--head);color:#B3261E}
+.darurat-nomor svg{flex:none;width:30px;height:30px;padding:6px;border-radius:50%;background:#FDECEA}
+.darurat-a .darurat-item b{font-size:1rem;line-height:1.35}
+.darurat-a .darurat-item small{font-size:.85rem;color:var(--muted);line-height:1.45}
+.darurat-desa{border-color:#BFE3DF!important;background:#F2FAF9!important}
+.darurat-desa .darurat-nomor{color:#0E6B62;font-size:1.25rem}
+.darurat-desa .darurat-nomor svg{background:#DDF2EF}
+
+/* Peta Google + daftar lokasi */
+.gpeta{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
+.gpeta-peta{position:sticky;top:96px}
+.gpeta iframe{display:block;width:100%;height:460px;border:0;border-radius:20px;background:#E3EEF0}
+.gpeta-pilihan{margin:8px 0 0;font-size:.88rem;color:var(--muted)}
+.gpeta-daftar{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;max-height:520px;overflow:auto}
+.gpeta-lapis{margin:0 0 6px}
+.gpeta-grup{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 4px 6px}
+.gpeta-daftar ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.gpeta-daftar li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;padding:4px 10px 4px 4px}
+.gpeta-titik{flex:1;display:flex;gap:10px;align-items:center;text-align:left;background:none;border:0;padding:8px;border-radius:10px;cursor:pointer;font:inherit;color:var(--ink);min-width:0}
+.gpeta-titik:hover,.gpeta-titik.on{background:var(--toska-m)}
+.gpeta-titik i{flex:none;width:12px;height:12px;border-radius:50%}
+.gpeta-titik b{display:block;font-size:.95rem;line-height:1.3}
+.gpeta-titik small{display:block;font-size:.8rem;color:var(--muted);line-height:1.35}
+.gpeta-aksi{display:flex;gap:10px;font-size:.85rem;font-weight:700;flex:none}
+.gpeta-zona{border-color:#F2C2BB!important}
+.gpeta-zona.siaga-on{background:#FDECEA;border-color:#C62828!important}
+@media (max-width:860px){.gpeta{grid-template-columns:1fr}.gpeta-peta{position:static}.gpeta iframe{height:320px}.gpeta-daftar{max-height:none}}
+.pilih-lokasi .langkah-lokasi{padding-left:1.2em;margin:4px 0 10px}
+.pratinjau-lokasi{height:240px}
+.darurat-a .darurat-item .darurat-nomor{display:inline-flex;align-items:center;gap:10px;font:800 1.7rem/1.1 var(--head);color:#B3261E}
+.darurat-a .darurat-desa .darurat-nomor{color:#0E6B62;font-size:1.3rem}
+.darurat-a .darurat-item b{color:var(--ink);font:800 1rem/1.35 var(--head)}
+.darurat-a .darurat-item small{display:block}
+.darurat-kartu{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){.darurat-kartu{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.darurat-kartu{grid-template-columns:1fr}.darurat-a .darurat-item{min-height:0}}
+.gpeta-lapis .chip{font-size:.88rem;min-height:36px;padding:5px 12px}

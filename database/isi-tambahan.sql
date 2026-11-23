@@ -324,3 +324,31 @@ INSERT IGNORE INTO asisten_menu (id, induk_id, judul, pertanyaan, jawaban, tauta
 (74, 7, 'Agenda desa dan jadi relawan', '', 'Lihat kegiatan desa, simpan ke kalender HP, dan daftar jadi relawan tanam mangrove atau bersih pantai.', '/agenda', 'Lihat agenda', 4, 1),
 (75, 7, 'Pasang website di HP (bisa tanpa sinyal)', '', 'Android: buka menu Chrome, pilih Tambahkan ke layar utama atau Instal aplikasi.\niPhone: buka di Safari, tekan tombol Bagikan, lalu pilih Tambah ke Layar Utama.\nHalaman yang pernah dibuka, termasuk nomor darurat, tetap bisa dibuka saat sinyal hilang.', '', '', 5, 1),
 (76, 7, 'Privasi dan data pribadi saya', '', 'Website ini tidak pernah meminta KTP, KK, atau NIK. Nama dan kontak dihapus otomatis setelah urusan selesai. Untuk meminta salinan, perbaikan, atau penghapusan data, hubungi petugas lewat WhatsApp atau email desa.', '/kontak#privasi', 'Baca kebijakan privasi', 6, 1);
+
+-- ---------- Tambahan 12s3 ----------
+-- Label status di beranda: website ini masih ilustrasi untuk lomba
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('label_status', 'Ilustrasi website desa untuk IIT EcoQuest 2026'),
+('gmaps_mymaps', '');
+UPDATE pengaturan SET nilai = REPLACE(nilai, 'website resmi Desa Marga Mulya', 'website Desa Marga Mulya') WHERE kunci = 'sambutan_kades' AND nilai LIKE '%website resmi Desa Marga Mulya%';
+-- Peta kini Google Maps
+UPDATE kredit_foto SET judul = 'Peta', pembuat = 'Google Maps', sumber_url = 'https://www.google.com/maps', lisensi = 'Sematan Google Maps', lisensi_url = 'https://www.google.com/intl/id/help/terms_maps/', keterangan = 'Peta di halaman Profil, Wisata, Kontak, dan detail wisata.' WHERE id = 4 AND pembuat = 'Kontributor OpenStreetMap';
+-- Keterangan nomor darurat yang masih kosong
+UPDATE darurat SET keterangan = 'Bebas pulsa, untuk semua keadaan darurat' WHERE nomor = '112' AND keterangan IN ('', 'Nomor darurat nasional, bebas pulsa');
+UPDATE darurat SET keterangan = 'Orang sakit parah, pingsan, melahirkan darurat, atau korban kecelakaan' WHERE nomor = '119' AND keterangan IN ('', 'Layanan kesehatan darurat');
+UPDATE darurat SET keterangan = 'Pencurian, perkelahian, kecelakaan lalu lintas, atau gangguan keamanan' WHERE nomor = '110' AND keterangan = '';
+UPDATE darurat SET keterangan = 'Kebakaran rumah, lahan, atau korsleting listrik' WHERE nomor = '113' AND keterangan = '';
+UPDATE darurat SET keterangan = 'Kecelakaan di laut, perahu hilang, orang tenggelam atau hilang' WHERE nomor = '115' AND keterangan IN ('', 'Orang hilang atau kecelakaan di alam');
+INSERT INTO darurat (nama, nomor, keterangan, urutan) SELECT 'PLN (gangguan listrik)', '123', 'Listrik padam, tiang miring, atau kabel putus di jalan', 6 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM darurat WHERE nomor = '123');
+INSERT INTO darurat (nama, nomor, keterangan, urutan) SELECT 'SAPA 129 (perempuan dan anak)', '129', 'Kekerasan terhadap perempuan dan anak', 7 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM darurat WHERE nomor = '129');
+-- Pemeluk agama lebih beragam (hanya mengubah angka ilustrasi lama dari isi-tambahan 12s)
+UPDATE statistik SET nilai = 8120 WHERE kategori = 'Pemeluk agama' AND label = 'Islam' AND nilai = 8341 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 96 WHERE kategori = 'Pemeluk agama' AND label = 'Kristen Protestan' AND nilai = 34 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 58 WHERE kategori = 'Pemeluk agama' AND label = 'Katolik' AND nilai = 21 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 12 WHERE kategori = 'Pemeluk agama' AND label = 'Hindu' AND nilai = 0 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 118 WHERE kategori = 'Pemeluk agama' AND label = 'Buddha' AND nilai = 38 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 45 WHERE kategori = 'Pemeluk agama' AND label = 'Konghucu' AND nilai = 15 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 1 WHERE kategori = 'Tempat ibadah' AND label = 'Gereja' AND nilai = 0 AND ilustrasi = 1;
+UPDATE statistik SET label = 'Vihara' WHERE kategori = 'Tempat ibadah' AND label = 'Vihara atau klenteng' AND ilustrasi = 1;
+INSERT INTO statistik (kategori, label, nilai, satuan, urutan, ilustrasi) SELECT 'Tempat ibadah', 'Klenteng', 1, 'unit', 55, 1 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM statistik WHERE kategori = 'Tempat ibadah' AND label = 'Klenteng');
+DELETE FROM statistik WHERE kategori = 'Tempat ibadah' AND label = 'Pura' AND nilai = 0 AND ilustrasi = 1;

@@ -31,6 +31,7 @@ $grup = [
             'nama_desa'   => ['Nama desa', 'text'],
             'kecamatan'   => ['Kecamatan', 'text'],
             'kabupaten'   => ['Kabupaten', 'text'],
+            'label_status' => ['Label kecil di atas judul beranda (misalnya status ilustrasi untuk lomba)', 'text'],
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
             'foto_hero'   => ['Foto beranda (opsional). Pakai foto landscape asli, misalnya pantai atau perahu nelayan. Kosongkan untuk memakai gambar ilustrasi', 'foto'],
@@ -42,6 +43,7 @@ $grup = [
             'wa'          => ['Nomor WhatsApp desa', 'text'],
             'lat'         => ['Lintang kantor desa (latitude)', 'text'],
             'lng'         => ['Bujur kantor desa (longitude)', 'text'],
+            'gmaps_mymaps' => ['Link peta Google My Maps (opsional). Kalau diisi, peta di Profil dan Wisata langsung menampilkan semua titik. Buat di google.com/maps/d, lalu Bagikan > Sematkan, salin alamat https://www.google.com/maps/d/embed?mid=...', 'text'],
             'kredit_foto' => ['Kredit foto lama berbentuk teks (opsional). Lebih rapi pakai menu Sumber & kredit foto', 'area'],
             'kode_etik_lengkap' => ['Kode etik pengunjung per kelompok (satu baris satu aturan, format: Kelompok|Aturan)', 'area'],
             'kode_etik_umum' => ['Kode etik cadangan (dipakai kalau kode etik per kelompok kosong)', 'area'],
@@ -61,8 +63,8 @@ $grup = [
 $bagianPengaturan = [
     'Status website'       => ['mode_privat'],
     'Identitas desa'       => ['nama_desa', 'kecamatan', 'kabupaten'],
-    'Beranda'              => ['hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
-    'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng'],
+    'Beranda'              => ['label_status', 'hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
+    'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng', 'gmaps_mymaps'],
     'Wisata dan pengunjung' => ['kode_etik_lengkap', 'kode_etik_umum', 'waktu_kunjung'],
     'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'catatan_logo', 'kredit_foto'],
     'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
@@ -78,10 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'gmaps_mymaps', 'label_status', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     foreach ($g['kunci'] as $kunci => [, $jenisK]) if ($jenisK === 'cek') $baru[$kunci] = !empty($_POST[$kunci]) ? '1' : '0';
+    if (!empty($baru['gmaps_mymaps']) && !preg_match('#^https://(www\.)?google\.com/maps/d/#', $baru['gmaps_mymaps'])) $errors[] = 'Link Google My Maps harus diawali https://www.google.com/maps/d/.';
     if (!empty($baru['foto_hero_url']) && !preg_match('#^https?://#', $baru['foto_hero_url'])) $errors[] = 'Link sumber foto beranda harus diawali https://.';
     if (!empty($baru['email_laporan'])) foreach (array_map('trim', explode(',', $baru['email_laporan'])) as $em) if (!filter_var($em, FILTER_VALIDATE_EMAIL)) $errors[] = "Email penerima laporan \"$em\" tidak valid.";
     if (!empty($baru['foto_kades']) && !preg_match('#^(https://|/assets/)#', $baru['foto_kades'])) $errors[] = 'Alamat foto kepala desa harus diawali https:// atau /assets/.';

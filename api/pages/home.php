@@ -85,7 +85,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
   <div class="wrap">
     <div class="hero-panel<?= $fotoHero ? ' hero-berfoto' : '' ?>"<?= $fotoHero ? ' style="--foto-hero:url(\'' . e($fotoHero) . '\')"' : '' ?>>
       <div class="hero-teks">
-        <span class="pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Portal resmi pemerintah desa</span>
+        <span class="pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><?= e(setting('label_status', 'Ilustrasi website desa untuk IIT EcoQuest 2026')) ?></span>
         <h1 id="judul-hero"><?php if ($posNama !== false && $posNama > 0): ?><?= e(rtrim(mb_substr($judulHero, 0, $posNama))) ?> <em><?= e(mb_substr($judulHero, $posNama)) ?></em><?php else: ?><?= e($judulHero) ?><?php endif; ?></h1>
         <p class="hero-sub"><?= e(setting('hero_teks')) ?></p>
         <form class="cari" id="cariForm" role="search" action="/data-desa" method="get">

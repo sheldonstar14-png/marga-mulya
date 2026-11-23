@@ -97,28 +97,23 @@
     });
   });
 
-  // ---------- Pilih lokasi di peta ----------
-  const el = document.querySelector('.peta-pilih');
-  if (el && typeof L !== 'undefined') {
+  // ---------- Pilih lokasi lewat Google Maps (tempel koordinat atau tautan) ----------
+  const kotakLokasi = document.querySelector('.pilih-lokasi');
+  if (kotakLokasi) {
     const lat = document.getElementById('lat'), lng = document.getElementById('lng');
-    const ada = lat.value !== '' && lng.value !== '';
-    const awal = ada ? [Number(lat.value), Number(lng.value)] : [Number(el.dataset.pusatLat), Number(el.dataset.pusatLng)];
-    const peta = L.map(el).setView(awal, ada ? 16 : 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(peta);
-    const titik = L.marker(awal, { draggable: true });
-    if (ada) titik.addTo(peta);
-    const pasang = p => {
-      titik.setLatLng(p).addTo(peta);
-      lat.value = p.lat.toFixed(6);
-      lng.value = p.lng.toFixed(6);
+    const tempel = kotakLokasi.querySelector('.tempel-lokasi'), pratinjau = kotakLokasi.querySelector('.pratinjau-lokasi');
+    const perbarui = () => {
+      if (lat.value && lng.value && !isNaN(lat.value) && !isNaN(lng.value)) pratinjau.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(lat.value + ',' + lng.value) + '&z=17&output=embed';
     };
-    peta.on('click', e => pasang(e.latlng));
-    titik.on('dragend', () => pasang(titik.getLatLng()));
-    [lat, lng].forEach(i => i.addEventListener('change', () => {
-      if (lat.value && lng.value) { const p = L.latLng(Number(lat.value), Number(lng.value)); titik.setLatLng(p).addTo(peta); peta.panTo(p); }
-    }));
+    tempel.addEventListener('input', () => {
+      const t = decodeURIComponent(tempel.value);
+      // Mengenali "-6.04, 106.53", tautan ".../@-6.04,106.53,17z", "q=-6.04,106.53", atau "!3d-6.04!4d106.53"
+      const m = t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || t.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || t.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+      if (!m) return;
+      lat.value = Number(m[1]).toFixed(6); lng.value = Number(m[2]).toFixed(6);
+      perbarui();
+    });
+    [lat, lng].forEach(i => i.addEventListener('change', perbarui));
   }
 })();
 

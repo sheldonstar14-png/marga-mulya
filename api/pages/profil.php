@@ -27,14 +27,13 @@ $tambah = function (string $lapis, array $r, string $nama, string $ket, string $
     if ($url) $t['url'] = $url;
     if ($radius) $t['radius'] = $radius;
     $titikPeta[] = $t;
-    $daftarPeta[$lapis][] = ['nama' => $nama, 'ket' => $ket, 'url' => $url];
+    $daftarPeta[$lapis][] = ['nama' => $nama, 'ket' => $ket, 'url' => $url, 'lat' => (float) $r['lat'], 'lng' => (float) $r['lng'], 'warna' => $LAPISAN[$lapis][1], 'zona' => $radius > 0];
 };
 foreach (q('SELECT slug, nama, jenis, lat, lng FROM wisata WHERE aktif = 1 ORDER BY id') as $r) $tambah('wisata', $r, $r['nama'], $r['jenis'], '/wisata/' . $r['slug']);
 foreach (q('SELECT nama_usaha, produk, lat, lng FROM umkm ORDER BY id') as $r) $tambah('umkm', $r, $r['nama_usaha'], $r['produk'], '/umkm');
 foreach (q('SELECT nama, kategori, keterangan, lat, lng FROM fasilitas ORDER BY kategori, nama') as $r) $tambah('fasilitas', $r, $r['nama'], trim($r['kategori'] . ($r['keterangan'] ? '. ' . $r['keterangan'] : '')));
 foreach (q('SELECT nama, status, progres, lat, lng FROM pembangunan ORDER BY tahun DESC, id DESC') as $r) $tambah('pembangunan', $r, $r['nama'], $r['status'] . ', progres ' . (int) $r['progres'] . '%', '/data-desa?grup=Pembangunan');
 foreach (q('SELECT nama, jenis, keterangan, radius_m, lat, lng FROM zona_rawan ORDER BY jenis, nama') as $r) $tambah('rawan', $r, $r['nama'], 'Rawan ' . strtolower($r['jenis']) . '. ' . $r['keterangan'], '', (int) $r['radius_m']);
-$pakaiPeta = (bool) $titikPeta;
 $pakaiCuaca = !empty($daftarPeta['rawan']); // siaga cuaca menyorot zona rawan
 
 $judul = 'Profil - ' . setting('nama_desa');
@@ -117,28 +116,10 @@ require __DIR__ . '/../inc/header.php';
 <?php if ($titikPeta): ?>
 <div class="sec tint" id="peta-desa"><div class="wrap">
   <h2 id="fasilitas">Peta desa</h2>
-  <p class="muted" style="max-width:70ch">Nyalakan lapisan yang kamu perlukan. Lingkaran merah adalah zona rawan banjir, rob, atau abrasi; saat ada siaga cuaca, zona ini disorot dan sebaiknya dihindari.</p>
+  <p class="muted" style="max-width:70ch">Tekan nama tempat untuk melihatnya di Google Maps, atau tekan Rute untuk petunjuk arah. Zona rawan banjir, rob, atau abrasi ditandai merah dan disorot saat ada siaga cuaca.</p>
   <div class="siaga" data-siaga data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>" hidden></div>
-  <div class="chips lapisan-peta" data-peta="peta-desa-isi" role="group" aria-label="Lapisan peta">
-    <?php foreach ($LAPISAN as $k => [$label, $warna]): if (empty($daftarPeta[$k])) continue; ?>
-      <button type="button" class="chip on" data-lapis="<?= $k ?>" aria-pressed="true"><span class="titik-warna" style="background:<?= $warna ?>"></span><?= $label ?> <span class="small">(<?= count($daftarPeta[$k]) ?>)</span></button>
-    <?php endforeach; ?>
-  </div>
-  <div class="split peta-split" style="margin-top:14px">
-    <div class="peta peta-fasilitas" id="peta-desa-isi" data-titik="<?= titik_peta($titikPeta) ?>" role="region" aria-label="Peta desa berlapis"></div>
-    <div class="daftar-peta">
-      <?php foreach ($LAPISAN as $k => [$label, $warna]): if (empty($daftarPeta[$k])) continue; ?>
-        <section data-lapis-item="<?= $k ?>">
-          <h3 class="small"><span class="titik-warna" style="background:<?= $warna ?>"></span><?= $label ?></h3>
-          <ul class="daftar-fasilitas">
-            <?php foreach ($daftarPeta[$k] as $t): ?>
-              <li><div><?= $t['url'] ? '<a href="' . e($t['url']) . '"><b>' . e($t['nama']) . '</b></a>' : '<b>' . e($t['nama']) . '</b>' ?><br><span class="small muted"><?= e($t['ket']) ?></span></div></li>
-            <?php endforeach; ?>
-          </ul>
-        </section>
-      <?php endforeach; ?>
-    </div>
-  </div>
+  <?php $grupPeta = []; foreach ($LAPISAN as $k => [$label]) if (!empty($daftarPeta[$k])) $grupPeta[$label] = $daftarPeta[$k]; ?>
+  <?= peta_google('peta-desa-isi', $grupPeta, 'Peta Google ' . setting('nama_desa')) ?>
 </div></div>
 <?php endif; ?>
 <section class="sec" aria-labelledby="judul-prinsip"><div class="wrap">

@@ -1,7 +1,7 @@
 <?php
 // Bagian atas setiap halaman (desain A "Samudra", Fase 12s). Sebelum memanggil file ini, halaman mengisi:
 //   $judul = judul tab browser, $menu = menu yang sedang aktif
-//   $pakaiPeta = true kalau halaman butuh peta, $pakaiCuaca = true kalau butuh cuaca
+//   $pakaiCuaca = true kalau butuh cuaca
 $judul = $judul ?? setting('nama_desa');
 $menu  = $menu ?? '';
 // Menu utama. Setiap menu punya submenu yang muncul saat disentuh atau diarahkan kursor.
@@ -75,10 +75,7 @@ $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="cu
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <?php if (!empty($pakaiPeta)): ?>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12s3">
 </head>
 <body class="publik">
 <a class="skip" href="#isi">Langsung ke isi halaman</a>

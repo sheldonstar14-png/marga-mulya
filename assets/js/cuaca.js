@@ -116,7 +116,7 @@
         '<div class="wx-days">' + kotak + '</div>' +
         '<p class="wx-note">' + (tingkatHujan(terbaik) >= 2 ? 'Minggu ini hujan hampir setiap hari. Hari paling ringan: <b>' : 'Hari terbaik berkunjung: <b>') + tglPanjang(terbaik.tgl) + '</b> (peluang hujan ' + terbaik.hujan + '%, sekitar ' + Math.round(terbaik.mm) + ' mm). ' +
         saranCuaca(terbaik, el.dataset.jenis, el.dataset.nama) + '</p>' +
-        '<div class="wx-src">Angka biru = peluang hujan. Kotak hijau = hari paling cocok. Sumber: Open-Meteo.</div>';
+        '<div class="wx-src">Angka biru = peluang hujan. Kotak berwarna toska = hari paling cocok. Sumber: Open-Meteo.</div>';
       // Tombol "Pesan" ikut diarahkan ke tanggal terbaik
       const tombol = el.dataset.tombol && document.getElementById(el.dataset.tombol);
       if (tombol) {

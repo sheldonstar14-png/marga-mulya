@@ -1,6 +1,5 @@
   </main>
 </div>
-<?php if (!empty($pakaiPeta)): ?><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><?php endif; ?>
 <?php if (!empty($pakaiQr)): ?>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
@@ -13,7 +12,7 @@ document.querySelectorAll('[data-qr]').forEach(el => {
 });
 </script>
 <?php endif; ?>
-<script src="/assets/js/admin.js?v=12q"></script>
+<script src="/assets/js/admin.js?v=12s3"></script>
 <?php if (function_exists('gerbang_aktif') && gerbang_aktif()): ?>
 <form method="post" action="/keluar-situs" class="gerbang-keluar"><button type="submit">Mode privat aktif. Keluar</button></form>
 <?php endif; ?>

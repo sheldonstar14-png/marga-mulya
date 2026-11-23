@@ -7,24 +7,18 @@ $rating = [];
 foreach (q('SELECT wisata_id, COUNT(*) AS n, AVG(bintang) AS rata FROM ulasan WHERE tampil = 1 GROUP BY wisata_id') as $r) {
     $rating[$r['wisata_id']] = $r;
 }
-$umkm   = q('SELECT nama_usaha, lat, lng FROM umkm WHERE lat IS NOT NULL AND lng IS NOT NULL');
 try { $budaya = q('SELECT * FROM budaya ORDER BY urutan, id'); } catch (Throwable $e) { $budaya = q('SELECT * FROM budaya ORDER BY id'); }
 $jenisWisata = array_values(array_unique(array_column($wisata, 'jenis')));
 $etik = kode_etik_kelompok();
 
-// Titik-titik untuk peta
-$titik = [];
-foreach ($wisata as $w) {
-    $titik[] = ['lat' => (float) $w['lat'], 'lng' => (float) $w['lng'], 'nama' => $w['nama'], 'jenis' => 'wisata', 'url' => '/wisata/' . $w['slug']];
-}
-foreach ($umkm as $u) {
-    $titik[] = ['lat' => (float) $u['lat'], 'lng' => (float) $u['lng'], 'nama' => $u['nama_usaha'], 'jenis' => 'umkm', 'url' => '/umkm'];
-}
-$titik[] = ['lat' => (float) setting('lat'), 'lng' => (float) setting('lng'), 'nama' => 'Kantor ' . setting('nama_desa'), 'jenis' => 'fasilitas', 'url' => '/kontak'];
+// Lokasi untuk peta Google: wisata, UMKM, dan kantor desa
+$grupPeta = ['Wisata' => [], 'UMKM' => [], 'Kantor desa' => []];
+foreach ($wisata as $w) $grupPeta['Wisata'][] = ['nama' => $w['nama'], 'ket' => $w['jenis'] . ', ' . $w['jam_buka'], 'lat' => $w['lat'], 'lng' => $w['lng'], 'url' => '/wisata/' . $w['slug'], 'warna' => '#F08A3C'];
+foreach (q('SELECT id, nama_usaha, produk, lat, lng FROM umkm WHERE lat IS NOT NULL AND lng IS NOT NULL ORDER BY id') as $u) $grupPeta['UMKM'][] = ['nama' => $u['nama_usaha'], 'ket' => $u['produk'], 'lat' => $u['lat'], 'lng' => $u['lng'], 'url' => '/umkm#umkm-' . (int) $u['id'], 'warna' => '#15607F'];
+$grupPeta['Kantor desa'][] = ['nama' => 'Kantor ' . setting('nama_desa'), 'ket' => setting('jam_layanan'), 'lat' => setting('lat'), 'lng' => setting('lng'), 'url' => '/kontak', 'warna' => '#0B3C5D'];
 
 $judul = 'Wisata dan Budaya - ' . setting('nama_desa');
 $menu  = 'wisata';
-$pakaiPeta = true;
 require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
@@ -96,9 +90,8 @@ require __DIR__ . '/../inc/header.php';
 </div></section>
 
 <div class="sec sec-putih"><div class="wrap">
-  <h2>Peta potensi desa</h2>
-  <div class="peta" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Peta destinasi, UMKM, dan kantor desa"></div>
-  <div class="legend"><span style="--c:#E2A529">Wisata</span><span style="--c:#3F7D3A">UMKM</span><span style="--c:#1E2B22">Kantor desa</span></div>
+  <div class="kepala"><div><h2 id="peta">Peta wisata dan UMKM</h2><p>Tekan nama tempat untuk melihatnya di Google Maps, atau tekan Rute untuk petunjuk arah dari lokasimu.</p></div></div>
+  <?= peta_google('peta-wisata', $grupPeta, 'Peta Google wisata dan UMKM ' . setting('nama_desa')) ?>
 </div></div>
 <?php
 $scriptHalaman = <<<'JS'

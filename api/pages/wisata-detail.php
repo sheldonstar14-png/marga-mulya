@@ -21,7 +21,6 @@ $etik = kode_etik_kelompok($w);
 
 $judul = $w['nama'] . ' - ' . setting('nama_desa');
 $menu  = 'wisata';
-$pakaiPeta = true;
 $pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 ?>
@@ -91,7 +90,7 @@ require __DIR__ . '/../inc/header.php';
       </div>
       <a class="btn btn-ghost" style="margin-top:10px;width:100%" href="<?= e($linkArah) ?>" target="_blank" rel="noopener">Petunjuk arah di Google Maps</a>
       <?php if ($w['gmaps_ulasan']): ?><p class="small" style="text-align:center;margin:8px 0 0"><a href="<?= e($w['gmaps_ulasan']) ?>" target="_blank" rel="noopener">Lihat ulasan di Google Maps</a></p><?php endif; ?>
-      <div class="peta peta-kecil" style="margin-top:18px" data-titik="<?= titik_peta($titik) ?>" role="region" aria-label="Lokasi <?= e($w['nama']) ?>"></div>
+      <iframe class="peta-google" title="Lokasi <?= e($namaW) ?> di Google Maps" src="<?= e(gmaps_embed((float) $w['lat'], (float) $w['lng'])) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </aside>
   </div>
 </div>

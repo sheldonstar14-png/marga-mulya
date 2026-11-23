@@ -35,8 +35,7 @@ $badge = ['aspirasi' => $jumlahAspirasiBaru, 'surat' => $jumlahSuratBaru, 'ulasa
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <?php if (!empty($pakaiPeta)): ?><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""><?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12s3">
 </head>
 <body class="cms">
 <?php
