@@ -1812,3 +1812,58 @@ h3 .tanda-ilus{margin-left:6px;vertical-align:3px}
 @media (max-width:900px){.darurat-kartu{grid-template-columns:1fr 1fr}}
 @media (max-width:460px){.darurat-kartu{grid-template-columns:1fr}.darurat-a .darurat-item{min-height:0}}
 .gpeta-lapis .chip{font-size:.88rem;min-height:36px;padding:5px 12px}
+
+/* 12s4: Akses cepat satu kotak (warga dan pengunjung) */
+.akses-satu{background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden}
+.akses-kepala{display:flex;align-items:baseline;gap:6px 18px;flex-wrap:wrap;padding:20px 24px;background:var(--navy);color:#fff}
+.akses-kepala h2{margin:0;color:#fff;font-size:1.4rem}
+.akses-kepala p{margin:0;color:#BFD2DE;font-size:.97rem}
+.tiles-12{grid-template-columns:repeat(6,minmax(0,1fr));padding:20px}
+.tiles-12 .tile-darurat i{background:#FDECEA;color:#B3261E}
+@media (max-width:1000px){.tiles-12{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:640px){.tiles-12{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px}}
+
+/* Kerja dan pelatihan */
+.loker-waspada{display:flex;gap:14px;align-items:flex-start;background:#FFF7EC;border:1px solid #F4D8B3;border-left:5px solid #D88A1C;border-radius:16px;padding:14px 18px;margin-bottom:18px;color:#5C3A12}
+.loker-waspada svg{flex:none;color:#C96A1F;margin-top:2px}
+.loker-waspada p{margin:0;max-width:none;font-size:.96rem}
+.loker-alat{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:center;margin-bottom:16px}
+.loker-alat .chips{margin:0}
+.loker-cari{min-height:48px}
+@media (max-width:820px){.loker-alat{grid-template-columns:1fr}}
+.loker-daftar{display:grid;gap:14px}
+.loker{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:18px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:0 10px 26px -24px rgba(11,60,93,.5)}
+.loker[data-jenis="Kerja di desa"]{border-left:5px solid var(--toska)}
+.loker[hidden]{display:none}
+.loker-ikon{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;color:#fff}
+.ik-desa{background:var(--toska)}.ik-resmi{background:var(--navy)}.ik-latih{background:#C96A1F}
+.loker-tag{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.loker-tag>span:not(.tanda-ilus){font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:8px;background:#EEF2F5;color:#3B4A55}
+.loker-tag .tag-jenis{background:#E8EEF4;color:var(--navy)}
+.loker-tag .tag-lokal{background:var(--toska-m);color:#0E5E64}
+.loker h3{margin:0 0 6px;font-size:1.25rem;line-height:1.3}
+.loker-meta{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.92rem;color:var(--muted)}
+.loker-meta li{display:inline-flex;align-items:center;gap:6px}
+.loker-meta li:first-child{color:var(--ink);font-weight:700}
+.loker-meta .mendesak{color:#B3261E;font-weight:700}
+.loker-meta .segera{color:#A15C00;font-weight:700}
+.loker-detail{margin-top:8px}
+.loker-detail summary{cursor:pointer;font-weight:700;color:var(--navy);font-size:.93rem}
+.loker-detail dl{margin:10px 0 6px;display:grid;gap:4px;font-size:.92rem}
+.loker-detail dl div{display:flex;gap:10px}
+.loker-detail dt{min-width:96px;color:var(--muted)}
+.loker-detail dd{margin:0;font-weight:700}
+.loker-syarat{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+.loker-aksi{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:200px}
+.loker-aksi small{text-align:center;color:var(--muted);font-size:.78rem}
+@media (max-width:760px){.loker{grid-template-columns:48px minmax(0,1fr);padding:16px}.loker-ikon{width:46px;height:46px;border-radius:14px}.loker-aksi{grid-column:1/-1;min-width:0}}
+.loker-kosong{padding:20px;text-align:center}
+.loker-sumber{margin-top:32px}
+.loker-sumber h2{font-size:1.4rem}
+.sumber-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sumber-grid>a,.sumber-grid>div{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;text-decoration:none;color:var(--ink)}
+.sumber-grid>a:hover{border-color:var(--toska)}
+.sumber-grid b{font-size:1.05rem;color:var(--navy)}
+.sumber-grid span{font-size:.93rem}
+.sumber-grid small{color:var(--toska);font-weight:700;font-size:.82rem;margin-top:auto}
+@media (max-width:860px){.sumber-grid{grid-template-columns:1fr}}

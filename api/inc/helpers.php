@@ -290,6 +290,12 @@ function bersihkan_data_lama(): int
     // Fase 12: surat yang sudah selesai/ditolak, dan antrean yang sudah lewat
     $n += $jalankan("UPDATE surat SET nama = '(dihapus)', wa = '', email = '' WHERE COALESCE(diperbarui_pada, dibuat_pada) < ? AND status IN ('Selesai', 'Ditolak') AND nama <> '(dihapus)'");
     $n += $jalankan("DELETE FROM antrean WHERE tanggal < ?");
+    // Kerja dan pelatihan (12t): nomor WhatsApp pemberi kerja dihapus 30 hari setelah batas pendaftaran lewat
+    try {
+        $stL = db()->prepare("UPDATE loker SET wa = '', status = 'Selesai' WHERE batas < ? AND status IN ('Tayang', 'Menunggu', 'Ditolak')");
+        $stL->execute([date('Y-m-d', strtotime('-30 days'))]);
+        $n += $stL->rowCount();
+    } catch (Throwable $e) {}
     $n += $jalankan("UPDATE pesanan_umkm SET nama = '(dihapus)', wa = '', alamat = '' WHERE dibuat_pada < ? AND nama <> '(dihapus)'");
     // Data relawan dihapus 30 hari setelah kegiatannya lewat (jumlah relawan di laporan tidak hilang karena dihitung saat itu)
     $stR = db()->prepare('DELETE FROM relawan WHERE agenda_id IN (SELECT id FROM agenda WHERE tanggal < ?)');

@@ -661,6 +661,31 @@ CREATE TABLE IF NOT EXISTS lembaga (
 -- Menu yang dihentikan: kunjungan rombongan, pesan masuk, permintaan data pribadi, bank sampah, check-in
 UPDATE admin SET akses = CONCAT(akses, ',lembaga') WHERE akses IS NOT NULL AND akses LIKE '%statistik%' AND akses NOT LIKE '%lembaga%';
 
+-- ---------- Tambahan 12t: Kerja dan pelatihan ----------
+-- Peluang kerja di desa (diajukan warga/UMKM, diperiksa petugas), lowongan resmi yang diteruskan
+-- dari sumber pemerintah, dan info pelatihan. Lowongan otomatis hilang setelah tanggal batas.
+CREATE TABLE IF NOT EXISTS loker (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  kode VARCHAR(20) NOT NULL DEFAULT '',
+  jenis VARCHAR(30) NOT NULL DEFAULT 'Kerja di desa',
+  judul VARCHAR(150) NOT NULL,
+  pemberi VARCHAR(150) NOT NULL DEFAULT '',
+  lokasi VARCHAR(150) NOT NULL DEFAULT '',
+  waktu_kerja VARCHAR(30) NOT NULL DEFAULT 'Harian',
+  upah VARCHAR(100) NOT NULL DEFAULT '',
+  kebutuhan INT NOT NULL DEFAULT 1,
+  syarat TEXT NULL,
+  cara_daftar VARCHAR(255) NOT NULL DEFAULT '',
+  wa VARCHAR(20) NOT NULL DEFAULT '',
+  tautan VARCHAR(255) NOT NULL DEFAULT '',
+  batas DATE NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'Menunggu',
+  catatan VARCHAR(255) NOT NULL DEFAULT '',
+  ilustrasi TINYINT NOT NULL DEFAULT 0,
+  dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+UPDATE admin SET akses = CONCAT(akses, ',loker') WHERE akses IS NOT NULL AND akses LIKE '%pengajuanumkm%' AND akses NOT LIKE '%loker%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

@@ -35,6 +35,7 @@ $indeksCari = [
     ['Papan aspirasi warga', 'aspirasi perkembangan status laporan', '/kontak#papan'],
     ['Nomor darurat', 'darurat polisi ambulans pemadam kebakaran 112 sar', '/kontak#darurat'],
     ['Izin kunjungan rombongan, KKN, atau penelitian', 'rombongan sekolah study tour reservasi pesan kunjungan kkn penelitian izin', '/data-desa?grup=Layanan+surat&izin=1#surat'],
+    ['Kerja dan pelatihan', 'loker lowongan kerja pekerjaan pelatihan blk kursus panen tambak abk pemandu', '/kerja'],
     ['Cuaca darat dan gelombang laut', 'cuaca hujan gelombang laut angin melaut nelayan petani jemur gabah', '/cuaca'],
     ['Budaya dan kesenian', 'budaya kesenian sedekah laut marawis gambang kromong silat kuliner', '/wisata#budaya'],
     ['Kode etik pengunjung', 'aturan etika pengunjung sampah foto', '/wisata#kode-etik'],
@@ -63,20 +64,19 @@ $ikon = fn(string $d) => '<i aria-hidden="true"><svg width="24" height="24" view
 $judulHero = setting('hero_judul');
 $namaDesa = setting('nama_desa');
 $posNama = mb_stripos($judulHero, $namaDesa);
-$aksesWarga = [
+// Akses cepat: satu kotak untuk warga dan pengunjung (12s4)
+$aksesCepat = [
     ['Ajukan surat', '/data-desa?grup=Layanan+surat#surat', '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>'],
     ['Bantuan sosial', '/data-desa?grup=Pantau+bansos', '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'],
     ['Aspirasi dan pertanyaan', '/kontak#aspirasi', '<path d="M4 5h16v11H9l-5 4z"/>'],
     ['Anggaran desa', '/data-desa?grup=Transparansi', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
-    ['Data desa', '/data-desa', '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/>'],
-    ['Nomor darurat', '/kontak#darurat', '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'],
-];
-$aksesTamu = [
+    ['Kerja dan pelatihan', '/kerja', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'],
+    ['Nomor darurat', '/kontak#darurat', '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>', 'tile-darurat'],
     ['Wisata dan budaya', '/wisata', '<path d="M3 16h18l-2.5 4H5.5z"/><path d="M12 16V3l6 9h-6"/>'],
     ['Produk UMKM', '/umkm', '<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>'],
     ['Peta dan rute', '/profil#peta-desa', '<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/>'],
     ['Agenda dan relawan', '/agenda', '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
-    ['Cuaca dan waktu kunjung', '/cuaca', '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>'],
+    ['Cuaca darat dan laut', '/cuaca', '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>'],
     ['Kode etik pengunjung', '/wisata#kode-etik', '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>'],
 ];
 $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
@@ -116,16 +116,9 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
 </section>
 
 <section class="sec sec-akses" aria-labelledby="judul-akses"><div class="wrap">
-  <div class="kepala"><h2 id="judul-akses">Akses cepat</h2></div>
-  <div class="akses2">
-    <div class="pintu-a p-warga">
-      <div class="pintu-kepala"><h3>Untuk warga</h3><p>Urus surat, bantuan, dan keperluan desa dari HP.</p></div>
-      <div class="tiles"><?php foreach ($aksesWarga as [$l, $u, $d]): ?><a href="<?= e($u) ?>"><?= $ikon($d) ?><span><?= e($l) ?></span></a><?php endforeach; ?></div>
-    </div>
-    <div class="pintu-a p-tamu">
-      <div class="pintu-kepala"><h3>Untuk pengunjung</h3><p>Rencanakan kunjungan dan belanja produk warga.</p></div>
-      <div class="tiles"><?php foreach ($aksesTamu as [$l, $u, $d]): ?><a href="<?= e($u) ?>"><?= $ikon($d) ?><span><?= e($l) ?></span></a><?php endforeach; ?></div>
-    </div>
+  <div class="akses-satu">
+    <div class="akses-kepala"><h2 id="judul-akses">Akses cepat</h2><p>Layanan dan informasi yang paling sering dicari warga dan pengunjung.</p></div>
+    <div class="tiles tiles-12"><?php foreach ($aksesCepat as $t): [$l, $u, $d] = $t; ?><a href="<?= e($u) ?>"<?= !empty($t[3]) ? ' class="' . $t[3] . '"' : '' ?>><?= $ikon($d) ?><span><?= e($l) ?></span></a><?php endforeach; ?></div>
   </div>
 </div></section>
 

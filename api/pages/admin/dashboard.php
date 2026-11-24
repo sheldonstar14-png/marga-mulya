@@ -27,6 +27,7 @@ $labelTugas = [
     'aspirasi' => ['aspirasi atau pertanyaan warga baru', '/admin/aspirasi?status=Diterima'],
     'surat' => ['pengajuan surat atau izin kunjungan baru', '/admin/surat'],
     'pengajuanumkm' => ['produk UMKM menunggu ditinjau', '/admin/pengajuanumkm'],
+    'loker' => ['peluang kerja menunggu diperiksa', '/admin/loker?status=Menunggu'],
     'ulasanumkm' => ['ulasan UMKM menunggu diperiksa', '/admin/ulasanumkm'],
 ];
 $tugas = array_filter($labelTugas, fn($k) => !empty($badge[$k]), ARRAY_FILTER_USE_KEY);

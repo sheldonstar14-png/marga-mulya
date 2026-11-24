@@ -10,7 +10,7 @@ try { $jumlahAjuUmkm = boleh($admin, 'pengajuanumkm') ? (int) q1("SELECT COUNT(*
 $jumlahSuratBaru = boleh($admin, 'surat') ? (int) q1("SELECT COUNT(*) AS n FROM surat WHERE status = 'Diterima'")['n'] : 0;
 $grupMenu = [
     'Layanan'   => ['dashboard' => 'Dashboard', 'aspirasi' => 'Aspirasi & pertanyaan', 'surat' => 'Pengajuan surat & izin', 'layanan' => 'Jenis surat & syarat', 'asisten' => 'Asisten desa (menu)'],
-    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'pengajuanumkm' => 'Pengajuan produk UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'agenda' => 'Agenda', 'relawan' => 'Relawan gotong royong', 'survei' => 'Survei kepuasan', 'berita' => 'Berita', 'galeri' => 'Galeri', 'kreditfoto' => 'Sumber & kredit foto'],
+    'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'pengajuanumkm' => 'Pengajuan produk UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'loker' => 'Kerja & pelatihan', 'agenda' => 'Agenda', 'relawan' => 'Relawan gotong royong', 'survei' => 'Survei kepuasan', 'berita' => 'Berita', 'galeri' => 'Galeri', 'kreditfoto' => 'Sumber & kredit foto'],
     'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'lembaga' => 'Lembaga desa', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
     'Laporan' => ['laporan' => 'Laporan bulanan'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'bansos' => 'Penerima bansos'],
@@ -21,7 +21,9 @@ foreach ($grupMenu as $namaGrupMenu => $isiGrupMenu) {
     $grupMenu[$namaGrupMenu] = array_filter($isiGrupMenu, fn($kunciMenu) => boleh($admin, $kunciMenu), ARRAY_FILTER_USE_KEY);
     if (!$grupMenu[$namaGrupMenu]) unset($grupMenu[$namaGrupMenu]);
 }
-$badge = ['aspirasi' => $jumlahAspirasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm, 'pengajuanumkm' => $jumlahAjuUmkm];
+$jumlahLoker = 0;
+if (boleh($admin, 'loker')) { try { $jumlahLoker = (int) q1("SELECT COUNT(*) AS n FROM loker WHERE status = 'Menunggu'")['n']; } catch (Throwable $e) {} }
+$badge = ['loker' => $jumlahLoker, 'aspirasi' => $jumlahAspirasiBaru, 'surat' => $jumlahSuratBaru, 'ulasanumkm' => $jumlahUlasanUmkm, 'pengajuanumkm' => $jumlahAjuUmkm];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -35,7 +37,7 @@ $badge = ['aspirasi' => $jumlahAspirasiBaru, 'surat' => $jumlahSuratBaru, 'ulasa
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12t">
 </head>
 <body class="cms">
 <?php

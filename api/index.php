@@ -56,6 +56,7 @@ $rute = [
     'data-desa' => 'data',
     'wisata'    => 'wisata',
     'cuaca'     => 'cuaca',
+    'kerja'     => 'kerja',
     'umkm'      => 'umkm',
     'agenda'    => 'agenda',
     'galeri'    => 'galeri',

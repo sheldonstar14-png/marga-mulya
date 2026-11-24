@@ -352,6 +352,43 @@ $CRUD += [
         'tombolTambahan' => ['/admin/bansos', 'Kelola penerima bansos'],
     ],
 
+    'loker' => [
+        'judul' => 'Kerja dan pelatihan', 'satu' => 'peluang', 'tabel' => 'loker', 'urut' => 'batas, id',
+        'catatan' => 'Peluang kerja dari warga masuk dengan status Menunggu. Periksa dulu (hubungi nomornya, pastikan tidak memungut biaya), lalu ubah status menjadi Tayang. Lowongan perusahaan hanya boleh diteruskan dari sumber resmi seperti Karirhub Kemnaker atau Disnaker, dengan link sumbernya. Peluang hilang otomatis dari website setelah tanggal batas.',
+        'saring' => 'status', 'saringTurun' => true,
+        'kolom' => ['judul' => 'Peluang', 'jenis' => 'Jenis', 'pemberi' => 'Pemberi', 'batas' => 'Batas', 'status' => 'Status'],
+        'format' => ['batas' => 'tanggal'],
+        'field' => [
+            ['status', 'Status', 'select', ['pilihan' => ['Menunggu', 'Tayang', 'Ditolak', 'Selesai']]],
+            ['catatan', 'Catatan untuk pengaju (tampil di Cek pengajuan, wajib kalau ditolak)', 'text', ['maks' => 255]],
+            ['jenis', 'Jenis', 'select', ['pilihan' => ['Kerja di desa', 'Lowongan resmi', 'Pelatihan']]],
+            ['judul', 'Pekerjaan atau pelatihan', 'text', ['wajib' => true, 'maks' => 150]],
+            ['pemberi', 'Pemberi kerja atau penyelenggara', 'text', ['wajib' => true, 'maks' => 150]],
+            ['lokasi', 'Lokasi', 'text', ['wajib' => true, 'maks' => 150]],
+            ['waktu_kerja', 'Waktu kerja', 'select', ['pilihan' => ['Harian', 'Paruh waktu', 'Akhir pekan', 'Musiman', 'Kontrak', 'Penuh waktu', 'Pelatihan']]],
+            ['upah', 'Upah (opsional)', 'text', ['maks' => 100]],
+            ['kebutuhan', 'Dibutuhkan (orang). Isi 0 kalau tidak dibatasi', 'number', ['min' => 0, 'max' => 10000]],
+            ['syarat', 'Syarat (satu baris satu syarat)', 'textarea', []],
+            ['cara_daftar', 'Cara daftar', 'text', ['wajib' => true, 'maks' => 255, 'contoh' => 'Hubungi lewat WhatsApp, atau lamar di Karirhub']],
+            ['wa', 'Nomor WhatsApp pemberi kerja (kosongkan untuk lowongan resmi)', 'text', ['maks' => 20]],
+            ['tautan', 'Link sumber resmi (wajib untuk lowongan resmi)', 'text', ['maks' => 255, 'contoh' => 'https://karirhub.kemnaker.go.id/...']],
+            ['batas', 'Batas pendaftaran', 'date', ['wajib' => true]],
+            ['ilustrasi', 'Ilustrasi (contoh untuk lomba)', 'check', []],
+        ],
+        'baru' => ['status' => 'Tayang', 'jenis' => 'Lowongan resmi', 'waktu_kerja' => 'Kontrak', 'kebutuhan' => 1, 'ilustrasi' => 0],
+        'cekSimpan' => function (array $data, ?int $id, array $admin): ?string {
+            if (($data['tautan'] ?? '') !== '' && !str_starts_with($data['tautan'], 'https://')) return 'Link sumber harus diawali https://.';
+            if (($data['jenis'] ?? '') === 'Lowongan resmi' && ($data['tautan'] ?? '') === '') return 'Lowongan resmi wajib mencantumkan link sumber resminya.';
+            if (($data['status'] ?? '') === 'Ditolak' && trim($data['catatan'] ?? '') === '') return 'Tulis alasan penolakan di kolom catatan supaya pengaju tahu.';
+            if (($data['wa'] ?? '') !== '' && !preg_match('/^628\d{7,11}$/', nomor_wa($data['wa']))) return 'Nomor WhatsApp belum benar. Contoh: 081234567890.';
+            return null;
+        },
+        'sebelumSimpan' => function (array &$data, ?int $id): void {
+            if (($data['wa'] ?? '') !== '') $data['wa'] = nomor_wa($data['wa']);
+            if ($id === null) $data['kode'] = kode_unik('LKR', 'loker');
+        },
+    ],
+
     'lembaga' => [
         'judul' => 'Lembaga desa', 'satu' => 'lembaga', 'tabel' => 'lembaga', 'urut' => 'urutan, id',
         'catatan' => 'Lembaga kemasyarakatan dan kelompok warga beserta kegiatan rutinnya. Tampil di halaman Profil.',

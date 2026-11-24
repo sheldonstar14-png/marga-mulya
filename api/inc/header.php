@@ -31,9 +31,11 @@ $daftarMenu = [
         ['Budaya dan kesenian', '/wisata#budaya'],
         ['Kode etik pengunjung', '/wisata#kode-etik'],
     ]],
-    'umkm'      => ['UMKM', '/umkm', [
-        ['Produk warga', '/umkm'],
+    'umkm'      => ['Ekonomi', '/umkm', [
+        ['Produk UMKM warga', '/umkm'],
         ['Ajukan produk', '/umkm#ajukan'],
+        ['Kerja dan pelatihan', '/kerja'],
+        ['Pasang peluang kerja', '/kerja#pasang'],
     ]],
     'agenda'    => ['Kabar Desa', '/agenda', [
         ['Berita', '/agenda#berita'],
@@ -48,6 +50,7 @@ $menuAktif = match (true) {
     $menu === 'data-desa' && in_array($grupBuka, ['Layanan surat', 'Pantau bansos'], true) => 'layanan',
     $menu === 'galeri' => 'agenda',
     $menu === 'cuaca' => 'data-desa',
+    $menu === 'kerja' => 'umkm',
     default => $menu,
 };
 $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
@@ -75,7 +78,7 @@ $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="cu
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=12s3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12t">
 </head>
 <body class="publik">
 <a class="skip" href="#isi">Langsung ke isi halaman</a>

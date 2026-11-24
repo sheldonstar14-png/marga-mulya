@@ -107,6 +107,7 @@ const MENU_PETUGAS = [
     'relawan'   => 'Relawan gotong royong',
     'survei'    => 'Survei kepuasan',
     'pengajuanumkm' => 'Pengajuan produk UMKM',
+    'loker'     => 'Kerja dan pelatihan',
     'kreditfoto' => 'Sumber & kredit foto',
     'berita'    => 'Berita',
     'galeri'    => 'Galeri',
