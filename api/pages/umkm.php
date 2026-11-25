@@ -97,7 +97,7 @@ require __DIR__ . '/../inc/header.php';
       $pesan = 'Halo ' . $u['nama_usaha'] . ', saya lihat di website ' . setting('nama_desa') . '. Saya ingin pesan ' . $u['produk'] . ' (' . rupiah((int) $u['harga']) . ' / ' . $u['satuan'] . '). Apakah masih tersedia?'; ?>
       <div class="card" id="umkm-<?= (int) $u['id'] ?>">
         <?php [$usahaU, $ilusU] = pisah_ilustrasi($u['nama_usaha']); $fotoLain = array_filter(explode(',', (string) ($u['foto_lain'] ?? ''))); ?>
-        <div class="art" style="position:relative"><img src="<?= e($u['foto'] ?: '/assets/img/ikan.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"><?= tanda_ilustrasi($ilusU) ?></div>
+        <div class="art" style="position:relative"><img src="<?= e($u['foto'] ?: '/assets/img/ikan.svg') ?>" alt="<?= e($u['produk']) ?>" loading="lazy"><?= tanda_foto((string) $u['foto'], $ilusU) ?></div>
         <?php if ($fotoLain): ?><div class="foto-lain"><?php foreach (array_merge([$u['foto']], $fotoLain) as $fl): ?><button type="button" data-ganti-foto="<?= e($fl) ?>" aria-label="Lihat foto lain <?= e($u['produk']) ?>"><img src="<?= e($fl) ?>" alt="" loading="lazy" width="56" height="42"></button><?php endforeach; ?></div><?php endif; ?>
         <div class="card-body">
           <span class="tag"><?= e($u['kategori']) ?></span>

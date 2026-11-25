@@ -369,3 +369,20 @@ INSERT IGNORE INTO loker (id, kode, jenis, judul, pemberi, lokasi, waktu_kerja, 
 -- Asisten Desa: menu kerja dan pelatihan
 INSERT IGNORE INTO asisten_menu (id, induk_id, judul, pertanyaan, jawaban, tautan, label_tautan, urutan, aktif) VALUES
 (77, 7, 'Lowongan kerja dan pelatihan', '', 'Halaman Kerja dan pelatihan berisi peluang kerja di desa (panen tambak, ABK harian, pemandu wisata), lowongan dari sumber resmi pemerintah, dan pelatihan gratis.\nLowongan asli tidak pernah memungut biaya. Laporkan yang mencurigakan lewat Aspirasi.\nPunya usaha dan butuh tenaga? Pasang peluang kerja di halaman yang sama, gratis.', '/kerja', 'Buka Kerja dan pelatihan', 7, 1);
+
+-- ---------- Tambahan 12u: perbaikan setelah penilaian ----------
+-- Semua foto ditandai foto ilustrasi (tim belum memiliki foto asli desa). Bisa dimatikan di CMS > Pengaturan.
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('semua_foto_ilustrasi', '1');
+-- Gambar Muludan tidak lagi memakai gambar marawis
+UPDATE budaya SET foto = '/assets/img/budaya-muludan.svg' WHERE judul LIKE 'Muludan%' AND foto = '/assets/img/budaya-marawis.svg';
+-- Mata pencaharian dijumlah 4.380 (sama dengan jumlah penduduk yang bekerja). Hanya mengubah angka ilustrasi lama.
+UPDATE statistik SET nilai = 980 WHERE kategori = 'Mata pencaharian' AND label = 'Petani dan buruh tani' AND nilai = 1080 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 670 WHERE kategori = 'Mata pencaharian' AND label = 'Karyawan swasta dan buruh pabrik' AND nilai = 870 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 590 WHERE kategori = 'Mata pencaharian' AND label = 'Wiraswasta dan pedagang' AND nilai = 690 AND ilustrasi = 1;
+UPDATE statistik SET nilai = 260 WHERE kategori = 'Mata pencaharian' AND label = 'Pekerja lepas dan lainnya' AND nilai = 600 AND ilustrasi = 1;
+-- Klaim kesehatan produk diganti keterangan netral (hanya kalau teksnya masih teks contoh lama)
+UPDATE umkm SET deskripsi = 'Minyak kelapa murni yang dibuat dari kelapa kebun warga tanpa pemanasan tinggi. Dikemas dalam botol kaca 250 ml.' WHERE deskripsi = 'Minyak kelapa murni yang dibuat dari kelapa kebun warga tanpa pemanasan tinggi. Bisa untuk memasak atau perawatan kulit.';
+UPDATE umkm SET deskripsi = 'Bandeng dari tambak pesisir dimasak presto sampai durinya lunak. Simpan di kulkas setelah kemasan dibuka.' WHERE deskripsi = 'Bandeng dari tambak pesisir dimasak presto sampai durinya lunak, jadi aman untuk anak dan lansia. Tahan dua hari di suhu ruang dan seminggu di kulkas.';
+UPDATE ulasan_umkm SET komentar = 'Minyaknya jernih dan wangi kelapa. Saya pakai untuk menumis dan membuat kue.' WHERE id = 104 AND komentar = 'Minyaknya jernih dan wangi kelapa. Saya pakai untuk memasak dan untuk kulit anak.';
+-- Jam kelas batok disamakan dengan jam buka
+UPDATE wisata SET waktu_terbaik = 'Hari kerja pukul 09.00 sampai 15.00, saat pengrajin bekerja. Bisa dikunjungi saat hujan.' WHERE slug = 'batok-kelapa' AND waktu_terbaik = 'Hari kerja pukul 09.00 sampai 14.00, saat pengrajin bekerja. Bisa dikunjungi saat hujan.';

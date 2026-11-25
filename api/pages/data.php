@@ -352,8 +352,8 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
       <article class="card proyek">
         <?php if ($p['foto'] || $p['foto_sesudah']): ?>
           <div class="proyek-foto <?= $p['foto'] && $p['foto_sesudah'] ? 'dua' : '' ?>">
-            <?php if ($p['foto']): ?><figure><img src="<?= e($p['foto']) ?>" alt="Foto sebelum pembangunan" loading="lazy"><figcaption>Sebelum</figcaption></figure><?php endif; ?>
-            <?php if ($p['foto_sesudah']): ?><figure><img src="<?= e($p['foto_sesudah']) ?>" alt="Foto sesudah pembangunan" loading="lazy"><figcaption><?= $p['status'] === 'Selesai' ? 'Sesudah' : 'Terkini' ?></figcaption></figure><?php endif; ?>
+            <?php if ($p['foto']): ?><figure><img src="<?= e($p['foto']) ?>" alt="Foto sebelum pembangunan" loading="lazy"><figcaption>Sebelum<?= foto_bukan_vektor((string) $p['foto']) && semua_foto_ilustrasi() ? ' (foto ilustrasi)' : '' ?></figcaption></figure><?php endif; ?>
+            <?php if ($p['foto_sesudah']): ?><figure><img src="<?= e($p['foto_sesudah']) ?>" alt="Foto sesudah pembangunan" loading="lazy"><figcaption><?= $p['status'] === 'Selesai' ? 'Sesudah' : 'Terkini' ?><?= foto_bukan_vektor((string) $p['foto_sesudah']) && semua_foto_ilustrasi() ? ' (foto ilustrasi)' : '' ?></figcaption></figure><?php endif; ?>
           </div>
         <?php endif; ?>
         <div class="card-body">

@@ -1867,3 +1867,32 @@ h3 .tanda-ilus{margin-left:6px;vertical-align:3px}
 .sumber-grid span{font-size:.93rem}
 .sumber-grid small{color:var(--toska);font-weight:700;font-size:.82rem;margin-top:auto}
 @media (max-width:860px){.sumber-grid{grid-template-columns:1fr}}
+
+/* 12u: Lingkungan pesisir */
+.eko-kepala{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 32px;flex-wrap:wrap;margin-bottom:18px}
+.eko-kepala h2{margin:0 0 6px}
+.eko-kepala p{margin:0;max-width:62ch;color:var(--muted)}
+.eko-sdg{display:flex;flex-wrap:wrap;gap:8px}
+.eko-sdg span{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:12px;font-size:.84rem;font-weight:700}
+.eko-sdg b{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.22);font-size:.95rem}
+.eko-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.eko-kartu{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;text-decoration:none;color:var(--ink)}
+.eko-kartu:hover{border-color:var(--toska)}
+.eko-kartu i{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#E6F4EA;color:#2F7A3E}
+.eko-kartu b{font-size:1.08rem;color:var(--navy)}
+.eko-kartu span{font-size:.94rem;line-height:1.55}
+.eko-kartu small{margin-top:auto;padding-top:6px;color:#2F7A3E;font-weight:700;font-size:.85rem}
+.eko-catatan{margin:12px 0 0;font-size:.84rem;color:var(--muted)}
+@media (max-width:1000px){.eko-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.eko-grid{grid-template-columns:1fr}}
+/* Tanda foto ilustrasi */
+.hero-panel{position:relative}
+.hero-ilus{position:absolute;right:18px;top:16px;z-index:2;background:rgba(11,60,93,.82);color:#fff;font-size:.78rem;font-weight:700;padding:5px 10px;border-radius:8px}
+.kredit-ilus{background:#FFF7EC;border:1px solid #F4D8B3;border-radius:12px;padding:12px 14px;font-size:.92rem;color:#5C3A12}
+.kredit-tautan .tanda-ilus{margin-right:4px}
+.gal .art .tanda-ilus{position:absolute;left:10px;top:10px}
+/* Baris jumlah keseluruhan di grafik statistik */
+.bar-induk{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 10px;padding:10px 14px;background:#F2F6F9;border-radius:12px}
+.bar-induk b{font-size:1.1rem;color:var(--navy)}
+.bar-induk small{flex-basis:100%;color:var(--muted)}
+@media (max-width:640px){.hero-ilus{position:static;display:inline-block;margin:0 auto 10px;order:-1}}

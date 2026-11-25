@@ -35,7 +35,7 @@ require __DIR__ . '/../inc/header.php';
   <div class="wisata-grid">
     <?php foreach ($wisata as $w): [$nmW, $ilusW] = pisah_ilustrasi($w['nama']); ?>
       <a class="w-kartu" href="/wisata/<?= e($w['slug']) ?>" data-jenis="<?= e($w['jenis']) ?>">
-        <span class="w-foto"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($nmW) ?>" loading="lazy"><?= tanda_ilustrasi($ilusW) ?></span>
+        <span class="w-foto"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($nmW) ?>" loading="lazy"><?= tanda_foto((string) $w['foto'], $ilusW) ?></span>
         <span class="w-isi">
           <span class="chip-kecil"><?= e($w['jenis']) ?></span>
           <b><?= e($nmW) ?></b>
@@ -61,7 +61,7 @@ require __DIR__ . '/../inc/header.php';
   <div class="budaya-grid">
     <?php foreach ($budaya as $b): [$jdlB, $ilusB] = pisah_ilustrasi($b['judul']); $ilusB = $ilusB || !empty($b['ilustrasi']); ?>
       <article class="budaya-kartu" id="budaya-<?= (int) $b['id'] ?>">
-        <div class="budaya-foto"><img src="<?= e(($b['foto'] ?? '') ?: '/assets/img/budaya-sedekah-laut.svg') ?>" alt="" loading="lazy"><?= tanda_ilustrasi($ilusB, 'Gambar ilustrasi') ?></div>
+        <div class="budaya-foto"><img src="<?= e(($b['foto'] ?? '') ?: '/assets/img/budaya-sedekah-laut.svg') ?>" alt="" loading="lazy"><?= tanda_foto((string) ($b['foto'] ?? ''), $ilusB, 'Gambar ilustrasi') ?></div>
         <div class="budaya-isi">
           <span class="chip-kecil"><?= e($b['jenis'] ?? 'Budaya') ?></span>
           <h3><?= e($jdlB) ?></h3>

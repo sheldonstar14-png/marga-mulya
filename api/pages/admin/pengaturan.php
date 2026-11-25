@@ -31,6 +31,7 @@ $grup = [
             'nama_desa'   => ['Nama desa', 'text'],
             'kecamatan'   => ['Kecamatan', 'text'],
             'kabupaten'   => ['Kabupaten', 'text'],
+            'semua_foto_ilustrasi' => ['Tandai semua foto sebagai foto ilustrasi (centang selama belum memakai foto asli desa)', 'cek'],
             'label_status' => ['Label kecil di atas judul beranda (misalnya status ilustrasi untuk lomba)', 'text'],
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
@@ -66,7 +67,7 @@ $bagianPengaturan = [
     'Beranda'              => ['label_status', 'hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
     'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng', 'gmaps_mymaps'],
     'Wisata dan pengunjung' => ['kode_etik_lengkap', 'kode_etik_umum', 'waktu_kunjung'],
-    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'catatan_logo', 'kredit_foto'],
+    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'semua_foto_ilustrasi', 'catatan_logo', 'kredit_foto'],
     'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
 ];
 $g = $grup[$sub];

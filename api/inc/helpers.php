@@ -80,25 +80,35 @@ function bar_list(array $rows): string
         return '<p class="muted">Belum ada data.</p>';
     }
     $nilai = array_map(fn($r) => (float) $r['nilai'], $rows);
-    $max = max($nilai) ?: 1;
-    $satuan = array_unique(array_column($rows, 'satuan'));
-    $komposisi = count($rows) >= 2 && count($satuan) === 1 && $satuan[0] !== '%' && array_sum($nilai) > 0;
-    $total = array_sum($nilai);
+    $satuan = array_values(array_unique(array_column($rows, 'satuan')));
+    // 12u: baris pertama bisa berupa jumlah keseluruhan (misalnya "Penduduk usia kerja" = Bekerja + Mencari kerja + Lainnya).
+    // Baris seperti itu tidak ikut dihitung sebagai bagian; persen baris lain dihitung terhadapnya.
+    $adaInduk = count($rows) >= 3 && count($satuan) === 1 && $satuan[0] !== '%'
+        && abs($nilai[0] - array_sum(array_slice($nilai, 1))) <= max(1, $nilai[0] * 0.005) && $nilai[0] > 0;
+    $bagian = $adaInduk ? array_slice($rows, 1) : $rows;
+    $nilaiBagian = array_map(fn($r) => (float) $r['nilai'], $bagian);
+    $max = max($nilaiBagian) ?: 1;
+    $komposisi = count($bagian) >= 2 && count($satuan) === 1 && $satuan[0] !== '%' && array_sum($nilaiBagian) > 0;
+    $total = $adaInduk ? $nilai[0] : array_sum($nilaiBagian);
     $warna = fn(int $i) => $i < 6 ? 'var(--seri-' . ($i + 1) . ')' : 'var(--seri-lain)';
     $html = '';
     // Kalau semua baris ilustrasi, cukup satu tanda di atas (tidak diulang per baris)
     $semuaIlus = count(array_filter($rows, fn($r) => !empty($r['ilustrasi']))) === count($rows);
     if ($semuaIlus) $html .= '<p class="ilus-semua"><span class="tanda-ilus">Ilustrasi</span> Angka contoh, menunggu data resmi kantor desa.</p>';
+    if ($adaInduk) {
+        $r = $rows[0];
+        $html .= '<p class="bar-induk"><span>' . e($r['label']) . '</span><b>' . angka($r['nilai']) . ' ' . e($r['satuan']) . '</b><small>Rincian di bawah dihitung dari jumlah ini.</small></p>';
+    }
     if ($komposisi) {
-        $html .= '<div class="komposisi" role="img" aria-label="Komposisi: ' . e(implode(', ', array_map(fn($r) => $r['label'] . ' ' . persen_id((float) $r['nilai'], $total) . ' persen', $rows))) . '">';
-        foreach ($rows as $i => $r) {
+        $html .= '<div class="komposisi" role="img" aria-label="Komposisi: ' . e(implode(', ', array_map(fn($r) => $r['label'] . ' ' . persen_id((float) $r['nilai'], $total) . ' persen', $bagian))) . '">';
+        foreach ($bagian as $i => $r) {
             $pr = (float) $r['nilai'] / $total * 100;
             if ($pr <= 0) continue;
             $html .= '<span style="width:' . round($pr, 2) . '%;background:' . $warna($i) . '" title="' . e($r['label'] . ': ' . angka($r['nilai']) . ' ' . $r['satuan'] . ' (' . persen_id((float) $r['nilai'], $total) . '%)') . '"></span>';
         }
         $html .= '</div>';
     }
-    foreach ($rows as $i => $r) {
+    foreach ($bagian as $i => $r) {
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
         $tanda = !empty($r['ilustrasi']) && !$semuaIlus ? ' <span class="ilus" title="Data contoh, bukan data resmi">(ilustrasi)</span>' : '';
         $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . $tanda . '</span>'
@@ -752,6 +762,26 @@ function sumber_foto(string $foto, string $sumber = ''): string
     return '';
 }
 
+// 12u: semua foto dianggap ilustrasi (tim tidak memiliki foto asli desa). Bisa dimatikan di Pengaturan.
+function semua_foto_ilustrasi(): bool
+{
+    return setting('semua_foto_ilustrasi', '1') === '1';
+}
+
+// Foto (jpg/png dari internet atau unggahan), bukan gambar vektor buatan tim
+function foto_bukan_vektor(string $foto): bool
+{
+    $foto = trim($foto);
+    return $foto !== '' && !(str_starts_with($foto, '/assets/img/') && str_ends_with($foto, '.svg'));
+}
+
+// Tanda ilustrasi di pojok foto. $lama = tanda "(ilustrasi)" dari judul atau kolom ilustrasi.
+function tanda_foto(string $foto, bool $lama = false, string $teksVektor = 'Ilustrasi'): string
+{
+    if (foto_bukan_vektor($foto)) return ($lama || semua_foto_ilustrasi()) ? tanda_ilustrasi(true, 'Foto ilustrasi') : '';
+    return tanda_ilustrasi($lama || semua_foto_ilustrasi(), $teksVektor);
+}
+
 // Daftar kredit dikelompokkan per halaman, sesuai tempat foto tampil. Dipakai dialog "Sumber dan kredit foto".
 function kredit_per_halaman(): array
 {
@@ -761,7 +791,7 @@ function kredit_per_halaman(): array
     $aman = function (callable $f) { try { return $f(); } catch (Throwable $e) { return []; } };
     $tambah = function (string $hal, string $lokasi, string $judul, string $foto, string $sumber = '', string $url = '') use (&$h) {
         if (trim($foto) === '') return;
-        $h[$hal][] = ['lokasi' => $lokasi, 'judul' => $judul, 'sumber' => sumber_foto($foto, $sumber), 'url' => preg_match('#^https?://#', $url) ? $url : ''];
+        $h[$hal][] = ['lokasi' => $lokasi, 'judul' => $judul, 'sumber' => sumber_foto($foto, $sumber), 'url' => preg_match('#^https?://#', $url) ? $url : '', 'ilus' => foto_bukan_vektor($foto) && semua_foto_ilustrasi()];
     };
     // Semua halaman
     $h['Semua halaman'][] = ['lokasi' => 'Kiri atas dan kaki halaman', 'judul' => 'Logo ' . setting('nama_desa'), 'sumber' => setting('catatan_logo', 'Dibuat tim dengan bantuan AI, bukan logo resmi pemerintah desa'), 'url' => ''];

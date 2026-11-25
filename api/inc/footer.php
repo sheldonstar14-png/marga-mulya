@@ -45,6 +45,7 @@
   <div class="kredit-kepala"><h2 id="judulKredit">Sumber dan kredit foto</h2><button type="button" class="btn btn-ghost btn-sm" data-tutup aria-label="Tutup">&times;</button></div>
   <div class="kredit-isi">
     <p class="muted">Daftar ini disusun otomatis per halaman, sesuai tempat foto atau gambar itu tampil. Foto dan gambar bertanda ilustrasi bukan dokumentasi resmi <?= e(setting('nama_desa')) ?>.</p>
+    <?php if (semua_foto_ilustrasi()): ?><p class="kredit-ilus"><b>Semua foto di website ini adalah foto ilustrasi.</b> Tim belum menemukan foto asli <?= e(setting('nama_desa')) ?> yang bisa dipakai, sehingga foto diambil dari sumber lain di internet sebagai gambaran suasana. Foto-foto ini tidak menunjukkan lokasi, warga, atau kegiatan asli desa. Hak cipta tetap milik pemilik foto masing-masing.</p><?php endif; ?>
     <?php foreach (kredit_per_halaman() as $namaHal => $daftarKf): ?>
       <details class="kredit-hal" <?= $namaHal === array_key_first(kredit_per_halaman()) ? 'open' : '' ?>>
         <summary><?= e($namaHal) ?> <span class="muted">(<?= count($daftarKf) ?>)</span></summary>
@@ -54,7 +55,8 @@
               <span class="kredit-lokasi"><?= e($kf['lokasi']) ?></span>
               <b><?= e($kf['judul']) ?></b>
               <span class="kredit-tautan">
-                <?php if ($kf['sumber'] !== ''): ?><span><?= e($kf['sumber']) ?></span><?php else: ?><span class="muted">Sumber belum dicantumkan</span><?php endif; ?>
+                <?php if (!empty($kf['ilus'])): ?><span class="tanda-ilus">Foto ilustrasi</span><?php endif; ?>
+                <?php if ($kf['sumber'] !== ''): ?><span><?= e($kf['sumber']) ?></span><?php else: ?><span class="muted"><?= !empty($kf['ilus']) ? 'Diambil dari internet, nama pemilik foto belum dicantumkan' : 'Sumber belum dicantumkan' ?></span><?php endif; ?>
                 <?php if ($kf['url']): ?><a href="<?= e($kf['url']) ?>" target="_blank" rel="noopener nofollow">Buka sumber</a><?php endif; ?>
                 <?php if (!empty($kf['lisensi'])): ?><?= !empty($kf['lisensi_url']) ? '<a href="' . e($kf['lisensi_url']) . '" target="_blank" rel="noopener nofollow">' . e($kf['lisensi']) . '</a>' : '<span>' . e($kf['lisensi']) . '</span>' ?><?php endif; ?>
               </span>

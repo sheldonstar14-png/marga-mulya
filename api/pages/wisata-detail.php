@@ -28,7 +28,7 @@ require __DIR__ . '/../inc/header.php';
   <p><a href="/wisata">Semua destinasi</a></p>
   <div class="split">
     <div>
-      <div class="art detail-foto" style="border-radius:var(--r-l);aspect-ratio:16/9;position:relative"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($namaW) ?>"><?= tanda_ilustrasi($ilusW) ?></div>
+      <div class="art detail-foto" style="border-radius:var(--r-l);aspect-ratio:16/9;position:relative"><img src="<?= e($w['foto'] ?: '/assets/img/panorama.svg') ?>" alt="<?= e($namaW) ?>"><?= tanda_foto((string) $w['foto'], $ilusW) ?></div>
       <span class="chip-kecil" style="margin-top:22px;display:inline-block"><?= e($w['jenis']) ?></span>
       <h1 style="margin-top:8px;margin-bottom:6px"><?= e($namaW) ?></h1>
       <?php if ($ringkasUlasan['n'] > 0): ?>

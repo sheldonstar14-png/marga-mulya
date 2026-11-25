@@ -29,7 +29,7 @@ require __DIR__ . '/../inc/header.php';
     <?php foreach ($foto as $g): ?>
       <figure style="margin:0">
         <button type="button" class="buka-foto" data-src="<?= e($g['foto']) ?>" data-judul="<?= e($g['judul']) ?>" aria-label="Perbesar foto <?= e($g['judul']) ?>">
-          <div class="art"><img src="<?= e($g['foto']) ?>" alt="<?= e($g['judul']) ?>" loading="lazy"></div>
+          <div class="art" style="position:relative"><img src="<?= e($g['foto']) ?>" alt="<?= e($g['judul']) ?>" loading="lazy"><?= tanda_foto((string) $g['foto']) ?></div>
         </button>
         <?php $sf = sumber_foto((string) $g['foto'], (string) ($g['sumber_foto'] ?? '')); ?>
         <figcaption><?= e($g['judul']) ?><?php if ($sf): ?><small class="foto-sumber-kecil">Sumber: <?= !empty($g['sumber_url']) ? '<a href="' . e($g['sumber_url']) . '" target="_blank" rel="noopener nofollow">' . e($sf) . '</a>' : e($sf) ?></small><?php endif; ?></figcaption>

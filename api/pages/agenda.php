@@ -144,7 +144,7 @@ require __DIR__ . '/../inc/header.php';
     <div class="grid">
       <?php foreach ($berita as $b): [$jdlB, $ilusB] = pisah_ilustrasi($b['judul']); $paragraf = paragraf_teks($b['isi']); $menit = max(1, (int) round(str_word_count(strip_tags($b['isi'])) / 180)); ?>
         <article class="card berita-kartu" id="berita-<?= (int) $b['id'] ?>" data-kat="<?= e($b['kategori'] ?? '') ?>">
-          <?php if ($b['foto']): ?><figure class="art berita-foto" style="margin:0;position:relative"><img src="<?= e($b['foto']) ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/img/panorama.svg'"><?= tanda_ilustrasi($ilusB) ?><?php $sf = sumber_foto((string) $b['foto'], (string) ($b['sumber_foto'] ?? '')); if ($sf): ?><figcaption class="foto-sumber">Foto: <?= e($sf) ?></figcaption><?php endif; ?></figure><?php endif; ?>
+          <?php if ($b['foto']): ?><figure class="art berita-foto" style="margin:0;position:relative"><img src="<?= e($b['foto']) ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='/assets/img/panorama.svg'"><?= tanda_foto((string) $b['foto'], $ilusB) ?><?php $sf = sumber_foto((string) $b['foto'], (string) ($b['sumber_foto'] ?? '')); if ($sf): ?><figcaption class="foto-sumber">Foto: <?= e($sf) ?></figcaption><?php endif; ?></figure><?php endif; ?>
           <div class="card-body">
             <p class="berita-meta"><?php if (!empty($b['kategori'])): ?><b class="berita-kat"><?= e($b['kategori']) ?></b><?php endif; ?><span><?= tgl($b['tanggal']) ?></span><span><?= $menit ?> menit baca</span><?= !$b['foto'] ? tanda_ilustrasi($ilusB) : '' ?></p>
             <h3 class="berita-judul"><?= e($jdlB) ?></h3>
