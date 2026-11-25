@@ -341,6 +341,21 @@ CREATE TABLE IF NOT EXISTS loker (
 );
 UPDATE admin SET akses = CONCAT(akses, ',loker') WHERE akses IS NOT NULL AND akses LIKE '%pengajuanumkm%' AND akses NOT LIKE '%loker%';
 
+-- ---------- Tambahan 12w: Lingkungan pesisir ----------
+-- Kartu bagian "Menjaga pesisir" di beranda, diatur lewat CMS > Lingkungan pesisir.
+CREATE TABLE IF NOT EXISTS lingkungan (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  judul VARCHAR(100) NOT NULL,
+  isi VARCHAR(300) NOT NULL DEFAULT '',
+  ikon VARCHAR(20) NOT NULL DEFAULT 'Mangrove',
+  tautan VARCHAR(150) NOT NULL DEFAULT '',
+  info VARCHAR(40) NOT NULL DEFAULT 'Teks bebas',
+  info_teks VARCHAR(120) NOT NULL DEFAULT '',
+  aktif TINYINT NOT NULL DEFAULT 1,
+  urutan INT NOT NULL DEFAULT 10
+);
+UPDATE admin SET akses = CONCAT(akses, ',lingkungan') WHERE akses IS NOT NULL AND akses LIKE '%lembaga%' AND akses NOT LIKE '%lingkungan%';
+
 -- ---------- Contoh isi (ganti dengan data asli lewat CMS) ----------
 UPDATE bantuan SET kuota = 40, jumlah_tahap = 3 WHERE id = 1 AND kuota = 0;
 UPDATE bantuan SET kuota = 60, jumlah_tahap = 1 WHERE id = 2 AND kuota = 0;

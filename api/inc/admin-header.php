@@ -11,7 +11,7 @@ $jumlahSuratBaru = boleh($admin, 'surat') ? (int) q1("SELECT COUNT(*) AS n FROM 
 $grupMenu = [
     'Layanan'   => ['dashboard' => 'Dashboard', 'aspirasi' => 'Aspirasi & pertanyaan', 'surat' => 'Pengajuan surat & izin', 'layanan' => 'Jenis surat & syarat', 'asisten' => 'Asisten desa (menu)'],
     'Konten'    => ['wisata' => 'Wisata', 'budaya' => 'Budaya', 'umkm' => 'UMKM', 'pengajuanumkm' => 'Pengajuan produk UMKM', 'ulasanumkm' => 'Ulasan UMKM', 'loker' => 'Kerja & pelatihan', 'agenda' => 'Agenda', 'relawan' => 'Relawan gotong royong', 'survei' => 'Survei kepuasan', 'berita' => 'Berita', 'galeri' => 'Galeri', 'kreditfoto' => 'Sumber & kredit foto'],
-    'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'lembaga' => 'Lembaga desa', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
+    'Data desa' => ['statistik' => 'Statistik desa', 'profil' => 'Profil desa', 'aparat' => 'Perangkat desa', 'lembaga' => 'Lembaga desa', 'lingkungan' => 'Lingkungan pesisir', 'fasilitas' => 'Fasilitas umum', 'zona' => 'Zona rawan bencana', 'darurat' => 'Nomor darurat'],
     'Laporan' => ['laporan' => 'Laporan bulanan'],
     'Transparansi' => ['apbdes' => 'APBDes', 'pembangunan' => 'Pembangunan', 'bantuan' => 'Program bantuan', 'bansos' => 'Penerima bansos'],
 ];
@@ -37,7 +37,7 @@ $badge = ['loker' => $jumlahLoker, 'aspirasi' => $jumlahAspirasiBaru, 'surat' =>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=12v">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12w">
 </head>
 <body class="cms">
 <?php

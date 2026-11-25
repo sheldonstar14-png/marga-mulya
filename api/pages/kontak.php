@@ -126,7 +126,7 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Kontak dan layanan warga</h1>
-  <p>Hubungi petugas desa, sampaikan aspirasi atau pengaduan, dan simpan nomor darurat yang bisa langsung ditelepon dari HP.</p>
+  <p><?= e(teks('intro_kontak')) ?></p>
 </div>
 
 <?php if ($darurat): ?>

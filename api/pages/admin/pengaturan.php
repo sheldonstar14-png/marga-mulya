@@ -38,6 +38,31 @@ $grup = [
             'teks_angka_ilustrasi' => ['Keterangan di atas grafik yang angkanya ilustrasi', 'text'],
             'teks_kaki' => ['Teks tentang website di kaki halaman', 'area'],
             'teks_hak_cipta' => ['Kalimat di samping hak cipta (paling bawah)', 'text'],
+            'intro_data' => ['Teks pembuka halaman Informasi desa', 'area'],
+            'intro_surat' => ['Teks pembuka tab Layanan surat', 'area'],
+            'intro_bansos' => ['Teks pembuka tab Bantuan sosial', 'area'],
+            'intro_cuaca' => ['Teks pembuka tab Cuaca', 'area'],
+            'intro_cuaca_darat' => ['Keterangan bagian cuaca darat', 'text'],
+            'intro_cuaca_laut' => ['Keterangan bagian cuaca laut', 'text'],
+            'intro_wisata' => ['Teks pembuka halaman Wisata', 'area'],
+            'intro_budaya' => ['Keterangan bagian Budaya dan kesenian', 'text'],
+            'intro_wisata_beranda' => ['Keterangan bagian wisata di beranda', 'text'],
+            'intro_umkm' => ['Teks pembuka halaman Produk UMKM', 'area'],
+            'intro_umkm_beranda' => ['Keterangan bagian produk di beranda', 'text'],
+            'intro_umkm_ajukan' => ['Ajakan menitipkan produk', 'area'],
+            'intro_kerja' => ['Teks pembuka tab Kerja dan pelatihan', 'area'],
+            'intro_kerja_pasang' => ['Ajakan memasang peluang kerja', 'text'],
+            'kerja_sumber' => ['Sumber lowongan resmi (satu baris satu sumber: Nama | Keterangan | https://alamat)', 'area'],
+            'intro_agenda' => ['Teks pembuka halaman Kabar desa', 'area'],
+            'intro_galeri' => ['Teks pembuka halaman Galeri', 'area'],
+            'intro_kontak' => ['Teks pembuka halaman Kontak', 'area'],
+            'profil_ajakan' => ['Ajakan ikut kegiatan di halaman Profil', 'area'],
+            'batas_utara' => ['Batas utara desa (angka ringkas di beranda)', 'text'],
+            'eko_judul' => ['Judul bagian lingkungan di beranda', 'text'],
+            'eko_teks' => ['Teks pembuka bagian lingkungan', 'area'],
+            'eko_catatan' => ['Catatan kecil di bawah kartu lingkungan', 'text'],
+            'eko_sdg' => ['Nomor SDGs bagian lingkungan (pisahkan koma, misalnya 13, 14, 15)', 'text'],
+            'eko_kata_agenda' => ['Kata kunci agenda lingkungan (pisahkan koma)', 'text'],
             'semua_foto_ilustrasi' => ['Tandai semua foto sebagai foto ilustrasi (centang selama belum memakai foto asli desa)', 'cek'],
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
@@ -74,6 +99,7 @@ $bagianPengaturan = [
     'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng', 'gmaps_mymaps'],
     'Wisata dan pengunjung' => ['kode_etik_lengkap', 'kode_etik_umum', 'waktu_kunjung'],
     'Teks keterangan (ilustrasi dan lomba)' => ['label_status', 'teks_foto_beranda', 'label_foto', 'semua_foto_ilustrasi', 'teks_foto_ilustrasi', 'teks_angka_ilustrasi', 'teks_kaki', 'teks_hak_cipta', 'catatan_logo'],
+    'Teks halaman' => ['intro_data', 'intro_surat', 'intro_bansos', 'intro_cuaca', 'intro_cuaca_darat', 'intro_cuaca_laut', 'intro_wisata', 'intro_budaya', 'intro_wisata_beranda', 'intro_umkm', 'intro_umkm_beranda', 'intro_umkm_ajukan', 'intro_kerja', 'intro_kerja_pasang', 'kerja_sumber', 'intro_agenda', 'intro_galeri', 'intro_kontak', 'profil_ajakan', 'batas_utara', 'eko_judul', 'eko_teks', 'eko_catatan', 'eko_sdg', 'eko_kata_agenda'],
     'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'kredit_foto'],
     'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
 ];
@@ -88,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'gmaps_mymaps', 'label_status', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi', 'teks_foto_beranda', 'label_foto', 'teks_foto_ilustrasi', 'teks_angka_ilustrasi', 'teks_kaki', 'teks_hak_cipta'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'gmaps_mymaps', 'label_status', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi', 'teks_foto_beranda', 'label_foto', 'teks_foto_ilustrasi', 'teks_angka_ilustrasi', 'teks_kaki', 'teks_hak_cipta', 'intro_data', 'intro_surat', 'intro_bansos', 'intro_cuaca', 'intro_cuaca_darat', 'intro_cuaca_laut', 'intro_wisata', 'intro_budaya', 'intro_wisata_beranda', 'intro_umkm', 'intro_umkm_beranda', 'intro_umkm_ajukan', 'intro_kerja', 'intro_kerja_pasang', 'kerja_sumber', 'intro_agenda', 'intro_galeri', 'intro_kontak', 'profil_ajakan', 'batas_utara', 'eko_judul', 'eko_teks', 'eko_catatan', 'eko_sdg', 'eko_kata_agenda'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     foreach ($g['kunci'] as $kunci => [, $jenisK]) if ($jenisK === 'cek') $baru[$kunci] = !empty($_POST[$kunci]) ? '1' : '0';
@@ -136,7 +162,7 @@ $adaError = (bool) $errors;
   <details class="panel bagian-form" <?= $nomorBagian === 1 || $adaError || count($bagianTampil) === 1 ? 'open' : '' ?>>
     <summary><?= e($namaBagian) ?></summary>
   <?php foreach ($kunciBagian as $kunci): if (!isset($g['kunci'][$kunci])) continue; [$label, $jenis] = $g['kunci'][$kunci];
-    $nilai = $_POST[$kunci] ?? str_replace('\n', "\n", setting($kunci)); ?>
+    $nilai = $_POST[$kunci] ?? str_replace('\n', "\n", setting($kunci) !== '' ? setting($kunci) : (TEKS_BAWAAN[$kunci] ?? '')); ?>
     <div class="field">
       <?php if ($jenis === 'cek'): ?>
         <label class="cek-setuju"><input type="checkbox" name="<?= $kunci ?>" value="1" <?= $nilai === '1' ? 'checked' : '' ?>> <span><?= e($label) ?></span></label>

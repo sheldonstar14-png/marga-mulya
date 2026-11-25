@@ -17,7 +17,7 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Galeri</h1>
-  <p>Foto kegiatan dan sudut desa. Sumber setiap foto tertulis di bawahnya dan di daftar Sumber dan kredit foto.</p>
+  <p><?= e(teks('intro_galeri')) ?></p>
 </div>
 <div class="wrap sec" style="padding-top:16px">
   <nav class="chips" aria-label="Kategori foto">

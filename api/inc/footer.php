@@ -24,8 +24,8 @@
           <li><a href="/data-desa?grup=Transparansi">Anggaran desa (APBDes)</a></li>
           <li><a href="/data-desa">Data desa</a></li>
           <li><a href="/wisata">Wisata dan budaya</a></li>
-          <li><a href="/kerja">Kerja dan pelatihan</a></li>
-          <li><a href="/cuaca">Cuaca darat dan laut</a></li>
+          <li><a href="/umkm?bagian=kerja">Kerja dan pelatihan</a></li>
+          <li><a href="/data-desa?grup=Cuaca">Cuaca darat dan laut</a></li>
         </ul>
       </div>
       <div>

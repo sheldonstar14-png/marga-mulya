@@ -392,3 +392,41 @@ UPDATE wisata SET waktu_terbaik = 'Hari kerja pukul 09.00 sampai 15.00, saat pen
 UPDATE pengaturan SET nilai = 'Konsep website desa untuk IIT EcoQuest 2026' WHERE kunci = 'label_status' AND nilai = 'Ilustrasi website desa untuk IIT EcoQuest 2026';
 UPDATE pengaturan SET nilai = 'Logo dirancang tim website dengan bantuan alat AI, bukan lambang resmi Pemerintah Desa Marga Mulya.' WHERE kunci = 'catatan_logo' AND nilai = 'Logo website ini dibuat tim dengan bantuan AI dan bukan logo resmi Pemerintah Desa Marga Mulya.';
 UPDATE pengaturan SET nilai = 'Data asli: luas wilayah, jumlah RW dan RT, serta penduduk menurut jenis kelamin dari BPS (Kecamatan Mauk Dalam Angka 2025, data 2024). Angka bertanda ilustrasi disusun mengikuti format Data EcoQuest A sampai M sebagai gambaran, dan bisa diganti data resmi kantor desa lewat CMS.' WHERE kunci = 'catatan_data' AND nilai = 'Data asli: luas wilayah, jumlah RW dan RT, serta penduduk menurut jenis kelamin dari BPS (Kecamatan Mauk Dalam Angka 2025, data 2024). Angka bertanda (ilustrasi) adalah contoh yang disusun mengikuti format Data EcoQuest A sampai M, dan akan diganti dengan data resmi dari kantor desa.';
+
+-- ---------- Tambahan 12w: tidak ada lagi teks desa yang ditulis langsung di kode ----------
+-- Teks pembuka halaman dan bagian, kini di CMS > Pengaturan > Teks halaman. Teks yang sudah ada tidak ditimpa.
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES
+('intro_data', 'Data kependudukan, pemerintahan, pendidikan, kesehatan, permukiman, perikanan, pertanian, ekonomi, dan infrastruktur {desa}, ditambah layanan surat, bantuan sosial, anggaran, pembangunan, dan cuaca.'),
+('intro_surat', 'Ajukan surat keterangan dan izin kunjungan dari HP, lacak prosesnya, lalu cukup sekali datang ke kantor desa untuk tanda tangan.'),
+('intro_bansos', 'Program bantuan untuk keluarga, nelayan, petani, pelajar, dan pelaku usaha, beserta syarat, cara daftar, dan penyalurannya yang bisa dipantau terbuka.'),
+('intro_cuaca', 'Prakiraan 4 hari untuk sawah dan kebun, gelombang untuk nelayan dan wisata pantai, lengkap dengan saran sederhana.'),
+('intro_cuaca_darat', 'Untuk petani, pekebun kelapa, dan warga yang menjemur hasil panen.'),
+('intro_cuaca_laut', 'Untuk nelayan perahu kecil, pengunjung pantai, dan kegiatan di mangrove.'),
+('intro_wisata', 'Dari pantai, mangrove, dan kampung nelayan sampai sawah, kerajinan batok kelapa, tradisi, dan kuliner warga. Pengunjung perorangan dan keluarga cukup datang langsung.'),
+('intro_budaya', 'Tradisi pesisir, kesenian, dan kuliner yang masih hidup di tengah warga.'),
+('intro_wisata_beranda', 'Pantai dan mangrove, kampung nelayan, sawah, kerajinan, sampai tradisi dan kuliner warga.'),
+('intro_umkm', 'Olahan hasil laut, kelapa, dan kerajinan buatan warga. Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.'),
+('intro_umkm_beranda', 'Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.'),
+('intro_umkm_ajukan', 'Nelayan, pengolah ikan, pengrajin batok, atau pembuat kue rumahan di {desa} bisa menitipkan produknya di website desa, gratis.'),
+('intro_kerja', 'Peluang kerja dari warga dan usaha di {desa}, lowongan dari sumber resmi pemerintah, dan pelatihan gratis untuk menambah keterampilan.'),
+('intro_kerja_pasang', 'Untuk pemilik tambak, nelayan, UMKM, BUMDes, dan kelompok warga di {desa}. Gratis.'),
+('kerja_sumber', 'Karirhub Kemnaker | Lowongan resmi dari perusahaan di seluruh Indonesia, termasuk Kabupaten Tangerang. Melamar memakai akun SIAPkerja. | https://karirhub.kemnaker.go.id\nSkillhub Kemnaker | Pelatihan kerja gratis di balai latihan kerja (BLK). Pendaftaran dibuka per batch. | https://skillhub.kemnaker.go.id\nDisnaker Kabupaten Tangerang | Kartu pencari kerja (AK-1), bursa kerja, dan pembekalan kerja ke luar negeri. Kantor desa bisa membantu surat pengantar dan surat domisili. |'),
+('intro_agenda', 'Berita dan pengumuman dari pemerintah desa, agenda kegiatan warga, dan ajakan menjadi relawan gotong royong.'),
+('intro_galeri', 'Foto kegiatan dan sudut desa. Sumber setiap foto tertulis di bawahnya dan di daftar Sumber dan kredit foto.'),
+('intro_kontak', 'Hubungi petugas desa, sampaikan aspirasi atau pengaduan, dan simpan nomor darurat yang bisa langsung ditelepon dari HP.'),
+('profil_ajakan', 'Warga dan pengunjung bisa ikut tanam mangrove dan bersih pantai, menyampaikan aspirasi yang perkembangannya terbuka, dan menitipkan produk UMKM sendiri di website desa.'),
+('batas_utara', 'Laut Jawa'),
+('eko_judul', 'Menjaga pesisir {nama}'),
+('eko_teks', 'Desa ini hidup dari laut, tambak, dan sawah. Abrasi, banjir rob, dan sampah plastik adalah tantangan sehari-hari, jadi warga menjaganya bersama.'),
+('eko_catatan', 'Kegiatan dan kawasan di atas adalah gambaran program lingkungan untuk desa pesisir.'),
+('eko_sdg', '13, 14, 15'),
+('eko_kata_agenda', 'mangrove, pantai, sampah, pohon');
+-- Kartu Lingkungan pesisir di beranda (CMS > Lingkungan pesisir)
+INSERT IGNORE INTO lingkungan (id, judul, isi, ikon, tautan, info, info_teks, aktif, urutan) VALUES
+(1, 'Tanam mangrove', 'Akar mangrove menahan ombak dan abrasi, sekaligus jadi rumah kepiting dan ikan. Warga dan pengunjung menanam bibit bersama saat musim hujan.', 'Mangrove', '/wisata#budaya', 'Agenda lingkungan berikutnya', 'Lihat jadwal di Kabar desa', 1, 1),
+(2, 'Bersih pantai dan pilah sampah', 'Sampah plastik di pesisir dipungut, dipilah, lalu dijual. Hasilnya masuk kas Karang Taruna.', 'Sampah', '/agenda', 'Teks bebas', 'Minggu pertama setiap bulan, terbuka untuk relawan', 1, 2),
+(3, 'Waspada abrasi dan rob', 'Peta desa menandai kawasan yang rawan terkena abrasi, rob, dan genangan, supaya warga dan pengunjung bisa berhati-hati.', 'Ombak', '/profil#peta-desa', 'Jumlah kawasan rawan di peta', 'Lihat peta desa', 1, 3),
+(4, 'Cuaca dan gelombang', 'Prakiraan hujan dan tinggi gelombang membantu nelayan memutuskan melaut dan petani menjadwalkan tanam.', 'Cuaca', '/data-desa?grup=Cuaca', 'Sumber data cuaca', '', 1, 4);
+-- Menu Asisten Desa: alamat halaman Cuaca dan Kerja yang baru
+UPDATE asisten_menu SET tautan = '/data-desa?grup=Cuaca' WHERE tautan = '/cuaca';
+UPDATE asisten_menu SET tautan = '/umkm?bagian=kerja' WHERE tautan = '/kerja';

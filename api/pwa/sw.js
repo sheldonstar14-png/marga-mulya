@@ -7,9 +7,9 @@
 // - Halaman CMS (/admin) dan kiriman form tidak pernah disimpan.
 // Naikkan angka VERSI kalau CSS atau JS berubah besar.
 // =========================================================
-const VERSI = 'mm-v12v-1';
-const HALAMAN = ['/', '/kontak', '/data-desa?grup=Layanan+surat', '/data-desa?grup=Pantau+bansos', '/wisata', '/umkm', '/profil', '/cuaca', '/agenda', '/kerja'];
-const ASET = ['/assets/css/style.css?v=12v', '/assets/js/akses.js?v=12s', '/assets/js/asisten.js?v=12s', '/assets/js/cuaca.js?v=12s3',
+const VERSI = 'mm-v12w-1';
+const HALAMAN = ['/', '/kontak', '/data-desa?grup=Layanan+surat', '/data-desa?grup=Pantau+bansos', '/wisata', '/umkm', '/profil', '/data-desa?grup=Cuaca', '/agenda', '/umkm?bagian=kerja'];
+const ASET = ['/assets/css/style.css?v=12w', '/assets/js/akses.js?v=12s', '/assets/js/asisten.js?v=12s', '/assets/js/cuaca.js?v=12s3',
   '/assets/img/favicon.png', '/assets/img/ikon-192.png', '/assets/img/logo-mark.png?v=2', '/assets/img/panorama.svg', '/assets/img/kades.svg', '/asisten'];
 
 self.addEventListener('install', e => {
@@ -29,7 +29,7 @@ const simpan = (req, res) => {
 // Halaman cadangan: daftar halaman yang tersimpan di HP ini
 async function halamanOffline() {
   const c = await caches.open(VERSI);
-  const nama = { '/': 'Beranda', '/kontak': 'Kontak dan nomor darurat', '/wisata': 'Wisata dan budaya', '/umkm': 'Produk UMKM', '/profil': 'Profil desa', '/cuaca': 'Cuaca darat dan laut', '/agenda': 'Kabar desa dan agenda', '/kerja': 'Kerja dan pelatihan' };
+  const nama = { '/': 'Beranda', '/kontak': 'Kontak dan nomor darurat', '/wisata': 'Wisata dan budaya', '/umkm': 'Produk UMKM', '/profil': 'Profil desa', '/data-desa?grup=Cuaca': 'Cuaca darat dan laut', '/agenda': 'Kabar desa dan agenda', '/umkm?bagian=kerja': 'Kerja dan pelatihan' };
   const daftar = (await c.keys()).map(r => new URL(r.url)).filter(u => u.origin === location.origin && !u.pathname.startsWith('/assets') && u.pathname !== '/asisten')
     .map(u => '<li><a href="' + u.pathname + u.search + '">' + (nama[u.pathname + u.search] || (u.searchParams.get('grup') ? 'Informasi desa: ' + u.searchParams.get('grup') : u.pathname)) + '</a></li>').join('');
   return new Response('<!doctype html><html lang="id"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sedang offline</title>' +

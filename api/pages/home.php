@@ -27,11 +27,15 @@ $rt = (int) (q1("SELECT nilai FROM statistik WHERE kategori = 'Pemerintahan' AND
 $fotoHero = setting('foto_hero');
 // 12u: Lingkungan pesisir (tema EcoQuest)
 $agendaHijau = [];
-try { $agendaHijau = q("SELECT id, judul, tanggal, jam, tempat FROM agenda WHERE tanggal >= ? AND (LOWER(judul) LIKE '%mangrove%' OR LOWER(judul) LIKE '%pantai%' OR LOWER(judul) LIKE '%sampah%' OR LOWER(judul) LIKE '%pohon%') ORDER BY tanggal LIMIT 2", [date('Y-m-d')]); } catch (Throwable $e) {}
+$kataEko = array_slice(array_values(array_filter(array_map(fn($k) => mb_strtolower(trim($k)), explode(',', teks('eko_kata_agenda'))))), 0, 8);
+if ($kataEko) {
+    try { $agendaHijau = q('SELECT id, judul, tanggal, jam, tempat FROM agenda WHERE tanggal >= ? AND (' . implode(' OR ', array_fill(0, count($kataEko), 'LOWER(judul) LIKE ?')) . ') ORDER BY tanggal LIMIT 2', array_merge([date('Y-m-d')], array_map(fn($k) => '%' . $k . '%', $kataEko))); } catch (Throwable $e) {}
+}
 $jumlahZona = 0;
 try { $jumlahZona = (int) (q1('SELECT COUNT(*) AS n FROM zona_rawan')['n'] ?? 0); } catch (Throwable $e) {}
-$bersihPantai = null;
-try { $bersihPantai = q1("SELECT id, judul, waktu FROM budaya WHERE LOWER(judul) LIKE '%bersih pantai%' ORDER BY id LIMIT 1"); } catch (Throwable $e) {}
+$kartuEko = [];
+try { $kartuEko = q('SELECT * FROM lingkungan WHERE aktif = 1 ORDER BY urutan, id LIMIT 8'); } catch (Throwable $e) {}
+$sdgEko = sdg_daftar(teks('eko_sdg'));
 
 // Bahan pencarian cepat: halaman, layanan, wisata, produk, dan jawaban asisten.
 // Dicari di browser, jadi hasilnya selalu sama dengan isi CMS dan tidak ada jawaban karangan.
@@ -42,8 +46,8 @@ $indeksCari = [
     ['Papan aspirasi warga', 'aspirasi perkembangan status laporan', '/kontak#papan'],
     ['Nomor darurat', 'darurat polisi ambulans pemadam kebakaran 112 sar', '/kontak#darurat'],
     ['Izin kunjungan rombongan, KKN, atau penelitian', 'rombongan sekolah study tour reservasi pesan kunjungan kkn penelitian izin', '/data-desa?grup=Layanan+surat&izin=1#surat'],
-    ['Kerja dan pelatihan', 'loker lowongan kerja pekerjaan pelatihan blk kursus panen tambak abk pemandu', '/kerja'],
-    ['Cuaca darat dan gelombang laut', 'cuaca hujan gelombang laut angin melaut nelayan petani jemur gabah', '/cuaca'],
+    ['Kerja dan pelatihan', 'loker lowongan kerja pekerjaan pelatihan blk kursus panen tambak abk pemandu', '/umkm?bagian=kerja'],
+    ['Cuaca darat dan gelombang laut', 'cuaca hujan gelombang laut angin melaut nelayan petani jemur gabah', '/data-desa?grup=Cuaca'],
     ['Budaya dan kesenian', 'budaya kesenian sedekah laut marawis gambang kromong silat kuliner', '/wisata#budaya'],
     ['Kode etik pengunjung', 'aturan etika pengunjung sampah foto', '/wisata#kode-etik'],
     ['Pertanyaan kepada petugas desa', 'tanya pertanyaan petugas bertanya', '/kontak?kategori=Pertanyaan#aspirasi'],
@@ -77,13 +81,13 @@ $aksesCepat = [
     ['Bantuan sosial', '/data-desa?grup=Pantau+bansos', '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'],
     ['Aspirasi dan pertanyaan', '/kontak#aspirasi', '<path d="M4 5h16v11H9l-5 4z"/>'],
     ['Anggaran desa', '/data-desa?grup=Transparansi', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
-    ['Kerja dan pelatihan', '/kerja', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'],
+    ['Kerja dan pelatihan', '/umkm?bagian=kerja', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'],
     ['Nomor darurat', '/kontak#darurat', '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>', 'tile-darurat'],
     ['Wisata dan budaya', '/wisata', '<path d="M3 16h18l-2.5 4H5.5z"/><path d="M12 16V3l6 9h-6"/>'],
     ['Produk UMKM', '/umkm', '<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>'],
     ['Peta dan rute', '/profil#peta-desa', '<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/>'],
     ['Agenda dan relawan', '/agenda', '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
-    ['Cuaca darat dan laut', '/cuaca', '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>'],
+    ['Cuaca darat dan laut', '/data-desa?grup=Cuaca', '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>'],
     ['Kode etik pengunjung', '/wisata#kode-etik', '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>'],
 ];
 $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
@@ -106,11 +110,11 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
       <?php if (!$fotoHero): ?><div class="hero-gambar" aria-hidden="true"><img src="/assets/img/panorama.svg" alt="" width="1200" height="240"></div><?php endif; ?>
     </div>
     <div class="info-a" data-info-cuaca data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>">
-      <a class="info-blok" href="/cuaca#darat" data-darat>
+      <a class="info-blok" href="/data-desa?grup=Cuaca#darat" data-darat>
         <span class="ib-ikon ib-darat" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></span>
         <span><small>Cuaca darat, sawah dan kebun</small><b data-isi="judul">Memuat prakiraan...</b><span data-isi="ket">Sumber: Open-Meteo</span></span>
       </a>
-      <a class="info-blok" href="/cuaca#laut" data-laut>
+      <a class="info-blok" href="/data-desa?grup=Cuaca#laut" data-laut>
         <span class="ib-ikon ib-laut" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9c2.5-2 5-2 7.5 0s5 2 7.5 0 3-1.5 5-1M2 15c2.5-2 5-2 7.5 0s5 2 7.5 0 3-1.5 5-1"/></svg></span>
         <span><small>Cuaca laut, perairan <?= e(setting('kecamatan')) ?></small><b data-isi="judul">Memuat gelombang...</b><span data-isi="ket">Untuk nelayan dan wisata pantai</span></span>
       </a>
@@ -136,47 +140,33 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
     <div><b><?= angka($penduduk) ?></b><span>jiwa penduduk</span></div>
     <div><b><?= str_replace('.', ',', (string) $luasKm) ?> km²</b><span>luas wilayah</span></div>
     <div><b><?= $rw ?> RW, <?= $rt ?> RT</b><span>wilayah pemerintahan</span></div>
-    <div><b>Laut Jawa</b><span>batas utara desa</span></div>
+    <?php if (teks('batas_utara') !== ''): ?><div><b><?= e(teks('batas_utara')) ?></b><span>batas utara desa</span></div><?php endif; ?>
     <?= tautan_referensi() ?>
   </div>
 </div></section>
 
+<?php if ($kartuEko): ?>
 <section class="sec eko" aria-labelledby="judul-eko"><div class="wrap">
   <div class="eko-kepala">
     <div>
-      <h2 id="judul-eko">Menjaga pesisir Marga Mulya</h2>
-      <p>Desa ini hidup dari laut, tambak, dan sawah. Abrasi, banjir rob, dan sampah plastik adalah tantangan sehari-hari, jadi warga menjaganya bersama.</p>
+      <h2 id="judul-eko"><?= e(teks('eko_judul')) ?></h2>
+      <p><?= e(teks('eko_teks')) ?></p>
     </div>
-    <div class="eko-sdg" aria-label="Tujuan SDGs yang didukung"><?php foreach ([13, 14, 15] as $n): ?><span style="background:<?= SDG[$n][1] ?>;color:<?= SDG[$n][2] ?>"><b><?= $n ?></b><?= e(SDG[$n][0]) ?></span><?php endforeach; ?></div>
+    <?php if ($sdgEko): ?><div class="eko-sdg" aria-label="Tujuan SDGs yang didukung"><?php foreach ($sdgEko as $n): ?><span style="background:<?= SDG[$n][1] ?>;color:<?= SDG[$n][2] ?>"><b><?= $n ?></b><?= e(SDG[$n][0]) ?></span><?php endforeach; ?></div><?php endif; ?>
   </div>
   <div class="eko-grid">
-    <a class="eko-kartu" href="/wisata#budaya">
-      <i aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12"/><path d="M12 12c-4 0-7-3-7-7 4 0 7 3 7 7zM12 14c4 0 7-3 7-7-4 0-7 3-7 7z"/><path d="M5 22h14"/></svg></i>
-      <b>Tanam mangrove</b>
-      <span>Akar mangrove menahan ombak dan abrasi, sekaligus jadi rumah kepiting dan ikan. Warga dan pengunjung menanam bibit bersama saat musim hujan.</span>
-      <?php if ($agendaHijau): $ah = $agendaHijau[0]; ?><small>Berikutnya: <?= e(pisah_ilustrasi($ah['judul'])[0]) ?>, <?= tgl($ah['tanggal'], 'pendek') ?></small><?php else: ?><small>Lihat jadwal di Agenda</small><?php endif; ?>
+    <?php foreach ($kartuEko as $ke): ?>
+    <a class="eko-kartu" href="<?= e($ke['tautan'] ?: '#') ?>">
+      <i aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><?= IKON_EKO[$ke['ikon']] ?? IKON_EKO['Mangrove'] ?></svg></i>
+      <b><?= e($ke['judul']) ?></b>
+      <span><?= e($ke['isi']) ?></span>
+      <?php $infoEko = info_eko($ke, $agendaHijau, $jumlahZona); if ($infoEko !== ''): ?><small><?= e($infoEko) ?></small><?php endif; ?>
     </a>
-    <a class="eko-kartu" href="/agenda">
-      <i aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg></i>
-      <b>Bersih pantai dan pilah sampah</b>
-      <span>Sampah plastik di pesisir dipungut, dipilah, lalu dijual. Hasilnya masuk kas Karang Taruna.</span>
-      <small><?= $bersihPantai && trim((string) $bersihPantai['waktu']) !== '' ? e($bersihPantai['waktu']) : 'Setiap bulan' ?>, terbuka untuk relawan</small>
-    </a>
-    <a class="eko-kartu" href="/profil#peta-desa">
-      <i aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 16c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 20c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M12 3l4 7H8z"/></svg></i>
-      <b>Waspada abrasi dan rob</b>
-      <span>Peta desa menandai kawasan yang rawan terkena abrasi, rob, dan genangan, supaya warga dan pengunjung bisa berhati-hati.</span>
-      <small><?= $jumlahZona ? $jumlahZona . ' kawasan rawan di peta' : 'Lihat peta desa' ?></small>
-    </a>
-    <a class="eko-kartu" href="/cuaca">
-      <i aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19 10a4 4 0 0 1 0 8z"/><path d="M8 21l1-2M12 21l1-2M16 21l1-2"/></svg></i>
-      <b>Cuaca dan gelombang</b>
-      <span>Prakiraan hujan dan tinggi gelombang membantu nelayan memutuskan melaut dan petani menjadwalkan tanam.</span>
-      <small>Sumber data: Open-Meteo</small>
-    </a>
+    <?php endforeach; ?>
   </div>
-  <p class="eko-catatan">Kegiatan dan kawasan di atas adalah gambaran program lingkungan untuk desa pesisir.</p>
+  <?php if (teks('eko_catatan') !== ''): ?><p class="eko-catatan"><?= e(teks('eko_catatan')) ?></p><?php endif; ?>
 </div></section>
+<?php endif; ?>
 
 <section class="sec sec-putih" aria-labelledby="judul-kabar"><div class="wrap kabar-agenda">
   <div>
@@ -205,7 +195,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
 </div></section>
 
 <section class="sec" aria-labelledby="judul-wisata"><div class="wrap">
-  <div class="kepala"><div><h2 id="judul-wisata">Wisata dan budaya <?= e(str_replace('Desa ', '', $namaDesa)) ?></h2><p>Pantai dan mangrove, kampung nelayan, sawah, kerajinan, sampai tradisi dan kuliner warga.</p></div><a href="/wisata">Semua destinasi</a></div>
+  <div class="kepala"><div><h2 id="judul-wisata">Wisata dan budaya <?= e(str_replace('Desa ', '', $namaDesa)) ?></h2><p><?= e(teks('intro_wisata_beranda')) ?></p></div><a href="/wisata">Semua destinasi</a></div>
   <div class="wisata-grid">
     <?php foreach (array_slice($wisata, 0, 4) as $w): [$nmW, $ilusW] = pisah_ilustrasi($w['nama']); ?>
       <a class="w-kartu" href="/wisata/<?= e($w['slug']) ?>">
@@ -227,7 +217,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
 </div></section>
 
 <section class="sec sec-putih" aria-labelledby="judul-produk"><div class="wrap">
-  <div class="kepala"><div><h2 id="judul-produk">Produk buatan warga</h2><p>Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.</p></div><a href="/umkm">Lihat semua produk</a></div>
+  <div class="kepala"><div><h2 id="judul-produk">Produk buatan warga</h2><p><?= e(teks('intro_umkm_beranda')) ?></p></div><a href="/umkm">Lihat semua produk</a></div>
   <div class="produk-grid">
     <?php foreach ($umkm as $u): [$usaha, $ilusU] = pisah_ilustrasi($u['nama_usaha']); ?>
       <a class="u-kartu" href="/umkm#umkm-<?= (int) $u['id'] ?>">

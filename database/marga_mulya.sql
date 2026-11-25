@@ -9,6 +9,7 @@
 DROP TABLE IF EXISTS relawan;
 DROP TABLE IF EXISTS lembaga;
 DROP TABLE IF EXISTS loker;
+DROP TABLE IF EXISTS lingkungan;
 DROP TABLE IF EXISTS kredit_foto;
 DROP TABLE IF EXISTS asisten_menu;
 DROP TABLE IF EXISTS foto_unggah;
@@ -1047,6 +1048,21 @@ CREATE TABLE IF NOT EXISTS loker (
   dibuat_pada TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 UPDATE admin SET akses = CONCAT(akses, ',loker') WHERE akses IS NOT NULL AND akses LIKE '%pengajuanumkm%' AND akses NOT LIKE '%loker%';
+
+-- ---------- Tambahan 12w: Lingkungan pesisir ----------
+-- Kartu bagian "Menjaga pesisir" di beranda, diatur lewat CMS > Lingkungan pesisir.
+CREATE TABLE IF NOT EXISTS lingkungan (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  judul VARCHAR(100) NOT NULL,
+  isi VARCHAR(300) NOT NULL DEFAULT '',
+  ikon VARCHAR(20) NOT NULL DEFAULT 'Mangrove',
+  tautan VARCHAR(150) NOT NULL DEFAULT '',
+  info VARCHAR(40) NOT NULL DEFAULT 'Teks bebas',
+  info_teks VARCHAR(120) NOT NULL DEFAULT '',
+  aktif TINYINT NOT NULL DEFAULT 1,
+  urutan INT NOT NULL DEFAULT 10
+);
+UPDATE admin SET akses = CONCAT(akses, ',lingkungan') WHERE akses IS NOT NULL AND akses LIKE '%lembaga%' AND akses NOT LIKE '%lingkungan%';
 
 -- ===== Data asli Margamulya (sama dengan data-asli-margamulya.sql) =====
 -- =========================================================

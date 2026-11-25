@@ -132,7 +132,7 @@ require __DIR__ . '/../inc/header.php';
     </article>
     <article class="prinsip">
       <h3>Tumbuh bersama</h3>
-      <p>Warga dan pengunjung bisa ikut tanam mangrove dan bersih pantai, menyampaikan aspirasi yang perkembangannya terbuka, dan menitipkan produk UMKM sendiri di website desa.</p>
+      <p><?= e(teks('profil_ajakan')) ?></p>
       <a href="/agenda">Ikut gotong royong</a>
     </article>
     <article class="prinsip">

@@ -389,6 +389,23 @@ $CRUD += [
         },
     ],
 
+    'lingkungan' => [
+        'judul' => 'Lingkungan pesisir', 'satu' => 'kartu lingkungan', 'tabel' => 'lingkungan', 'urut' => 'urutan, id',
+        'catatan' => 'Kartu di bagian "Menjaga pesisir" pada beranda. Judul, teks pembuka, dan SDGs bagian ini diatur di Pengaturan > Teks halaman.',
+        'kolom' => ['judul' => 'Judul', 'info' => 'Keterangan bawah', 'aktif' => 'Tampil'],
+        'field' => [
+            ['judul', 'Judul kartu', 'text', ['wajib' => true, 'maks' => 100]],
+            ['isi', 'Isi singkat', 'textarea', ['wajib' => true, 'maks' => 300]],
+            ['ikon', 'Ikon', 'select', ['pilihan' => ['Mangrove', 'Sampah', 'Ombak', 'Cuaca', 'Pohon', 'Air']]],
+            ['tautan', 'Tautan saat kartu diklik (misalnya /agenda)', 'text', ['maks' => 150, 'contoh' => '/agenda']],
+            ['info', 'Keterangan di bawah kartu', 'select', ['pilihan' => ['Teks bebas', 'Agenda lingkungan berikutnya', 'Jumlah kawasan rawan di peta', 'Sumber data cuaca']]],
+            ['info_teks', 'Teks bebas (dipakai kalau keterangan bawah = Teks bebas, atau saat belum ada agenda)', 'text', ['maks' => 120]],
+            ['aktif', 'Tampilkan di beranda', 'check', []],
+            ['urutan', 'Urutan tampil', 'number', ['min' => 0]],
+        ],
+        'baru' => ['ikon' => 'Mangrove', 'info' => 'Teks bebas', 'aktif' => 1, 'urutan' => 10],
+    ],
+
     'lembaga' => [
         'judul' => 'Lembaga desa', 'satu' => 'lembaga', 'tabel' => 'lembaga', 'urut' => 'urutan, id',
         'catatan' => 'Lembaga kemasyarakatan dan kelompok warga beserta kegiatan rutinnya. Tampil di halaman Profil.',

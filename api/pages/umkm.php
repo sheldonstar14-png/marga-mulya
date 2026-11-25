@@ -1,4 +1,6 @@
 <?php
+// 12w: tab Kerja dan pelatihan (/umkm?bagian=kerja) ada di file umkm-kerja.php
+if (($_GET['bagian'] ?? '') === 'kerja') { require __DIR__ . '/umkm-kerja.php'; return; }
 // =========================================================
 // HALAMAN UMKM. Filter kategori lewat alamat: /umkm?kategori=Makanan
 // =========================================================
@@ -80,10 +82,11 @@ require __DIR__ . '/../inc/header.php';
 <div class="wrap page-title page-title-aksi">
   <div>
     <h1>Produk UMKM warga</h1>
-    <p>Olahan hasil laut, kelapa, dan kerajinan buatan warga. Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.</p>
+    <p><?= e(teks('intro_umkm')) ?></p>
   </div>
   <a class="btn btn-dark" href="#ajukan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Ajukan produk</a>
 </div>
+<?= tab_ekonomi('produk') ?>
 <div class="wrap"><div class="info-lapak"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 10h16l-1-5H5zM5 10v9h14v-9M9 19v-5h6v5"/></svg><p>Setiap produk ditinjau petugas desa sebelum tampil. Ketersediaan dan pembayaran disepakati langsung dengan penjual.</p><a href="#cek-ajuan">Cek pengajuan</a></div></div>
 <div class="wrap sec" style="padding-top:16px">
   <?php if (($_GET['ulasan'] ?? '') === 'terkirim'): ?><div class="alert alert-ok" role="status">Terima kasih. Ulasanmu akan tampil setelah diperiksa petugas desa.</div><?php endif; ?>
@@ -143,7 +146,7 @@ require __DIR__ . '/../inc/header.php';
 <section class="wrap ajukan" id="ajukan" aria-labelledby="judul-ajukan">
   <div class="ajukan-kiri">
     <h2 id="judul-ajukan">Punya produk? Ajukan di sini</h2>
-    <p>Nelayan, pengolah ikan, pengrajin batok, atau pembuat kue rumahan di Marga Mulya bisa menitipkan produknya di website desa, gratis.</p>
+    <p><?= e(teks('intro_umkm_ajukan')) ?></p>
     <ol class="alur-langkah alur-aju">
       <li><b>Siapkan bahan</b><span>Nama produk, harga, satuan, nomor WhatsApp, dan 1 sampai 3 foto yang terang.</span></li>
       <li><b>Isi form di samping</b><span>Kamu langsung mendapat kode PRD- untuk mengecek status.</span></li>

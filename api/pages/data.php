@@ -27,7 +27,7 @@ if ($lainnya) {
 // Kategori yang belum ada isinya tidak ditampilkan
 $adaIsi = array_flip(array_column(q('SELECT DISTINCT kategori FROM statistik'), 'kategori'));
 foreach ($grupData as $g => $k) { $grupData[$g] = array_values(array_filter($k, fn($x) => isset($adaIsi[$x]))); if (!$grupData[$g]) unset($grupData[$g]); }
-$grupKhusus = ['Layanan surat', 'Pantau bansos', 'Transparansi', 'Pembangunan'];
+$grupKhusus = ['Layanan surat', 'Pantau bansos', 'Transparansi', 'Pembangunan', 'Cuaca'];
 if (($_GET['grup'] ?? '') === 'Program bantuan') $_GET['grup'] = 'Pantau bansos'; // alamat lama tetap jalan
 if (($_GET['grup'] ?? '') === 'Pertanian') $_GET['grup'] = 'Perikanan dan pertanian';
 if (($_GET['grup'] ?? '') === 'Bank sampah') $_GET['grup'] = 'Wilayah dan permukiman'; // fitur bank sampah dihentikan
@@ -146,26 +146,23 @@ if (preg_match('/^(\d+)-([a-f0-9]{12})$/', $kunciTiket, $mt)) {
 $dilayani = q1("SELECT nomor FROM antrean WHERE tanggal = ? AND status = 'Dipanggil' ORDER BY dipanggil_pada DESC, nomor DESC LIMIT 1", [date('Y-m-d')]);
 $sisaAntre = (int) q1("SELECT COUNT(*) AS n FROM antrean WHERE tanggal = ? AND status = 'Menunggu'", [date('Y-m-d')])['n'];
 
-$judul = ($grup === 'Layanan surat' ? 'Layanan Surat' : ($grup === 'Pantau bansos' ? 'Bantuan Sosial' : 'Informasi Desa')) . ' - ' . setting('nama_desa');
+$judul = ($grup === 'Layanan surat' ? 'Layanan Surat' : ($grup === 'Pantau bansos' ? 'Bantuan Sosial' : ($grup === 'Cuaca' ? 'Cuaca Darat dan Laut' : 'Informasi Desa'))) . ' - ' . setting('nama_desa');
 $menu  = 'data-desa';
+if ($grup === 'Cuaca') $pakaiCuaca = true;
 require __DIR__ . '/../inc/header.php';
 $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencanaan' => 'Dibatalkan'];
 ?>
 <div class="wrap page-title">
-  <?php if (in_array($grup, ['Layanan surat', 'Pantau bansos'], true)): ?>
-  <h1><?= $grup === 'Layanan surat' ? 'Layanan surat' : 'Bantuan sosial' ?></h1>
-  <p><?= $grup === 'Layanan surat' ? 'Ajukan surat keterangan dan izin kunjungan dari HP, lacak prosesnya, lalu cukup sekali datang ke kantor desa untuk tanda tangan.' : 'Program bantuan untuk keluarga, nelayan, petani, pelajar, dan pelaku usaha, beserta syarat, cara daftar, dan penyalurannya yang bisa dipantau terbuka.' ?></p>
-  <?php else: ?>
-  <h1>Informasi desa</h1>
-  <p>Data kependudukan, agama, pemerintahan, pendidikan, kesehatan, permukiman, perikanan, pertanian, ekonomi, dan infrastruktur <?= e(setting('nama_desa')) ?>, ditambah layanan surat, bantuan sosial, anggaran, dan pembangunan.</p>
-  <?php endif; ?>
+  <?php $kepalaGrup = ['Layanan surat' => ['Layanan surat', 'intro_surat'], 'Pantau bansos' => ['Bantuan sosial', 'intro_bansos'], 'Cuaca' => ['Cuaca darat dan laut', 'intro_cuaca']][$grup] ?? ['Informasi desa', 'intro_data']; ?>
+  <h1><?= e($kepalaGrup[0]) ?></h1>
+  <p><?= e(teks($kepalaGrup[1])) ?></p>
 </div>
 <div class="wrap sec" style="padding-top:16px">
   <div class="tab-info">
     <nav class="tab-baris" aria-label="Layanan dan keterbukaan">
       <span class="chips-label">Layanan dan keterbukaan</span><div class="chips">
       <?php foreach ($grupKhusus as $g): ?>
-        <a class="chip chip-khusus <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e($g === 'Transparansi' ? 'Anggaran (APBDes)' : $g) ?></a>
+        <a class="chip chip-khusus <?= $g === $grup ? 'on' : '' ?>" href="/data-desa?grup=<?= urlencode($g) ?>" <?= $g === $grup ? 'aria-current="page"' : '' ?>><?= e(['Transparansi' => 'Anggaran (APBDes)', 'Cuaca' => 'Cuaca darat dan laut'][$g] ?? $g) ?></a>
       <?php endforeach; ?>
     </div></nav>
     <nav class="tab-baris" aria-label="Data desa">
@@ -313,6 +310,9 @@ $warnaStatus = ['Selesai' => 'Dikonfirmasi', 'Berjalan' => 'Menunggu', 'Perencan
       <?php endif; ?>
     </div>
   </div>
+
+<?php elseif ($grup === 'Cuaca'): ?>
+  <?php require __DIR__ . '/bagian-cuaca.php'; ?>
 
 <?php elseif ($grup === 'Transparansi'): ?>
   <?php if (!$pos): ?>

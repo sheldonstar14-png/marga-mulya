@@ -75,7 +75,7 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Kabar desa</h1>
-  <p>Berita dan pengumuman dari pemerintah desa, agenda kegiatan warga, dan ajakan menjadi relawan gotong royong.</p>
+  <p><?= e(teks('intro_agenda')) ?></p>
 </div>
 <div class="wrap sec kabar-dua" style="padding-top:28px">
   <div class="kolom-agenda">

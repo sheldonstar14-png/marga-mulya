@@ -115,6 +115,7 @@ const MENU_PETUGAS = [
     'profil'    => 'Profil desa',
     'aparat'    => 'Perangkat desa',
     'lembaga'   => 'Lembaga desa',
+    'lingkungan' => 'Lingkungan pesisir',
     'apbdes'    => 'APBDes',
     'pembangunan' => 'Pembangunan',
     'bantuan'   => 'Program bantuan',

@@ -38,7 +38,7 @@ if ($path === 'manifest.webmanifest') {
         'shortcuts' => [
             ['name' => 'Ajukan surat', 'url' => '/data-desa?grup=Layanan+surat#surat'],
             ['name' => 'Nomor darurat', 'url' => '/kontak#darurat'],
-            ['name' => 'Cuaca darat dan laut', 'url' => '/cuaca'],
+            ['name' => 'Cuaca darat dan laut', 'url' => '/data-desa?grup=Cuaca'],
         ],
         'icons' => [
             ['src' => '/assets/img/ikon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
@@ -55,8 +55,6 @@ $rute = [
     'profil'    => 'profil',
     'data-desa' => 'data',
     'wisata'    => 'wisata',
-    'cuaca'     => 'cuaca',
-    'kerja'     => 'kerja',
     'umkm'      => 'umkm',
     'agenda'    => 'agenda',
     'galeri'    => 'galeri',
@@ -69,6 +67,14 @@ $rute = [
 ];
 
 // Fitur kunjungan rombongan dihentikan (12s): alamat lama diarahkan ke layanan izin kunjungan
+// 12w: Cuaca dan Kerja kini bagian dari halaman lain (batas 10 halaman publik); alamat lama tetap jalan
+if ($depan === 'cuaca') {
+    redirect('/data-desa?grup=Cuaca#cuaca');
+}
+if ($depan === 'kerja') {
+    $sisa = array_intersect_key($_GET, ['cek' => 1, 'baru' => 1]);
+    redirect('/umkm?' . http_build_query(['bagian' => 'kerja'] + $sisa));
+}
 if ($depan === 'reservasi' || $depan === 'kuota') {
     redirect('/data-desa?grup=Layanan+surat&izin=1#surat');
 }

@@ -23,7 +23,7 @@ require __DIR__ . '/../inc/header.php';
 ?>
 <div class="wrap page-title">
   <h1>Wisata dan budaya</h1>
-  <p>Dari pantai, mangrove, dan kampung nelayan sampai sawah, kerajinan batok kelapa, tradisi, dan kuliner warga. Pengunjung perorangan dan keluarga cukup datang langsung. Rombongan, KKN, dan penelitian <a href="/data-desa?grup=Layanan+surat&amp;izin=1#surat">mengajukan izin kunjungan</a> dulu.</p>
+  <p><?= e(teks('intro_wisata')) ?> Rombongan, KKN, dan penelitian <a href="/data-desa?grup=Layanan+surat&amp;izin=1#surat">mengajukan izin kunjungan</a> dulu.</p>
 </div>
 <div class="wrap sec" style="padding-top:22px">
   <?php if (count($jenisWisata) > 1): ?>
@@ -51,13 +51,13 @@ require __DIR__ . '/../inc/header.php';
   <?php if (setting('waktu_kunjung') !== ''): ?>
   <div class="info-waktu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
-    <p><b>Kapan sebaiknya datang?</b> <?= e(setting('waktu_kunjung')) ?> <a href="/cuaca">Lihat cuaca dan gelombang hari ini</a>.</p>
+    <p><b>Kapan sebaiknya datang?</b> <?= e(setting('waktu_kunjung')) ?> <a href="/data-desa?grup=Cuaca">Lihat cuaca dan gelombang hari ini</a>.</p>
   </div>
   <?php endif; ?>
 </div>
 
 <section class="sec sec-putih" id="budaya" aria-labelledby="judul-budaya"><div class="wrap">
-  <div class="kepala"><div><h2 id="judul-budaya">Budaya dan kesenian</h2><p>Tradisi pesisir, kesenian, dan kuliner yang masih hidup di tengah warga.</p></div></div>
+  <div class="kepala"><div><h2 id="judul-budaya">Budaya dan kesenian</h2><p><?= e(teks('intro_budaya')) ?></p></div></div>
   <div class="budaya-grid">
     <?php foreach ($budaya as $b): [$jdlB, $ilusB] = pisah_ilustrasi($b['judul']); $ilusB = $ilusB || !empty($b['ilustrasi']); ?>
       <article class="budaya-kartu" id="budaya-<?= (int) $b['id'] ?>">

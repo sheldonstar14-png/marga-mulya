@@ -773,6 +773,32 @@ const TEKS_BAWAAN = [
     'teks_foto_beranda'   => 'Foto ilustrasi suasana pesisir',
     'teks_angka_ilustrasi' => 'Angka gambaran, disusun mengikuti format data desa.',
     'catatan_logo'        => 'Logo dirancang tim website dengan bantuan alat AI, bukan lambang resmi Pemerintah {desa}.',
+    // 12w: teks pembuka setiap halaman dan bagian (CMS > Pengaturan > Teks halaman)
+    'intro_data'          => 'Data kependudukan, pemerintahan, pendidikan, kesehatan, permukiman, perikanan, pertanian, ekonomi, dan infrastruktur {desa}, ditambah layanan surat, bantuan sosial, anggaran, pembangunan, dan cuaca.',
+    'intro_surat'         => 'Ajukan surat keterangan dan izin kunjungan dari HP, lacak prosesnya, lalu cukup sekali datang ke kantor desa untuk tanda tangan.',
+    'intro_bansos'        => 'Program bantuan untuk keluarga, nelayan, petani, pelajar, dan pelaku usaha, beserta syarat, cara daftar, dan penyalurannya yang bisa dipantau terbuka.',
+    'intro_cuaca'         => 'Prakiraan 4 hari untuk sawah dan kebun, gelombang untuk nelayan dan wisata pantai, lengkap dengan saran sederhana.',
+    'intro_cuaca_darat'   => 'Untuk petani, pekebun kelapa, dan warga yang menjemur hasil panen.',
+    'intro_cuaca_laut'    => 'Untuk nelayan perahu kecil, pengunjung pantai, dan kegiatan di mangrove.',
+    'intro_wisata'        => 'Dari pantai, mangrove, dan kampung nelayan sampai sawah, kerajinan batok kelapa, tradisi, dan kuliner warga. Pengunjung perorangan dan keluarga cukup datang langsung.',
+    'intro_budaya'        => 'Tradisi pesisir, kesenian, dan kuliner yang masih hidup di tengah warga.',
+    'intro_wisata_beranda' => 'Pantai dan mangrove, kampung nelayan, sawah, kerajinan, sampai tradisi dan kuliner warga.',
+    'intro_umkm'          => 'Olahan hasil laut, kelapa, dan kerajinan buatan warga. Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.',
+    'intro_umkm_beranda'  => 'Pesan langsung ke pembuatnya lewat WhatsApp, tanpa perantara.',
+    'intro_umkm_ajukan'   => 'Nelayan, pengolah ikan, pengrajin batok, atau pembuat kue rumahan di {desa} bisa menitipkan produknya di website desa, gratis.',
+    'intro_kerja'         => 'Peluang kerja dari warga dan usaha di {desa}, lowongan dari sumber resmi pemerintah, dan pelatihan gratis untuk menambah keterampilan.',
+    'intro_kerja_pasang'  => 'Untuk pemilik tambak, nelayan, UMKM, BUMDes, dan kelompok warga di {desa}. Gratis.',
+    'intro_agenda'        => 'Berita dan pengumuman dari pemerintah desa, agenda kegiatan warga, dan ajakan menjadi relawan gotong royong.',
+    'intro_galeri'        => 'Foto kegiatan dan sudut desa. Sumber setiap foto tertulis di bawahnya dan di daftar Sumber dan kredit foto.',
+    'intro_kontak'        => 'Hubungi petugas desa, sampaikan aspirasi atau pengaduan, dan simpan nomor darurat yang bisa langsung ditelepon dari HP.',
+    'profil_ajakan'       => 'Warga dan pengunjung bisa ikut tanam mangrove dan bersih pantai, menyampaikan aspirasi yang perkembangannya terbuka, dan menitipkan produk UMKM sendiri di website desa.',
+    'batas_utara'         => 'Laut Jawa',
+    'eko_judul'           => 'Menjaga pesisir {nama}',
+    'eko_teks'            => 'Desa ini hidup dari laut, tambak, dan sawah. Abrasi, banjir rob, dan sampah plastik adalah tantangan sehari-hari, jadi warga menjaganya bersama.',
+    'eko_catatan'         => 'Kegiatan dan kawasan di atas adalah gambaran program lingkungan untuk desa pesisir.',
+    'eko_sdg'             => '13, 14, 15',
+    'eko_kata_agenda'     => 'mangrove, pantai, sampah, pohon',
+    'kerja_sumber'        => "Karirhub Kemnaker | Lowongan resmi dari perusahaan di seluruh Indonesia, termasuk Kabupaten Tangerang. Melamar memakai akun SIAPkerja. | https://karirhub.kemnaker.go.id\nSkillhub Kemnaker | Pelatihan kerja gratis di balai latihan kerja (BLK). Pendaftaran dibuka per batch. | https://skillhub.kemnaker.go.id\nDisnaker Kabupaten Tangerang | Kartu pencari kerja (AK-1), bursa kerja, dan pembekalan kerja ke luar negeri. Kantor desa bisa membantu surat pengantar dan surat domisili. |",
 ];
 
 function teks(string $kunci): string
@@ -781,7 +807,57 @@ function teks(string $kunci): string
     if ($isi === '') $isi = TEKS_BAWAAN[$kunci] ?? '';
     $kec = trim(setting('kecamatan', 'Mauk'));
     if (stripos($kec, 'kecamatan') !== 0) $kec = 'Kecamatan ' . $kec;
-    return strtr($isi, ['{desa}' => setting('nama_desa', 'Desa Marga Mulya'), '{kecamatan}' => $kec]);
+    $desa = setting('nama_desa', 'Desa Marga Mulya');
+    return strtr($isi, ['{desa}' => $desa, '{nama}' => trim(str_replace('Desa ', '', $desa)), '{kecamatan}' => $kec]);
+}
+
+// 12w: ikon kartu Lingkungan pesisir (beranda)
+const IKON_EKO = [
+    'Mangrove' => '<path d="M12 22V12"/><path d="M12 12c-4 0-7-3-7-7 4 0 7 3 7 7zM12 14c4 0 7-3 7-7-4 0-7 3-7 7z"/><path d="M5 22h14"/>',
+    'Sampah'   => '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>',
+    'Ombak'    => '<path d="M2 16c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 20c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M12 3l4 7H8z"/>',
+    'Cuaca'    => '<path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19 10a4 4 0 0 1 0 8z"/><path d="M8 21l1-2M12 21l1-2M16 21l1-2"/>',
+    'Pohon'    => '<path d="M12 22v-6"/><path d="M12 2l6 9h-4l4 6H6l4-6H6z"/>',
+    'Air'      => '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+];
+
+// Keterangan kecil di bawah kartu Lingkungan pesisir
+function info_eko(array $k, array $agendaHijau, int $jumlahZona): string
+{
+    $teksBebas = trim((string) ($k['info_teks'] ?? ''));
+    switch ($k['info'] ?? '') {
+        case 'Agenda lingkungan berikutnya':
+            if ($agendaHijau) return 'Berikutnya: ' . pisah_ilustrasi($agendaHijau[0]['judul'])[0] . ', ' . tgl($agendaHijau[0]['tanggal'], 'pendek');
+            return $teksBebas;
+        case 'Jumlah kawasan rawan di peta':
+            return $jumlahZona ? $jumlahZona . ' kawasan rawan di peta' : $teksBebas;
+        case 'Sumber data cuaca':
+            return 'Sumber data: Open-Meteo';
+        default:
+            return $teksBebas;
+    }
+}
+
+// 12w: tombol pindah antara Produk UMKM dan Kerja dan pelatihan (satu halaman Ekonomi warga)
+function tab_ekonomi(string $aktif): string
+{
+    $tab = ['produk' => ['Produk UMKM', '/umkm'], 'kerja' => ['Kerja dan pelatihan', '/umkm?bagian=kerja']];
+    $h = '<div class="wrap"><nav class="tab-ekonomi" aria-label="Ekonomi warga">';
+    foreach ($tab as $k => [$label, $url]) $h .= '<a class="chip' . ($k === $aktif ? ' on" aria-current="page' : '') . '" href="' . $url . '">' . $label . '</a>';
+    return $h . '</nav></div>';
+}
+
+// Daftar sumber kerja dari CMS: satu baris = "Nama | Keterangan | https://alamat" (alamat boleh kosong)
+function sumber_kerja(): array
+{
+    $hasil = [];
+    foreach (preg_split('/\R|\\\\n/', teks('kerja_sumber')) as $baris) {
+        $bagian = array_map('trim', explode('|', $baris));
+        if (($bagian[0] ?? '') === '') continue;
+        $url = $bagian[2] ?? '';
+        $hasil[] = ['nama' => $bagian[0], 'ket' => $bagian[1] ?? '', 'url' => preg_match('#^https://#', $url) ? $url : ''];
+    }
+    return $hasil;
 }
 
 // 12u: semua foto dianggap ilustrasi (tim tidak memiliki foto asli desa). Bisa dimatikan di Pengaturan.
