@@ -31,8 +31,14 @@ $grup = [
             'nama_desa'   => ['Nama desa', 'text'],
             'kecamatan'   => ['Kecamatan', 'text'],
             'kabupaten'   => ['Kabupaten', 'text'],
+            'label_status' => ['Label kecil di atas judul beranda', 'text'],
+            'teks_foto_beranda' => ['Keterangan di pojok foto beranda', 'text'],
+            'label_foto' => ['Label di pojok setiap foto', 'text'],
+            'teks_foto_ilustrasi' => ['Keterangan foto ilustrasi di jendela Sumber dan kredit foto', 'area'],
+            'teks_angka_ilustrasi' => ['Keterangan di atas grafik yang angkanya ilustrasi', 'text'],
+            'teks_kaki' => ['Teks tentang website di kaki halaman', 'area'],
+            'teks_hak_cipta' => ['Kalimat di samping hak cipta (paling bawah)', 'text'],
             'semua_foto_ilustrasi' => ['Tandai semua foto sebagai foto ilustrasi (centang selama belum memakai foto asli desa)', 'cek'],
-            'label_status' => ['Label kecil di atas judul beranda (misalnya status ilustrasi untuk lomba)', 'text'],
             'hero_judul'  => ['Judul di beranda', 'text'],
             'hero_teks'   => ['Teks pembuka beranda', 'area'],
             'foto_hero'   => ['Foto beranda (opsional). Pakai foto landscape asli, misalnya pantai atau perahu nelayan. Kosongkan untuk memakai gambar ilustrasi', 'foto'],
@@ -49,7 +55,7 @@ $grup = [
             'kode_etik_lengkap' => ['Kode etik pengunjung per kelompok (satu baris satu aturan, format: Kelompok|Aturan)', 'area'],
             'kode_etik_umum' => ['Kode etik cadangan (dipakai kalau kode etik per kelompok kosong)', 'area'],
             'waktu_kunjung' => ['Waktu terbaik berkunjung secara umum (tampil di Wisata dan Cuaca)', 'area'],
-            'catatan_logo' => ['Catatan asal logo (tampil di kaki halaman dan daftar kredit)', 'text'],
+            'catatan_logo' => ['Catatan asal logo (tampil di daftar kredit foto)', 'text'],
             'catatan_data' => ['Catatan di bawah data statistik (sumber dan status data)', 'area'],
             'referensi_data_nama' => ['Nama referensi data (tampil di bawah statistik)', 'text'],
             'referensi_data_url' => ['Link referensi data, misalnya halaman publikasi BPS (tempel link lengkapnya)', 'text'],
@@ -64,10 +70,11 @@ $grup = [
 $bagianPengaturan = [
     'Status website'       => ['mode_privat'],
     'Identitas desa'       => ['nama_desa', 'kecamatan', 'kabupaten'],
-    'Beranda'              => ['label_status', 'hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
+    'Beranda'              => ['hero_judul', 'hero_teks', 'foto_hero', 'foto_hero_sumber', 'foto_hero_url'],
     'Kontak dan lokasi'    => ['alamat', 'jam_layanan', 'email', 'wa', 'lat', 'lng', 'gmaps_mymaps'],
     'Wisata dan pengunjung' => ['kode_etik_lengkap', 'kode_etik_umum', 'waktu_kunjung'],
-    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'semua_foto_ilustrasi', 'catatan_logo', 'kredit_foto'],
+    'Teks keterangan (ilustrasi dan lomba)' => ['label_status', 'teks_foto_beranda', 'label_foto', 'semua_foto_ilustrasi', 'teks_foto_ilustrasi', 'teks_angka_ilustrasi', 'teks_kaki', 'teks_hak_cipta', 'catatan_logo'],
+    'Data, sumber, dan kredit' => ['catatan_data', 'referensi_data_nama', 'referensi_data_url', 'kredit_foto'],
     'Privasi dan laporan'  => ['email_laporan', 'simpan_data_hari', 'kontak_privasi', 'kata_terlarang'],
 ];
 $g = $grup[$sub];
@@ -81,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $baru = [];
     foreach ($g['kunci'] as $kunci => [$label]) {
         $baru[$kunci] = trim((string) ($_POST[$kunci] ?? ''));
-        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'gmaps_mymaps', 'label_status', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi'], true)) $errors[] = "\"$label\" wajib diisi.";
+        if ($baru[$kunci] === '' && !in_array($kunci, ['kredit_foto', 'email_laporan', 'foto_hero', 'foto_kades', 'referensi_data_url', 'referensi_data_nama', 'foto_hero_sumber', 'foto_hero_url', 'foto_kades_sumber', 'catatan_logo', 'gmaps_mymaps', 'label_status', 'kode_etik_umum', 'waktu_kunjung', 'sambutan_kades', 'sambutan_ilustrasi', 'teks_foto_beranda', 'label_foto', 'teks_foto_ilustrasi', 'teks_angka_ilustrasi', 'teks_kaki', 'teks_hak_cipta'], true)) $errors[] = "\"$label\" wajib diisi.";
     }
     if (isset($baru['wa'])) $baru['wa'] = nomor_wa($baru['wa']);
     foreach ($g['kunci'] as $kunci => [, $jenisK]) if ($jenisK === 'cek') $baru[$kunci] = !empty($_POST[$kunci]) ? '1' : '0';

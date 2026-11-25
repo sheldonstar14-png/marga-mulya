@@ -386,3 +386,9 @@ UPDATE umkm SET deskripsi = 'Bandeng dari tambak pesisir dimasak presto sampai d
 UPDATE ulasan_umkm SET komentar = 'Minyaknya jernih dan wangi kelapa. Saya pakai untuk menumis dan membuat kue.' WHERE id = 104 AND komentar = 'Minyaknya jernih dan wangi kelapa. Saya pakai untuk memasak dan untuk kulit anak.';
 -- Jam kelas batok disamakan dengan jam buka
 UPDATE wisata SET waktu_terbaik = 'Hari kerja pukul 09.00 sampai 15.00, saat pengrajin bekerja. Bisa dikunjungi saat hujan.' WHERE slug = 'batok-kelapa' AND waktu_terbaik = 'Hari kerja pukul 09.00 sampai 14.00, saat pengrajin bekerja. Bisa dikunjungi saat hujan.';
+
+-- ---------- Tambahan 12v: teks keterangan dirapikan dan bisa diubah di CMS > Pengaturan > Teks keterangan ----------
+-- Hanya mengganti teks bawaan lama. Kalau tim sudah mengubahnya sendiri, teks tim tidak disentuh.
+UPDATE pengaturan SET nilai = 'Konsep website desa untuk IIT EcoQuest 2026' WHERE kunci = 'label_status' AND nilai = 'Ilustrasi website desa untuk IIT EcoQuest 2026';
+UPDATE pengaturan SET nilai = 'Logo dirancang tim website dengan bantuan alat AI, bukan lambang resmi Pemerintah Desa Marga Mulya.' WHERE kunci = 'catatan_logo' AND nilai = 'Logo website ini dibuat tim dengan bantuan AI dan bukan logo resmi Pemerintah Desa Marga Mulya.';
+UPDATE pengaturan SET nilai = 'Data asli: luas wilayah, jumlah RW dan RT, serta penduduk menurut jenis kelamin dari BPS (Kecamatan Mauk Dalam Angka 2025, data 2024). Angka bertanda ilustrasi disusun mengikuti format Data EcoQuest A sampai M sebagai gambaran, dan bisa diganti data resmi kantor desa lewat CMS.' WHERE kunci = 'catatan_data' AND nilai = 'Data asli: luas wilayah, jumlah RW dan RT, serta penduduk menurut jenis kelamin dari BPS (Kecamatan Mauk Dalam Angka 2025, data 2024). Angka bertanda (ilustrasi) adalah contoh yang disusun mengikuti format Data EcoQuest A sampai M, dan akan diganti dengan data resmi dari kantor desa.';

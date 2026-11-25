@@ -94,7 +94,7 @@ function bar_list(array $rows): string
     $html = '';
     // Kalau semua baris ilustrasi, cukup satu tanda di atas (tidak diulang per baris)
     $semuaIlus = count(array_filter($rows, fn($r) => !empty($r['ilustrasi']))) === count($rows);
-    if ($semuaIlus) $html .= '<p class="ilus-semua"><span class="tanda-ilus">Ilustrasi</span> Angka contoh, menunggu data resmi kantor desa.</p>';
+    if ($semuaIlus) $html .= '<p class="ilus-semua"><span class="tanda-ilus">Ilustrasi</span> ' . e(teks('teks_angka_ilustrasi')) . '</p>';
     if ($adaInduk) {
         $r = $rows[0];
         $html .= '<p class="bar-induk"><span>' . e($r['label']) . '</span><b>' . angka($r['nilai']) . ' ' . e($r['satuan']) . '</b><small>Rincian di bawah dihitung dari jumlah ini.</small></p>';
@@ -110,7 +110,7 @@ function bar_list(array $rows): string
     }
     foreach ($bagian as $i => $r) {
         $lebar = $r['satuan'] === '%' ? (float) $r['nilai'] : (float) $r['nilai'] / $max * 100;
-        $tanda = !empty($r['ilustrasi']) && !$semuaIlus ? ' <span class="ilus" title="Data contoh, bukan data resmi">(ilustrasi)</span>' : '';
+        $tanda = !empty($r['ilustrasi']) && !$semuaIlus ? ' <span class="ilus" title="Angka gambaran, bukan data resmi desa">(ilustrasi)</span>' : '';
         $html .= '<div class="bar-row"><span><i class="swatch" style="background:' . $warna($i) . '"></i>' . e($r['label']) . $tanda . '</span>'
             . '<div class="bar-track"><div class="bar-fill" style="width:' . round($lebar, 1) . '%;background:' . $warna($i) . '"></div></div>'
             . '<b>' . angka($r['nilai']) . ($r['satuan'] === '%' ? '%' : ' ' . e($r['satuan'])) . ($komposisi ? ' <small>' . persen_id((float) $r['nilai'], $total) . '%</small>' : '') . '</b></div>';
@@ -757,9 +757,31 @@ function tautan_referensi(): string
 function sumber_foto(string $foto, string $sumber = ''): string
 {
     if (trim($sumber) !== '') return trim($sumber);
-    if (str_starts_with($foto, '/assets/img/') && str_ends_with($foto, '.svg')) return 'Ilustrasi vektor buatan tim website (bukan foto asli)';
+    if (str_starts_with($foto, '/assets/img/') && str_ends_with($foto, '.svg')) return 'Ilustrasi vektor karya tim website';
     if (str_starts_with($foto, '/foto?')) return 'Foto kiriman pemilik usaha lewat form Ajukan produk';
     return '';
+}
+
+// 12v: teks keterangan yang bisa diubah di CMS > Pengaturan > Teks keterangan.
+// Kalau kolomnya dikosongkan, website memakai teks bawaan di bawah ini.
+const TEKS_BAWAAN = [
+    'label_status'        => 'Konsep website desa untuk IIT EcoQuest 2026',
+    'teks_kaki'           => 'Konsep portal layanan dan informasi publik {desa}, {kecamatan}, yang kami rancang untuk IIT EcoQuest 2026. Semua isinya siap diganti data resmi desa lewat CMS.',
+    'teks_hak_cipta'      => 'Foto, gambar, dan angka bertanda ilustrasi dipakai sebagai gambaran.',
+    'teks_foto_ilustrasi' => 'Foto di website ini adalah foto ilustrasi. Dokumentasi {desa} belum banyak tersedia di internet, jadi kami memakai foto dari sumber lain untuk menggambarkan suasana desa pesisir. Hak cipta tetap milik pemilik foto, dan setiap foto bisa diganti dokumentasi asli desa lewat CMS.',
+    'label_foto'          => 'Foto ilustrasi',
+    'teks_foto_beranda'   => 'Foto ilustrasi suasana pesisir',
+    'teks_angka_ilustrasi' => 'Angka gambaran, disusun mengikuti format data desa.',
+    'catatan_logo'        => 'Logo dirancang tim website dengan bantuan alat AI, bukan lambang resmi Pemerintah {desa}.',
+];
+
+function teks(string $kunci): string
+{
+    $isi = trim(setting($kunci));
+    if ($isi === '') $isi = TEKS_BAWAAN[$kunci] ?? '';
+    $kec = trim(setting('kecamatan', 'Mauk'));
+    if (stripos($kec, 'kecamatan') !== 0) $kec = 'Kecamatan ' . $kec;
+    return strtr($isi, ['{desa}' => setting('nama_desa', 'Desa Marga Mulya'), '{kecamatan}' => $kec]);
 }
 
 // 12u: semua foto dianggap ilustrasi (tim tidak memiliki foto asli desa). Bisa dimatikan di Pengaturan.
@@ -778,7 +800,7 @@ function foto_bukan_vektor(string $foto): bool
 // Tanda ilustrasi di pojok foto. $lama = tanda "(ilustrasi)" dari judul atau kolom ilustrasi.
 function tanda_foto(string $foto, bool $lama = false, string $teksVektor = 'Ilustrasi'): string
 {
-    if (foto_bukan_vektor($foto)) return ($lama || semua_foto_ilustrasi()) ? tanda_ilustrasi(true, 'Foto ilustrasi') : '';
+    if (foto_bukan_vektor($foto)) return ($lama || semua_foto_ilustrasi()) ? tanda_ilustrasi(true, teks('label_foto')) : '';
     return tanda_ilustrasi($lama || semua_foto_ilustrasi(), $teksVektor);
 }
 
@@ -794,11 +816,11 @@ function kredit_per_halaman(): array
         $h[$hal][] = ['lokasi' => $lokasi, 'judul' => $judul, 'sumber' => sumber_foto($foto, $sumber), 'url' => preg_match('#^https?://#', $url) ? $url : '', 'ilus' => foto_bukan_vektor($foto) && semua_foto_ilustrasi()];
     };
     // Semua halaman
-    $h['Semua halaman'][] = ['lokasi' => 'Kiri atas dan kaki halaman', 'judul' => 'Logo ' . setting('nama_desa'), 'sumber' => setting('catatan_logo', 'Dibuat tim dengan bantuan AI, bukan logo resmi pemerintah desa'), 'url' => ''];
+    $h['Semua halaman'][] = ['lokasi' => 'Kiri atas dan kaki halaman', 'judul' => 'Logo ' . setting('nama_desa'), 'sumber' => teks('catatan_logo'), 'url' => ''];
     $h['Semua halaman'][] = ['lokasi' => 'Bagian atas beranda dan kaki halaman', 'judul' => 'Ilustrasi panorama laut, mangrove, dan sawah', 'sumber' => sumber_foto('/assets/img/panorama.svg'), 'url' => ''];
     // Beranda
     $tambah('Beranda', 'Panel judul beranda', 'Foto utama beranda', setting('foto_hero'), setting('foto_hero_sumber'), setting('foto_hero_url'));
-    $tambah('Beranda dan Profil', 'Sambutan kepala desa', 'Foto kepala desa', setting('foto_kades'), setting('foto_kades_sumber'));
+    $tambah('Beranda dan Profil', 'Sambutan kepala desa', foto_bukan_vektor(setting('foto_kades')) ? (setting('sambutan_ilustrasi', '1') === '1' ? 'Foto kepala desa (ilustrasi)' : 'Foto kepala desa') : 'Gambar kepala desa (ilustrasi)', setting('foto_kades'), setting('foto_kades_sumber'));
     // Wisata dan budaya
     foreach ($aman(fn() => q('SELECT nama, foto, sumber_foto, sumber_url FROM wisata WHERE aktif = 1 ORDER BY id')) as $r)
         $tambah('Wisata dan budaya', 'Kartu dan halaman destinasi', $r['nama'], (string) $r['foto'], $r['sumber_foto'], $r['sumber_url']);
@@ -833,7 +855,7 @@ function pisah_ilustrasi(string $teks): array
 
 function tanda_ilustrasi(bool $ada, string $teks = 'Ilustrasi'): string
 {
-    return $ada ? '<span class="tanda-ilus" title="Contoh, bukan data atau dokumentasi resmi desa">' . e($teks) . '</span>' : '';
+    return $ada ? '<span class="tanda-ilus" title="Gambaran, bukan dokumentasi resmi desa">' . e($teks) . '</span>' : '';
 }
 
 // Paragraf dari teks CMS (mengenali baris kosong, baik baris baru asli maupun tulisan \n)

@@ -78,7 +78,7 @@ $panah = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="cu
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=12u">
+  <link rel="stylesheet" href="/assets/css/style.css?v=12v">
 </head>
 <body class="publik">
 <a class="skip" href="#isi">Langsung ke isi halaman</a>

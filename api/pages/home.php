@@ -92,7 +92,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
   <div class="wrap">
     <div class="hero-panel<?= $fotoHero ? ' hero-berfoto' : '' ?>"<?= $fotoHero ? ' style="--foto-hero:url(\'' . e($fotoHero) . '\')"' : '' ?>>
       <div class="hero-teks">
-        <span class="pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><?= e(setting('label_status', 'Ilustrasi website desa untuk IIT EcoQuest 2026')) ?></span>
+        <span class="pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><?= e(teks('label_status')) ?></span>
         <h1 id="judul-hero"><?php if ($posNama !== false && $posNama > 0): ?><?= e(rtrim(mb_substr($judulHero, 0, $posNama))) ?> <em><?= e(mb_substr($judulHero, $posNama)) ?></em><?php else: ?><?= e($judulHero) ?><?php endif; ?></h1>
         <p class="hero-sub"><?= e(setting('hero_teks')) ?></p>
         <form class="cari" id="cariForm" role="search" action="/data-desa" method="get">
@@ -102,7 +102,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
         </form>
         <ul class="cari-hasil" id="cariHasil" hidden aria-live="polite"></ul>
       </div>
-      <?php if ($fotoHero && semua_foto_ilustrasi()): ?><span class="hero-ilus">Foto ilustrasi dari internet, bukan foto <?= e(setting('nama_desa')) ?></span><?php endif; ?>
+      <?php if ($fotoHero && semua_foto_ilustrasi()): ?><span class="hero-ilus"><?= e(teks('teks_foto_beranda')) ?></span><?php endif; ?>
       <?php if (!$fotoHero): ?><div class="hero-gambar" aria-hidden="true"><img src="/assets/img/panorama.svg" alt="" width="1200" height="240"></div><?php endif; ?>
     </div>
     <div class="info-a" data-info-cuaca data-lat="<?= e(setting('lat')) ?>" data-lng="<?= e(setting('lng')) ?>">
@@ -175,7 +175,7 @@ $bulanPendek = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP
       <small>Sumber data: Open-Meteo</small>
     </a>
   </div>
-  <p class="eko-catatan">Kegiatan dan kawasan di atas bertanda ilustrasi di halaman asalnya, sebagai gambaran program lingkungan desa pesisir.</p>
+  <p class="eko-catatan">Kegiatan dan kawasan di atas adalah gambaran program lingkungan untuk desa pesisir.</p>
 </div></section>
 
 <section class="sec sec-putih" aria-labelledby="judul-kabar"><div class="wrap kabar-agenda">

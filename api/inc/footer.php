@@ -5,7 +5,7 @@
     <div class="wrap kaki-isi">
       <div class="kaki-identitas">
         <a class="brand brand-kaki" href="/"><span class="brand-kotak"><img class="brand-logo" src="/assets/img/logo-mark.png?v=2" alt="" width="64" height="35" loading="lazy"></span><span class="brand-teks"><b><?= e(str_replace('Desa ', '', setting('nama_desa'))) ?></b><small><?= e(nama_kabupaten()) ?></small></span></a>
-        <p>Rancangan portal layanan dan informasi publik <?= e(setting('nama_desa')) ?>, <?= e(setting('kecamatan')) ?>. <?= e(setting('label_status', 'Ilustrasi website desa untuk IIT EcoQuest 2026')) ?>, belum menjadi website resmi pemerintah desa.</p>
+        <p><?= e(teks('teks_kaki')) ?></p>
         <button type="button" class="btn btn-sm pasang-btn" id="pasangBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Pasang di HP, bisa dibuka tanpa sinyal</button>
       </div>
       <div>
@@ -35,17 +35,16 @@
       </div>
     </div>
     <div class="wrap footer-bawah">
-      <p>&copy; <?= date('Y') ?> Tim EcoQuest <?= e(setting('nama_desa')) ?>. Versi demonstrasi untuk IIT EcoQuest 2026; data dan gambar bertanda ilustrasi adalah contoh.</p>
+      <p>&copy; <?= date('Y') ?> Tim EcoQuest <?= e(setting('nama_desa')) ?>. <?= e(teks('teks_hak_cipta')) ?></p>
       <p class="kaki-kecil"><a href="/kontak#privasi">Privasi</a><button type="button" class="kaki-kredit" id="kreditBtn" aria-haspopup="dialog">Sumber dan kredit foto</button><?php if (setting('referensi_data_url') !== ''): ?><a href="<?= e(setting('referensi_data_url')) ?>" target="_blank" rel="noopener">Referensi data BPS</a><?php endif; ?></p>
-      <?php if (setting('catatan_logo') !== ''): ?><p class="kaki-logo-ai"><?= e(setting('catatan_logo')) ?></p><?php endif; ?>
     </div>
   </div>
 </footer>
 <dialog class="kredit-dialog" id="kreditDialog" aria-labelledby="judulKredit">
   <div class="kredit-kepala"><h2 id="judulKredit">Sumber dan kredit foto</h2><button type="button" class="btn btn-ghost btn-sm" data-tutup aria-label="Tutup">&times;</button></div>
   <div class="kredit-isi">
-    <p class="muted">Daftar ini disusun otomatis per halaman, sesuai tempat foto atau gambar itu tampil. Foto dan gambar bertanda ilustrasi bukan dokumentasi resmi <?= e(setting('nama_desa')) ?>.</p>
-    <?php if (semua_foto_ilustrasi()): ?><p class="kredit-ilus"><b>Semua foto di website ini adalah foto ilustrasi.</b> Tim belum menemukan foto asli <?= e(setting('nama_desa')) ?> yang bisa dipakai, sehingga foto diambil dari sumber lain di internet sebagai gambaran suasana. Foto-foto ini tidak menunjukkan lokasi, warga, atau kegiatan asli desa. Hak cipta tetap milik pemilik foto masing-masing.</p><?php endif; ?>
+    <p class="muted">Sumber setiap foto dan gambar, dikelompokkan menurut halaman tempatnya tampil.</p>
+    <?php if (semua_foto_ilustrasi()): ?><p class="kredit-ilus"><?= e(teks('teks_foto_ilustrasi')) ?></p><?php endif; ?>
     <?php foreach (kredit_per_halaman() as $namaHal => $daftarKf): ?>
       <details class="kredit-hal" <?= $namaHal === array_key_first(kredit_per_halaman()) ? 'open' : '' ?>>
         <summary><?= e($namaHal) ?> <span class="muted">(<?= count($daftarKf) ?>)</span></summary>
@@ -56,7 +55,7 @@
               <b><?= e($kf['judul']) ?></b>
               <span class="kredit-tautan">
                 <?php if (!empty($kf['ilus'])): ?><span class="tanda-ilus">Foto ilustrasi</span><?php endif; ?>
-                <?php if ($kf['sumber'] !== ''): ?><span><?= e($kf['sumber']) ?></span><?php else: ?><span class="muted"><?= !empty($kf['ilus']) ? 'Diambil dari internet, nama pemilik foto belum dicantumkan' : 'Sumber belum dicantumkan' ?></span><?php endif; ?>
+                <?php if ($kf['sumber'] !== ''): ?><span><?= e($kf['sumber']) ?></span><?php else: ?><span class="muted"><?= !empty($kf['ilus']) ? 'Foto dari internet, nama pemiliknya belum dicantumkan' : 'Sumber belum dicantumkan' ?></span><?php endif; ?>
                 <?php if ($kf['url']): ?><a href="<?= e($kf['url']) ?>" target="_blank" rel="noopener nofollow">Buka sumber</a><?php endif; ?>
                 <?php if (!empty($kf['lisensi'])): ?><?= !empty($kf['lisensi_url']) ? '<a href="' . e($kf['lisensi_url']) . '" target="_blank" rel="noopener nofollow">' . e($kf['lisensi']) . '</a>' : '<span>' . e($kf['lisensi']) . '</span>' ?><?php endif; ?>
               </span>
